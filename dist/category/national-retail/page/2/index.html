@@ -1625,6 +1625,23 @@
 
     <script>
         (function() {
+            // Sidebar scroll position persistence
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                // Restore scroll position on page load
+                const savedScroll = sessionStorage.getItem('sidebarScroll');
+                if (savedScroll) {
+                    sidebar.scrollTop = parseInt(savedScroll, 10);
+                }
+                
+                // Save scroll position when clicking any filter link
+                sidebar.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        sessionStorage.setItem('sidebarScroll', sidebar.scrollTop);
+                    });
+                });
+            }
+            
             const themeBtn = document.getElementById('theme-toggle-btn');
             const themeDropdown = document.getElementById('theme-dropdown');
             const themeIcon = document.getElementById('theme-icon');
