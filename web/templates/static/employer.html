@@ -1,0 +1,176 @@
+{% extends "static/base.html" %}
+
+{% block title %}{{ employer_name }} Jobs - Humboldt Jobs{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            {% if last_updated %}
+            <div class="last-updated">
+                <span class="update-icon">🔄</span>
+                <span>Last updated: {{ last_updated.strftime('%b %d, %Y at %I:%M %p') }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="filter-section">
+                <h3>Categories</h3>
+                <ul class="filter-list">
+                    <li>
+                        <a href="/">
+                            All Jobs
+                            <span class="filter-count">{{ total_all_jobs }}</span>
+                        </a>
+                    </li>
+                    {% for cat, count in categories %}
+                    <li>
+                        <a href="/category/{{ cat | slugify }}/">
+                            {{ cat }}
+                            <span class="filter-count">{{ count }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="filter-section">
+                <h3>Locations</h3>
+                <ul class="filter-list">
+                    <li>
+                        <a href="/">
+                            All Locations
+                            <span class="filter-count">{{ total_all_jobs }}</span>
+                        </a>
+                    </li>
+                    {% for loc, count in locations[:10] %}
+                    <li>
+                        <a href="/location/{{ loc | slugify }}/">
+                            {{ loc[:20] }}{% if loc|length > 20 %}...{% endif %}
+                            <span class="filter-count">{{ count }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="filter-section">
+                <h3>Top Employers</h3>
+                <ul class="filter-list">
+                    {% for emp in employers[:10] %}
+                    <li>
+                        <a href="/employer/{{ emp.name | slugify }}/" class="{% if selected_employer == emp.name %}active{% endif %}">
+                            {{ emp.name[:25] }}{% if emp.name|length > 25 %}...{% endif %}
+                            <span class="filter-count">{{ emp.job_count }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main>
+            <div class="breadcrumb">
+                <a href="/">All Jobs</a>
+                <span>/</span>
+                <span>{{ employer_name }}</span>
+            </div>
+
+            <div class="page-header">
+                <h1>{{ employer_name }}</h1>
+                <p>{{ total }} open position{% if total != 1 %}s{% endif %}</p>
+            </div>
+
+            {% if jobs %}
+            <div class="job-list">
+                {% for job in jobs %}
+                <article class="job-card">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="{{ job.url }}" target="_blank" rel="noopener">{{ job.title }}</a>
+                        </h2>
+                        <span class="job-category">{{ job.category }}</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        {% if job.location %}
+                        <span>📍 {{ job.location }}</span>
+                        {% endif %}
+                        {% if job.job_type %}
+                        <span>⏰ {{ job.job_type }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if job.salary_text %}
+                    <div class="job-salary">
+                        💰 {{ job.salary_text }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if job.description %}
+                    <p class="job-description">{{ job.description[:200] }}{% if job.description|length > 200 %}...{% endif %}</p>
+                    {% endif %}
+                    
+                    <div class="job-footer">
+                        <span class="job-date {% if job.posted_date or job.closing_date %}has-date{% endif %}">
+                            {% if job.closing_date %}
+                                Closes: {{ job.closing_date.strftime('%b %d, %Y') }}
+                            {% elif job.posted_date %}
+                                Posted: {{ job.posted_date.strftime('%b %d, %Y') }}
+                            {% else %}
+                                Recently added
+                            {% endif %}
+                        </span>
+                        <a href="{{ job.url }}" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if pages > 1 %}
+            <div class="pagination">
+                {% if prev_url %}
+                <a href="{{ prev_url }}">← Prev</a>
+                {% else %}
+                <span class="disabled">← Prev</span>
+                {% endif %}
+                
+                {% for p in range(1, pages + 1) %}
+                    {% if p == page %}
+                    <span class="active">{{ p }}</span>
+                    {% elif p <= 3 or p > pages - 2 or (p >= page - 1 and p <= page + 1) %}
+                        {% if p == 1 %}
+                        <a href="{{ base_path }}">{{ p }}</a>
+                        {% else %}
+                        <a href="{{ base_path }}page/{{ p }}/">{{ p }}</a>
+                        {% endif %}
+                    {% elif p == 4 and page > 4 %}
+                    <span>...</span>
+                    {% elif p == pages - 2 and page < pages - 3 %}
+                    <span>...</span>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if next_url %}
+                <a href="{{ next_url }}">Next →</a>
+                {% else %}
+                <span class="disabled">Next →</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="empty-state">
+                <h3>No jobs currently available</h3>
+                <p>Check back soon for new openings at {{ employer_name }}</p>
+                <a href="/" class="apply-btn" style="margin-top: 1rem; display: inline-flex;">Browse all jobs</a>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}

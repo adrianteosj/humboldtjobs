@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local database (don't commit the database, regenerate on deploy)
+*.db
+
+# Logs
+*.log
+
+# Note: dist/ is NOT ignored because we commit it for Netlify deployment

@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category_name }} Jobs - Humboldt Jobs{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="breadcrumb">
+        <a href="/">All Jobs</a>
+        <span>/</span>
+        <span>{{ category_name }}</span>
+    </div>
+
+    <div class="layout">
+        <!-- Sidebar with top employers in this category -->
+        <aside class="sidebar">
+            <div class="filter-section">
+                <h3>Top Employers</h3>
+                <ul class="filter-list">
+                    {% for emp_name, count in top_employers %}
+                    <li>
+                        <a href="/employer/{{ emp_name | urlencode }}">
+                            {{ emp_name[:25] }}{% if emp_name|length > 25 %}...{% endif %}
+                            <span class="filter-count">{{ count }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="filter-section">
+                <h3>Other Categories</h3>
+                <ul class="filter-list">
+                    <li><a href="/">← All Jobs</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main>
+            <div class="page-header">
+                <h1>{{ category_name }} Jobs</h1>
+                <p>{{ total }} open position{% if total != 1 %}s{% endif %} in {{ category_name }}</p>
+            </div>
+
+            {% if jobs %}
+            <div class="job-list">
+                {% for job in jobs %}
+                <article class="job-card">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="{{ job.url }}" target="_blank" rel="noopener">{{ job.title }}</a>
+                        </h2>
+                        <span class="job-category">{{ job.category }}</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 <a href="/employer/{{ job.employer | urlencode }}" style="color: inherit; text-decoration: none;">{{ job.employer }}</a></span>
+                        {% if job.location %}
+                        <span>📍 {{ job.location }}</span>
+                        {% endif %}
+                        {% if job.job_type %}
+                        <span>⏰ {{ job.job_type }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if job.description %}
+                    <p class="job-description">{{ job.description[:200] }}{% if job.description|length > 200 %}...{% endif %}</p>
+                    {% endif %}
+                    
+                    <div class="job-footer">
+                        <span class="job-date">
+                            {% if job.closing_date %}
+                                Closes: {{ job.closing_date.strftime('%b %d, %Y') }}
+                            {% elif job.posted_date %}
+                                Posted: {{ job.posted_date.strftime('%b %d, %Y') }}
+                            {% else %}
+                                Recently added
+                            {% endif %}
+                        </span>
+                        <a href="{{ job.url }}" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if pages > 1 %}
+            <div class="pagination">
+                {% if page > 1 %}
+                <a href="?page={{ page - 1 }}">← Prev</a>
+                {% else %}
+                <span class="disabled">← Prev</span>
+                {% endif %}
+                
+                {% for p in range(1, pages + 1) %}
+                    {% if p == page %}
+                    <span class="active">{{ p }}</span>
+                    {% elif p <= 3 or p > pages - 2 or (p >= page - 1 and p <= page + 1) %}
+                    <a href="?page={{ p }}">{{ p }}</a>
+                    {% elif p == 4 and page > 4 %}
+                    <span>...</span>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page < pages %}
+                <a href="?page={{ page + 1 }}">Next →</a>
+                {% else %}
+                <span class="disabled">Next →</span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="empty-state">
+                <h3>No {{ category_name }} jobs currently available</h3>
+                <p>Check back soon for new openings</p>
+                <a href="/" class="apply-btn" style="margin-top: 1rem; display: inline-flex;">Browse all jobs</a>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Rounded light green background -->
+  <rect width="64" height="64" rx="12" ry="12" fill="#8fbc8f"/>
+  
+  <!-- Pine tree - multiple layers for depth -->
+  <!-- Tree shadow/depth -->
+  <g transform="translate(2, 1)" opacity="0.3">
+    <polygon points="32,8 42,24 38,24 46,38 40,38 48,52 16,52 24,38 18,38 26,24 22,24" fill="#1a3d2a"/>
+  </g>
+  
+  <!-- Main tree body - darker green -->
+  <polygon points="32,8 42,24 38,24 46,38 40,38 48,52 16,52 24,38 18,38 26,24 22,24" fill="#2d5a3d"/>
+  
+  <!-- Tree highlights - lighter areas -->
+  <polygon points="32,10 38,20 35,20 41,31 37,31 43,44 25,44 28,35 24,35 29,24 26,24" fill="#3d7a52" opacity="0.7"/>
+  
+  <!-- Tree trunk -->
+  <rect x="28" y="52" width="8" height="6" fill="#4a3728"/>
+  <rect x="29" y="52" width="3" height="6" fill="#5d4633" opacity="0.6"/>
+</svg>

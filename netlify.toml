@@ -1,0 +1,52 @@
+# Netlify Configuration for Humboldt Jobs
+
+[build]
+  # Directory to publish
+  publish = "dist"
+  
+  # Skip build command - we pre-generate the static site locally
+  # and commit it to the repo
+  command = "echo 'Static site already generated'"
+
+# Redirects for clean URLs
+[[redirects]]
+  from = "/page/:num"
+  to = "/page/:num/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/category/:cat"
+  to = "/category/:cat/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/location/:loc"
+  to = "/location/:loc/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/employer/:emp"
+  to = "/employer/:emp/index.html"
+  status = 200
+
+# Headers for caching
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# Custom 404 page
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404
