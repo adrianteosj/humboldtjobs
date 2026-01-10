@@ -25,7 +25,7 @@
                     </li>
                     {% for cat, count in categories %}
                     <li>
-                        <a href="/?category={{ cat }}" class="{% if selected_category == cat %}active{% endif %}">
+                        <a href="/?category={{ cat | urlencode }}" class="{% if selected_category == cat %}active{% endif %}">
                             {{ cat }}
                             <span class="filter-count">{{ count }}</span>
                         </a>
@@ -148,7 +148,7 @@
             {% if pages > 1 %}
             <div class="pagination">
                 {% if page > 1 %}
-                <a href="?page={{ page - 1 }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">← Prev</a>
+                <a href="?page={{ page - 1 }}{% if selected_category %}&category={{ selected_category | urlencode }}{% endif %}{% if selected_location %}&location={{ selected_location | urlencode }}{% endif %}{% if search_query %}&search={{ search_query | urlencode }}{% endif %}">← Prev</a>
                 {% else %}
                 <span class="disabled">← Prev</span>
                 {% endif %}
@@ -157,7 +157,7 @@
                     {% if p == page %}
                     <span class="active">{{ p }}</span>
                     {% elif p <= 3 or p > pages - 2 or (p >= page - 1 and p <= page + 1) %}
-                    <a href="?page={{ p }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">{{ p }}</a>
+                    <a href="?page={{ p }}{% if selected_category %}&category={{ selected_category | urlencode }}{% endif %}{% if selected_location %}&location={{ selected_location | urlencode }}{% endif %}{% if search_query %}&search={{ search_query | urlencode }}{% endif %}">{{ p }}</a>
                     {% elif p == 4 and page > 4 %}
                     <span>...</span>
                     {% elif p == pages - 2 and page < pages - 3 %}
@@ -166,7 +166,7 @@
                 {% endfor %}
                 
                 {% if page < pages %}
-                <a href="?page={{ page + 1 }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_location %}&location={{ selected_location }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Next →</a>
+                <a href="?page={{ page + 1 }}{% if selected_category %}&category={{ selected_category | urlencode }}{% endif %}{% if selected_location %}&location={{ selected_location | urlencode }}{% endif %}{% if search_query %}&search={{ search_query | urlencode }}{% endif %}">Next →</a>
                 {% else %}
                 <span class="disabled">Next →</span>
                 {% endif %}

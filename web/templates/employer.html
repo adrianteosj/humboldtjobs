@@ -25,7 +25,7 @@
                     </li>
                     {% for cat, count in categories %}
                     <li>
-                        <a href="/?category={{ cat }}">
+                        <a href="/?category={{ cat | urlencode }}">
                             {{ cat }}
                             <span class="filter-count">{{ count }}</span>
                         </a>
