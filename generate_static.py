@@ -315,6 +315,139 @@ def generate_employer_pages(env, session, common_data):
         print(f"  Generated: /employer/{emp_slug}/ ({total} jobs, {total_pages} pages)")
 
 
+def generate_employers_directory(env):
+    """Generate the employer career pages directory."""
+    print("Generating employers directory page...")
+    
+    template = env.get_template("static/employers.html")
+    
+    # Define employer data by category
+    employers_by_category = {
+        "Government": [
+            {"name": "County of Humboldt", "url": "https://www.governmentjobs.com/careers/humboldtcountyca"},
+            {"name": "City of Eureka", "url": "https://www.governmentjobs.com/careers/eurekaca"},
+            {"name": "City of Arcata", "url": "https://www.cityofarcata.org/Jobs.aspx"},
+            {"name": "City of Fortuna", "url": "https://www.governmentjobs.com/careers/fortunaca"},
+            {"name": "City of Rio Dell", "url": "https://www.cityofriodell.ca.gov/282/Employment"},
+            {"name": "City of Blue Lake", "url": "https://bluelake.ca.gov/employment-opportunities/"},
+            {"name": "City of Ferndale", "url": "https://ci.ferndale.ca.us/employment/"},
+            {"name": "City of Trinidad", "url": "https://www.trinidad.ca.gov/employment-opportunities"},
+            {"name": "Wiyot Tribe", "url": "https://www.wiyot.us/Jobs.aspx"},
+            {"name": "Yurok Tribe", "url": "https://www.governmentjobs.com/careers/yuroktribe"},
+        ],
+        "Education": [
+            {"name": "Cal Poly Humboldt", "url": "https://csucareers.calstate.edu/en-us/filter/?location=humboldt"},
+            {"name": "College of the Redwoods", "url": "https://employment.redwoods.edu/postings/search"},
+            {"name": "Humboldt County School Districts", "url": "https://edjoin.org/Home/Jobs?location=humboldt"},
+        ],
+        "Healthcare": [
+            {"name": "Open Door Community Health", "url": "https://opendoorhealth.wd503.myworkdayjobs.com/ODCHC"},
+            {"name": "Providence St. Joseph Hospital", "url": "https://providence.jobs/eureka/new-jobs/"},
+            {"name": "Providence Redwood Memorial", "url": "https://providence.jobs/fortuna/new-jobs/"},
+            {"name": "Mad River Community Hospital", "url": "https://www.madriverhospital.com/careers"},
+            {"name": "United Indian Health Services", "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=447f2bd0-2d4d-4f2a-9bae-3f5453ebc910"},
+            {"name": "K'ima:w Medical Center", "url": "https://www.kimaw.org/jobs"},
+            {"name": "Hospice of Humboldt", "url": "https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/career-page"},
+            {"name": "Humboldt Senior Resource Center", "url": "https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/career-page"},
+            {"name": "Redwood Community Action Agency", "url": "https://rcaa.org/employment-opportunities"},
+            {"name": "SoHum Health", "url": "https://sohumhealth.org/careers/"},
+            {"name": "Redwoods Rural Health Center", "url": "https://www.rrhc.org/job-opportunities"},
+        ],
+        "Nonprofit & Social Services": [
+            {"name": "Food for People", "url": "https://www.foodforpeople.org/jobs"},
+            {"name": "Boys & Girls Club of the Redwoods", "url": "https://bgcredwoods.org/careers/"},
+            {"name": "Changing Tides Family Services", "url": "https://changingtidesfs.org/employment/"},
+            {"name": "Two Feathers NAFS", "url": "https://twofeathers-nafs.org/about-us/employment-opportunities/"},
+            {"name": "Arcata House Partnership", "url": "https://www.arcatahouse.org/join-our-team"},
+        ],
+        "Local Retail": [
+            {"name": "North Coast Co-op", "url": "https://recruiting2.ultipro.com/NOR1050NCCOP/JobBoard/ec9e3a4a-afd4-4ee8-a6b5-4d3767816852/"},
+            {"name": "Eureka Natural Foods", "url": "https://www.eurekanaturalfoods.com/employment-our-team"},
+            {"name": "Murphy's Markets", "url": "https://www.murphysmarkets.net/employment"},
+            {"name": "Pierson Building Center", "url": "https://www.thebighammer.com/jobs"},
+            {"name": "C. Crane Company", "url": "https://ccrane.com/jobs/"},
+        ],
+        "National Retail": [
+            {"name": "Walmart", "url": "https://careers.walmart.com/us/en/results?searchQuery=95501"},
+            {"name": "Costco", "url": "https://careers.costco.com/jobs?stretchUnit=MILES&stretch=10&lat=40.87548845327257&lng=-124.09764277786618"},
+            {"name": "Safeway/Albertsons", "url": "https://eofd.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs?location=Eureka%2C+CA"},
+            {"name": "Dollar General", "url": "https://careers.dollargeneral.com/jobs?keywords=&location=95521&stretch=50"},
+            {"name": "Walgreens", "url": "https://jobs.walgreens.com/en/search-jobs/95521%2C%20Arcata%2C%20CA/1242/4/"},
+            {"name": "TJ Maxx", "url": "https://jobs.tjx.com/global/en/search-results?keywords=&location=Eureka,%20CA,%20USA"},
+            {"name": "CVS Health", "url": "https://jobs.cvshealth.com/us/en/search-results?keywords=&location=Eureka%2C%20CA"},
+            {"name": "Rite Aid", "url": "https://careers.riteaid.com/jobs?location=Eureka%2C+CA&radius=50"},
+            {"name": "Ace Hardware", "url": "https://careers.acehardware.com/job-search/?location=Eureka%2C+CA&radius=50"},
+            {"name": "WinCo Foods", "url": "https://careers.wincofoods.com"},
+            {"name": "Grocery Outlet", "url": "https://groceryoutlet.com/careers"},
+            {"name": "Harbor Freight Tools", "url": "https://jobs.harborfreight.com/search-jobs/eureka%2C%20ca"},
+        ],
+        "Food & Agriculture": [
+            {"name": "Humboldt Creamery", "url": "https://recruiting.paylocity.com/recruiting/jobs/All/249cf053-4850-4112-bc86-33c91f93332a/Crystal-Creamery"},
+            {"name": "Cypress Grove Chevre", "url": "https://www.cypressgrovecheese.com/careers/"},
+            {"name": "Alexandre Family Farm", "url": "https://alexandrefamilyfarm.com/pages/careers"},
+            {"name": "Driscoll's", "url": "https://www.driscolls.com/about/careers"},
+            {"name": "Pacific Seafood", "url": "https://careers.pacificseafood.com/search-result/?keyword=&city=95501&state=CA"},
+        ],
+        "Food & Beverage": [
+            {"name": "Lost Coast Brewery", "url": "https://lostcoast.com/careers"},
+            {"name": "Starbucks", "url": "https://www.starbucks.com/careers/find-a-job?location=Eureka%2C%20CA"},
+        ],
+        "Timber & Forestry": [
+            {"name": "Humboldt Sawmill / Humboldt Redwood Company", "url": "https://careers-mfp.icims.com/jobs/search?ss=1&searchLocation=12781-12789-Scotia"},
+            {"name": "Green Diamond Resource Company", "url": "https://secure3.entertimeonline.com/ta/6110531.careers?CareersSearch"},
+            {"name": "Sierra Pacific Industries", "url": "https://spi-ind.com/CAREERS"},
+            {"name": "Jones Family Tree Service", "url": "https://www.jonesfamilytreeservice.com/careers"},
+        ],
+        "Manufacturing": [
+            {"name": "Kokatat", "url": "https://kokatat.com/careers"},
+        ],
+        "Construction & Engineering": [
+            {"name": "Danco Group", "url": "https://www.danco-group.com/who-we-are/join-our-team"},
+            {"name": "LACO Associates", "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=98890d1f-2673-4416-b519-52f06ee8bb40"},
+        ],
+        "Energy & Utilities": [
+            {"name": "Redwood Coast Energy Authority", "url": "https://redwoodenergy.org/about/employment/"},
+            {"name": "Pacific Gas & Electric (PG&E)", "url": "https://jobs.pge.com/search/?searchby=location&q=&locationsearch=eureka"},
+        ],
+        "Transportation & Logistics": [
+            {"name": "FedEx", "url": "https://careers.fedex.com/fedex/jobs?location=Eureka%2C%20CA&woe=7&stretch=50"},
+            {"name": "UPS", "url": "https://www.jobs-ups.com/search-jobs/eureka%2C%20ca"},
+        ],
+        "Financial Services": [
+            {"name": "Coast Central Credit Union", "url": "https://www.coastccu.org/community/careers/"},
+            {"name": "Compass Community Credit Union", "url": "https://compassccu.org/career-opportunities/"},
+            {"name": "Columbia Bank", "url": "https://columbiabank.wd108.myworkdayjobs.com/Columbia?locations=ca89c3dfc91010011a94de4a15710000"},
+            {"name": "Redwood Capital Bank", "url": "https://www.redwoodcapitalbank.com/about-us/careers"},
+            {"name": "Tri Counties Bank", "url": "https://recruiting.ultipro.com/TRI1013/JobBoard/4245b871-01e9-d361-c591-d813261dcc18/"},
+        ],
+        "Hospitality & Entertainment": [
+            {"name": "Blue Lake Casino & Hotel", "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=5e47fadf-5db6-4b69-91e1-34513c2b4a4b"},
+            {"name": "Bear River Casino Resort", "url": "https://www.paycomonline.net/v4/ats/web.php/jobs?clientkey=CE0F26C6709C873C92555F8D0F5C7AAE"},
+        ],
+    }
+    
+    # Count total employers
+    total_employers = sum(len(emp_list) for emp_list in employers_by_category.values())
+    
+    # Flatten for template
+    all_employers = []
+    for emp_list in employers_by_category.values():
+        all_employers.extend(emp_list)
+    
+    context = {
+        'employers_by_category': employers_by_category,
+        'employers': all_employers,
+    }
+    
+    html = template.render(**context)
+    
+    output_dir = OUTPUT_DIR / "employers"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "index.html").write_text(html, encoding='utf-8')
+    
+    print(f"  Generated: /employers/ ({total_employers} employers)")
+
+
 def copy_static_assets():
     """Copy static assets to output directory."""
     print("Copying static assets...")
@@ -366,6 +499,9 @@ def generate_sitemap(session):
     )
     for emp in employers:
         urls.append(f"{base_url}/employer/{slugify(emp.name)}/")
+    
+    # Add employers directory page
+    urls.append(f"{base_url}/employers/")
     
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
     sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -431,6 +567,7 @@ def main():
         generate_category_pages(env, session, common_data)
         generate_location_pages(env, session, common_data)
         generate_employer_pages(env, session, common_data)
+        generate_employers_directory(env)
         
         # Copy static assets
         copy_static_assets()

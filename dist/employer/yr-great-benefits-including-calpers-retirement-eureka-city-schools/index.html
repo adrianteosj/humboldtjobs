@@ -598,6 +598,24 @@
             gap: 0.75rem;
         }
 
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            border-radius: var(--radius-sm);
+        }
+
+        .nav-link:hover {
+            color: var(--accent-green);
+            background: var(--bg-tertiary);
+        }
+
         .newsletter-btn {
             display: inline-flex;
             align-items: center;
@@ -633,6 +651,9 @@
                 Humboldt<span>Jobs</span>
             </a>
             <div class="nav-items">
+                <a href="/employers/" class="nav-link">
+                    🏢 Employer Career Pages
+                </a>
                 <a href="#newsletter" class="newsletter-btn" onclick="alert('Newsletter coming soon! Check back later.')">
                     📬 Weekly Newsletter
                 </a>

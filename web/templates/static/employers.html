@@ -1,0 +1,132 @@
+{% extends "static/base.html" %}
+
+{% block title %}Employer Career Pages - Humboldt Jobs{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="employers-page">
+        <div class="page-header">
+            <h1>Employer Career Pages</h1>
+            <p>Direct links to career pages for {{ employers | length }} Humboldt County employers</p>
+        </div>
+
+        {% for category, employer_list in employers_by_category.items() %}
+        <div class="employer-section">
+            <h2>{{ category }}</h2>
+            <table class="employer-table">
+                <thead>
+                    <tr>
+                        <th>Employer</th>
+                        <th>Career Page</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employer in employer_list %}
+                    <tr>
+                        <td class="employer-name">{{ employer.name }}</td>
+                        <td class="employer-link">
+                            <a href="{{ employer.url }}" target="_blank" rel="noopener">
+                                Visit Career Page →
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+
+        <div class="back-link">
+            <a href="/" class="apply-btn">← Back to Job Listings</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .employers-page {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .employers-page .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .employer-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .employer-section h2 {
+        font-size: 1.25rem;
+        color: var(--accent-green);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .employer-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-secondary);
+        border-radius: var(--radius);
+        overflow: hidden;
+    }
+
+    .employer-table thead {
+        background: var(--bg-tertiary);
+    }
+
+    .employer-table th {
+        text-align: left;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .employer-table td {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .employer-table tbody tr:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .employer-name {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .employer-link a {
+        color: var(--accent-green);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .employer-link a:hover {
+        color: var(--accent-teal);
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    @media (max-width: 600px) {
+        .employer-table th:nth-child(2),
+        .employer-table td:nth-child(2) {
+            text-align: right;
+        }
+        
+        .employer-table th,
+        .employer-table td {
+            padding: 0.75rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
