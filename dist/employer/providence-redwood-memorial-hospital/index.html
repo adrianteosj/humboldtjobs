@@ -1717,15 +1717,11 @@
                 } else {
                     if (noSearchResults) noSearchResults.classList.remove('visible');
                     
-                    // Show up to 50 results
-                    const displayJobs = filteredJobs.slice(0, 50);
-                    jobList.innerHTML = displayJobs.map(createJobCard).join('');
+                    // Show all matching results
+                    jobList.innerHTML = filteredJobs.map(createJobCard).join('');
                     
                     if (searchResultsInfo) {
-                        const countText = filteredJobs.length > 50 
-                            ? `Showing 50 of ${filteredJobs.length}` 
-                            : `Showing ${filteredJobs.length}`;
-                        searchResultsInfo.textContent = `${countText} jobs from selected employers`;
+                        searchResultsInfo.textContent = `Showing ${filteredJobs.length} jobs from selected employers`;
                     }
                 }
             }
@@ -1874,15 +1870,11 @@
                 } else {
                     if (noSearchResults) noSearchResults.classList.remove('visible');
                     
-                    // Limit to first 50 results for performance
-                    const displayResults = results.slice(0, 50);
-                    jobList.innerHTML = displayResults.map(createJobCard).join('');
+                    // Show all matching results
+                    jobList.innerHTML = results.map(createJobCard).join('');
                     
                     if (searchResultsInfo) {
-                        const countText = results.length > 50 
-                            ? `Showing 50 of ${results.length} jobs` 
-                            : `Found ${results.length} job${results.length !== 1 ? 's' : ''}`;
-                        searchResultsInfo.textContent = `${countText} matching "${query}"`;
+                        searchResultsInfo.textContent = `Found ${results.length} job${results.length !== 1 ? 's' : ''} matching "${query}"`;
                     }
                 }
             }
