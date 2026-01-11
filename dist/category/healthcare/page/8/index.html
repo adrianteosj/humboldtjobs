@@ -991,6 +991,513 @@
         .job-card.classification-hidden {
             display: none;
         }
+
+        /* ============================================
+           MOBILE RESPONSIVE STYLES
+           ============================================ */
+        
+        /* Mobile search button (hidden on desktop) */
+        .mobile-search-btn {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .mobile-search-btn:hover {
+            border-color: var(--accent-green);
+            background: var(--bg-secondary);
+        }
+
+        /* Mobile search overlay */
+        .mobile-search-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 300;
+            padding: 1rem;
+            flex-direction: column;
+        }
+
+        .mobile-search-overlay.active {
+            display: flex;
+        }
+
+        .mobile-search-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-search-close {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .mobile-search-overlay .search-input {
+            flex: 1;
+            font-size: 1rem;
+            padding: 1rem 1rem 1rem 3rem;
+        }
+
+        .mobile-search-results {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Mobile filter button (FAB) */
+        .mobile-filter-btn {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+            z-index: 100;
+            transition: all 0.3s;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-filter-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .mobile-filter-btn:active {
+            transform: scale(0.95);
+        }
+
+        .mobile-filter-btn .filter-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 20px;
+            height: 20px;
+            background: #ef4444;
+            color: white;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+        }
+
+        .mobile-filter-btn .filter-badge.visible {
+            display: flex;
+        }
+
+        /* Bottom sheet */
+        .bottom-sheet-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .bottom-sheet-backdrop.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .bottom-sheet {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            z-index: 250;
+            max-height: 85vh;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .bottom-sheet.active {
+            display: block;
+            transform: translateY(0);
+        }
+
+        .bottom-sheet-handle {
+            width: 40px;
+            height: 5px;
+            background: var(--border-color);
+            border-radius: 3px;
+            margin: 12px auto;
+            cursor: grab;
+        }
+
+        .bottom-sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.25rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .bottom-sheet-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .bottom-sheet-close {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .bottom-sheet-close:hover {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .bottom-sheet-content {
+            padding: 1rem 1.25rem 2rem;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            max-height: calc(85vh - 80px);
+        }
+
+        .bottom-sheet-content .filter-section {
+            margin-bottom: 1rem;
+        }
+
+        /* Mobile nav links inside bottom sheet */
+        .bottom-sheet-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .bottom-sheet-nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .bottom-sheet-nav a:hover {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        /* Tablet breakpoint (768px - 900px) */
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .mobile-filter-btn {
+                display: flex;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Mobile breakpoint (< 768px) */
+        @media (max-width: 768px) {
+            /* Header adjustments */
+            header {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 1.4rem;
+            }
+
+            .logo-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 1rem;
+            }
+
+            .nav-link, .newsletter-btn {
+                display: none;
+            }
+
+            .mobile-search-btn {
+                display: flex;
+            }
+
+            .nav-items {
+                gap: 0.5rem;
+            }
+
+            /* Container */
+            .container {
+                padding: 1rem;
+            }
+
+            /* Page header */
+            .page-header {
+                margin-bottom: 1.25rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+                line-height: 1.3;
+            }
+
+            .page-header p {
+                font-size: 0.9rem;
+            }
+
+            /* Search container - hide on mobile (use overlay) */
+            .search-container {
+                display: none;
+            }
+
+            /* Job cards */
+            .job-card {
+                padding: 1.25rem;
+            }
+
+            .job-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .job-title {
+                font-size: 1rem;
+            }
+
+            .job-category {
+                font-size: 0.7rem;
+            }
+
+            .job-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .job-salary {
+                font-size: 0.9rem;
+                width: 100%;
+                text-align: center;
+            }
+
+            .job-footer {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .job-footer-left {
+                align-items: center;
+                text-align: center;
+            }
+
+            .apply-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 1rem;
+                font-size: 1rem;
+                min-height: 48px;
+            }
+
+            /* Sub-category tabs */
+            .subcategory-tabs {
+                padding: 0.75rem;
+                gap: 0.375rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                flex-wrap: nowrap;
+            }
+
+            .subcategory-tab {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            /* Pagination */
+            .pagination {
+                gap: 0.375rem;
+            }
+
+            .pagination a, .pagination span {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+                min-width: 40px;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Last updated */
+            .last-updated {
+                font-size: 0.75rem;
+                padding: 0.625rem 0.875rem;
+            }
+
+            /* Footer */
+            footer {
+                padding: 1.5rem 1rem;
+                font-size: 0.8rem;
+                margin-top: 2rem;
+            }
+
+            /* Breadcrumb */
+            .breadcrumb {
+                font-size: 0.8rem;
+                margin-bottom: 1rem;
+            }
+
+            /* Theme toggle */
+            .theme-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            /* Filter sections in bottom sheet */
+            .bottom-sheet-content .filter-section {
+                padding: 1rem;
+            }
+
+            .bottom-sheet-content .filter-list a {
+                padding: 0.875rem 1rem;
+                min-height: 48px;
+            }
+
+            .bottom-sheet-content .employer-filter-item,
+            .bottom-sheet-content .wage-filter-item {
+                padding: 0.75rem;
+                min-height: 48px;
+            }
+
+            .bottom-sheet-content .employer-filter-checkbox,
+            .bottom-sheet-content .wage-filter-checkbox {
+                width: 20px;
+                height: 20px;
+            }
+
+            /* Empty state */
+            .empty-state {
+                padding: 2rem 1rem;
+            }
+
+            /* No search results */
+            .no-search-results {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Extra small screens (< 400px) */
+        @media (max-width: 400px) {
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .logo-icon {
+                width: 24px;
+                height: 24px;
+                font-size: 0.9rem;
+            }
+
+            .page-header h1 {
+                font-size: 1.3rem;
+            }
+
+            .job-title {
+                font-size: 0.95rem;
+            }
+
+            .mobile-filter-btn {
+                bottom: 16px;
+                right: 16px;
+                width: 52px;
+                height: 52px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .filter-list a,
+            .employer-filter-item,
+            .wage-filter-item {
+                min-height: 48px;
+            }
+
+            .apply-btn {
+                min-height: 48px;
+            }
+
+            .theme-btn,
+            .mobile-search-btn {
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
     </style>
     
     <!-- Fuse.js for fuzzy search -->
@@ -1010,6 +1517,9 @@
                 <a href="#newsletter" class="newsletter-btn" onclick="alert('Newsletter coming soon! Check back later.')">
                     📬 Weekly Newsletter
                 </a>
+                <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Search jobs">
+                    🔍
+                </button>
                 <div class="theme-toggle">
                     <button class="theme-btn" id="theme-toggle-btn" aria-label="Toggle theme">
                         <span id="theme-icon">🌙</span>
@@ -2752,6 +3262,58 @@
 </div>
 
 
+    <!-- Mobile Search Overlay -->
+    <div class="mobile-search-overlay" id="mobile-search-overlay">
+        <div class="mobile-search-header">
+            <button class="mobile-search-close" id="mobile-search-close" aria-label="Close search">✕</button>
+            <div class="search-input-wrapper" style="flex: 1; position: relative;">
+                <span class="search-icon">🔍</span>
+                <input type="text" 
+                       id="mobile-job-search" 
+                       class="search-input" 
+                       placeholder="Search jobs..."
+                       autocomplete="off">
+            </div>
+        </div>
+        <div class="mobile-search-results" id="mobile-search-results">
+            <div class="job-list" id="mobile-search-job-list"></div>
+            <div class="no-search-results" id="mobile-no-search-results">
+                <h3>No matching jobs found</h3>
+                <p>Try different keywords</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filter Button (FAB) -->
+    <button class="mobile-filter-btn" id="mobile-filter-btn" aria-label="Open filters">
+        <span>⚙️</span>
+        <span class="filter-badge" id="filter-badge"></span>
+    </button>
+
+    <!-- Bottom Sheet Backdrop -->
+    <div class="bottom-sheet-backdrop" id="bottom-sheet-backdrop"></div>
+
+    <!-- Bottom Sheet -->
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="bottom-sheet-handle" id="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-header">
+            <span class="bottom-sheet-title">Filters & Navigation</span>
+            <button class="bottom-sheet-close" id="bottom-sheet-close" aria-label="Close">✕</button>
+        </div>
+        <div class="bottom-sheet-content" id="bottom-sheet-content">
+            <!-- Navigation links (hidden on desktop) -->
+            <div class="bottom-sheet-nav">
+                <a href="/employers/">
+                    🏢 Employer Career Pages
+                </a>
+                <a href="#newsletter" onclick="alert('Newsletter coming soon! Check back later.'); return false;">
+                    📬 Weekly Newsletter
+                </a>
+            </div>
+            <!-- Filter sections will be cloned here via JS -->
+        </div>
+    </div>
+
     <footer>
         <p>Humboldt Jobs Aggregator &copy; 2026 | Data sourced from local government, education, and community job boards | Made in Humboldt with <span class="footer-heart">❤️</span></p>
     </footer>
@@ -3501,6 +4063,374 @@
             
             // Preload jobs data on focus for faster search
             searchInput.addEventListener('focus', loadJobsData);
+        })();
+        
+        // Mobile Search Overlay
+        (function() {
+            const mobileSearchBtn = document.getElementById('mobile-search-btn');
+            const mobileSearchOverlay = document.getElementById('mobile-search-overlay');
+            const mobileSearchClose = document.getElementById('mobile-search-close');
+            const mobileSearchInput = document.getElementById('mobile-job-search');
+            const mobileSearchJobList = document.getElementById('mobile-search-job-list');
+            const mobileNoSearchResults = document.getElementById('mobile-no-search-results');
+            
+            if (!mobileSearchBtn || !mobileSearchOverlay) return;
+            
+            let allJobs = null;
+            let fuse = null;
+            
+            // Load jobs data
+            async function loadJobsData() {
+                if (allJobs) return allJobs;
+                try {
+                    const response = await fetch('/static/jobs.json');
+                    allJobs = await response.json();
+                    
+                    if (typeof Fuse !== 'undefined') {
+                        fuse = new Fuse(allJobs, {
+                            keys: [
+                                { name: 'title', weight: 0.4 },
+                                { name: 'employer', weight: 0.35 },
+                                { name: 'location', weight: 0.15 },
+                                { name: 'category', weight: 0.1 }
+                            ],
+                            threshold: 0.3,
+                            ignoreLocation: true,
+                            minMatchCharLength: 2
+                        });
+                    }
+                    return allJobs;
+                } catch (e) {
+                    console.error('Failed to load jobs data:', e);
+                    return [];
+                }
+            }
+            
+            // Create job card
+            function createJobCard(job) {
+                const salaryHtml = job.salary 
+                    ? `<div class="job-salary">💰 ${job.salary}</div>`
+                    : `<div class="job-salary salary-undisclosed">💰 Undisclosed</div>`;
+                
+                return `
+                    <article class="job-card">
+                        <div class="job-card-header">
+                            <h2 class="job-title">
+                                <a href="${job.url}" target="_blank" rel="noopener">${job.title}</a>
+                            </h2>
+                            <span class="job-category">${job.category}</span>
+                        </div>
+                        <div class="job-meta">
+                            <span>🏢 ${job.employer}</span>
+                            ${job.location ? `<span>📍 ${job.location}</span>` : ''}
+                        </div>
+                        ${salaryHtml}
+                        <div class="job-footer">
+                            <span class="job-source">via Humboldt Jobs</span>
+                            <a href="${job.url}" target="_blank" rel="noopener" class="apply-btn">View & Apply →</a>
+                        </div>
+                    </article>
+                `;
+            }
+            
+            // Open overlay
+            function openMobileSearch() {
+                mobileSearchOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => mobileSearchInput.focus(), 100);
+                loadJobsData();
+            }
+            
+            // Close overlay
+            function closeMobileSearch() {
+                mobileSearchOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                mobileSearchInput.value = '';
+                mobileSearchJobList.innerHTML = '';
+                mobileNoSearchResults.classList.remove('visible');
+            }
+            
+            // Search function
+            function performMobileSearch(query) {
+                query = query.trim();
+                
+                if (!query) {
+                    mobileSearchJobList.innerHTML = '';
+                    mobileNoSearchResults.classList.remove('visible');
+                    return;
+                }
+                
+                let results = [];
+                
+                if (fuse) {
+                    results = fuse.search(query, { limit: 50 }).map(r => r.item);
+                } else if (allJobs) {
+                    const q = query.toLowerCase();
+                    results = allJobs.filter(job => 
+                        job.title.toLowerCase().includes(q) || 
+                        job.employer.toLowerCase().includes(q) || 
+                        (job.location && job.location.toLowerCase().includes(q)) ||
+                        job.category.toLowerCase().includes(q)
+                    ).slice(0, 50);
+                }
+                
+                if (results.length === 0) {
+                    mobileSearchJobList.innerHTML = '';
+                    mobileNoSearchResults.classList.add('visible');
+                } else {
+                    mobileNoSearchResults.classList.remove('visible');
+                    mobileSearchJobList.innerHTML = results.map(createJobCard).join('');
+                }
+            }
+            
+            // Event listeners
+            mobileSearchBtn.addEventListener('click', openMobileSearch);
+            mobileSearchClose.addEventListener('click', closeMobileSearch);
+            
+            mobileSearchOverlay.addEventListener('click', (e) => {
+                if (e.target === mobileSearchOverlay) closeMobileSearch();
+            });
+            
+            let searchTimeout;
+            mobileSearchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => performMobileSearch(e.target.value), 200);
+            });
+            
+            // Close on Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileSearchOverlay.classList.contains('active')) {
+                    closeMobileSearch();
+                }
+            });
+        })();
+        
+        // Bottom Sheet for Filters
+        (function() {
+            const filterBtn = document.getElementById('mobile-filter-btn');
+            const backdrop = document.getElementById('bottom-sheet-backdrop');
+            const sheet = document.getElementById('bottom-sheet');
+            const closeBtn = document.getElementById('bottom-sheet-close');
+            const sheetContent = document.getElementById('bottom-sheet-content');
+            const handle = document.getElementById('bottom-sheet-handle');
+            const sidebar = document.querySelector('.sidebar');
+            
+            if (!filterBtn || !sheet) return;
+            
+            let isOpen = false;
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+            
+            // Clone sidebar filters to bottom sheet on first open
+            let filtersCloned = false;
+            function cloneFilters() {
+                if (filtersCloned || !sidebar) return;
+                
+                const filterSections = sidebar.querySelectorAll('.filter-section');
+                const navLinks = sheetContent.querySelector('.bottom-sheet-nav');
+                
+                filterSections.forEach(section => {
+                    const clone = section.cloneNode(true);
+                    // Update IDs to avoid conflicts
+                    clone.querySelectorAll('[id]').forEach(el => {
+                        el.id = 'mobile-' + el.id;
+                    });
+                    clone.querySelectorAll('label[for]').forEach(el => {
+                        el.setAttribute('for', 'mobile-' + el.getAttribute('for'));
+                    });
+                    // Expand sections in bottom sheet by default
+                    clone.classList.remove('collapsed');
+                    sheetContent.appendChild(clone);
+                });
+                
+                // Set up filter toggle in bottom sheet
+                sheetContent.querySelectorAll('.filter-section[data-filter]').forEach(section => {
+                    const header = section.querySelector('.filter-section-header');
+                    if (header) {
+                        header.addEventListener('click', (e) => {
+                            if (e.target.closest('button')) return;
+                            section.classList.toggle('collapsed');
+                        });
+                    }
+                });
+                
+                // Set up employer filter checkboxes in bottom sheet
+                const mobileEmployerCheckboxes = sheetContent.querySelectorAll('.employer-filter-checkbox');
+                const mobileSelectAll = sheetContent.querySelector('[id*="employer-select-all"]');
+                const mobileSelectNone = sheetContent.querySelector('[id*="employer-select-none"]');
+                
+                mobileEmployerCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        // Sync with main page checkboxes
+                        const mainCb = document.querySelector(`.employer-filter-checkbox[data-employer="${cb.dataset.employer}"]`);
+                        if (mainCb) {
+                            mainCb.checked = cb.checked;
+                            mainCb.dispatchEvent(new Event('change'));
+                        }
+                        updateFilterBadge();
+                    });
+                });
+                
+                if (mobileSelectAll) {
+                    mobileSelectAll.addEventListener('click', () => {
+                        mobileEmployerCheckboxes.forEach(cb => cb.checked = true);
+                        // Trigger filter on main page
+                        const mainSelectAll = document.getElementById('employer-select-all');
+                        if (mainSelectAll) mainSelectAll.click();
+                        updateFilterBadge();
+                    });
+                }
+                
+                if (mobileSelectNone) {
+                    mobileSelectNone.addEventListener('click', () => {
+                        mobileEmployerCheckboxes.forEach(cb => cb.checked = false);
+                        const mainSelectNone = document.getElementById('employer-select-none');
+                        if (mainSelectNone) mainSelectNone.click();
+                        updateFilterBadge();
+                    });
+                }
+                
+                // Set up wage filter checkboxes
+                const mobileWageCheckboxes = sheetContent.querySelectorAll('.wage-filter-checkbox');
+                const mobileWageSelectAll = sheetContent.querySelector('[id*="wage-select-all"]');
+                const mobileWageSelectNone = sheetContent.querySelector('[id*="wage-select-none"]');
+                
+                mobileWageCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        // Sync with main page
+                        const mainCb = document.getElementById(cb.id.replace('mobile-', ''));
+                        if (mainCb) {
+                            mainCb.checked = cb.checked;
+                            mainCb.dispatchEvent(new Event('change'));
+                        }
+                        updateFilterBadge();
+                    });
+                });
+                
+                if (mobileWageSelectAll) {
+                    mobileWageSelectAll.addEventListener('click', () => {
+                        mobileWageCheckboxes.forEach(cb => cb.checked = true);
+                        const mainWageSelectAll = document.getElementById('wage-select-all');
+                        if (mainWageSelectAll) mainWageSelectAll.click();
+                        updateFilterBadge();
+                    });
+                }
+                
+                if (mobileWageSelectNone) {
+                    mobileWageSelectNone.addEventListener('click', () => {
+                        mobileWageCheckboxes.forEach(cb => cb.checked = false);
+                        const mainWageSelectNone = document.getElementById('wage-select-none');
+                        if (mainWageSelectNone) mainWageSelectNone.click();
+                        updateFilterBadge();
+                    });
+                }
+                
+                filtersCloned = true;
+            }
+            
+            // Update filter badge count
+            function updateFilterBadge() {
+                const badge = document.getElementById('filter-badge');
+                if (!badge) return;
+                
+                let activeFilters = 0;
+                
+                // Count unchecked employer filters
+                const employerCheckboxes = document.querySelectorAll('.sidebar .employer-filter-checkbox');
+                const uncheckedEmployers = Array.from(employerCheckboxes).filter(cb => !cb.checked).length;
+                if (uncheckedEmployers > 0) activeFilters++;
+                
+                // Count unchecked wage filters
+                const wageCheckboxes = document.querySelectorAll('.sidebar .wage-filter-checkbox');
+                const uncheckedWages = Array.from(wageCheckboxes).filter(cb => !cb.checked).length;
+                if (uncheckedWages > 0) activeFilters++;
+                
+                if (activeFilters > 0) {
+                    badge.textContent = activeFilters;
+                    badge.classList.add('visible');
+                } else {
+                    badge.classList.remove('visible');
+                }
+            }
+            
+            // Open sheet
+            function openSheet() {
+                cloneFilters();
+                sheet.classList.add('active');
+                backdrop.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                isOpen = true;
+                
+                // Animate in
+                requestAnimationFrame(() => {
+                    sheet.style.transform = 'translateY(0)';
+                });
+            }
+            
+            // Close sheet
+            function closeSheet() {
+                sheet.style.transform = '';
+                sheet.classList.remove('active');
+                backdrop.classList.remove('active');
+                document.body.style.overflow = '';
+                isOpen = false;
+            }
+            
+            // Touch events for swipe to close
+            function handleTouchStart(e) {
+                if (!isOpen) return;
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                sheet.style.transition = 'none';
+            }
+            
+            function handleTouchMove(e) {
+                if (!isDragging) return;
+                currentY = e.touches[0].clientY;
+                const deltaY = currentY - startY;
+                
+                if (deltaY > 0) {
+                    sheet.style.transform = `translateY(${deltaY}px)`;
+                }
+            }
+            
+            function handleTouchEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                sheet.style.transition = '';
+                
+                const deltaY = currentY - startY;
+                if (deltaY > 100) {
+                    closeSheet();
+                } else {
+                    sheet.style.transform = 'translateY(0)';
+                }
+            }
+            
+            // Event listeners
+            filterBtn.addEventListener('click', openSheet);
+            closeBtn.addEventListener('click', closeSheet);
+            backdrop.addEventListener('click', closeSheet);
+            
+            handle.addEventListener('touchstart', handleTouchStart, { passive: true });
+            handle.addEventListener('touchmove', handleTouchMove, { passive: true });
+            handle.addEventListener('touchend', handleTouchEnd);
+            
+            // Close on Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isOpen) {
+                    closeSheet();
+                }
+            });
+            
+            // Initial badge update
+            updateFilterBadge();
+            
+            // Listen for filter changes on main page
+            document.querySelectorAll('.sidebar .employer-filter-checkbox, .sidebar .wage-filter-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateFilterBadge);
+            });
         })();
     </script>
 </body>
