@@ -1978,7 +1978,8 @@
         // Wage Filter Functionality
         (function() {
             const wageCheckboxes = document.querySelectorAll('.wage-filter-checkbox');
-            const resetBtn = document.getElementById('wage-filter-reset');
+            const selectAllBtn = document.getElementById('wage-select-all');
+            const selectNoneBtn = document.getElementById('wage-select-none');
             const jobList = document.querySelector('.job-list');
             const pagination = document.querySelector('.pagination');
             const searchResultsInfo = document.getElementById('search-results-info');
@@ -2213,9 +2214,16 @@
                 cb.addEventListener('change', applyWageFilter);
             });
             
-            if (resetBtn) {
-                resetBtn.addEventListener('click', () => {
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', () => {
                     wageCheckboxes.forEach(cb => cb.checked = true);
+                    applyWageFilter();
+                });
+            }
+            
+            if (selectNoneBtn) {
+                selectNoneBtn.addEventListener('click', () => {
+                    wageCheckboxes.forEach(cb => cb.checked = false);
                     applyWageFilter();
                 });
             }
