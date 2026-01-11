@@ -107,13 +107,13 @@
             <!-- Sub-category Tabs (shown when viewing a category with classifications) -->
             {% if subcategories and subcategories | length > 0 %}
             <div class="subcategory-tabs" id="subcategory-tabs">
-                <button class="subcategory-tab active" data-classification="all">
-                    All<span class="tab-count">{{ total }}</span>
-                </button>
+                <a href="{{ base_path }}" class="subcategory-tab {% if not selected_classification %}active{% endif %}">
+                    All<span class="tab-count">{{ category_total }}</span>
+                </a>
                 {% for subcat, count in subcategories %}
-                <button class="subcategory-tab" data-classification="{{ subcat | lower }}">
+                <a href="{{ base_path }}{{ subcat | slugify }}/" class="subcategory-tab {% if selected_classification == subcat %}active{% endif %}">
                     {{ subcat }}<span class="tab-count">{{ count }}</span>
-                </button>
+                </a>
                 {% endfor %}
             </div>
             {% endif %}

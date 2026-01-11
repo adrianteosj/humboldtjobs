@@ -1238,21 +1238,21 @@
             <!-- Sub-category Tabs (shown when viewing a category with classifications) -->
             
             <div class="subcategory-tabs" id="subcategory-tabs">
-                <button class="subcategory-tab active" data-classification="all">
+                <a href="/category/healthcare/" class="subcategory-tab active">
                     All<span class="tab-count">202</span>
-                </button>
+                </a>
                 
-                <button class="subcategory-tab" data-classification="clinical">
+                <a href="/category/healthcare/clinical/" class="subcategory-tab ">
                     Clinical<span class="tab-count">112</span>
-                </button>
+                </a>
                 
-                <button class="subcategory-tab" data-classification="administrative">
+                <a href="/category/healthcare/administrative/" class="subcategory-tab ">
                     Administrative<span class="tab-count">7</span>
-                </button>
+                </a>
                 
-                <button class="subcategory-tab" data-classification="support">
+                <a href="/category/healthcare/support/" class="subcategory-tab ">
                     Support<span class="tab-count">4</span>
-                </button>
+                </a>
                 
             </div>
             
@@ -2214,76 +2214,6 @@
                     applyTheme('system');
                 }
             });
-        })();
-        
-        // Sub-category Filter Functionality
-        (function() {
-            const subcategoryTabs = document.querySelectorAll('.subcategory-tab');
-            const jobCards = document.querySelectorAll('.job-card');
-            
-            if (subcategoryTabs.length === 0) return;
-            
-            let activeClassification = 'all';
-            
-            function applyClassificationFilter() {
-                jobCards.forEach(card => {
-                    const cardClassification = card.dataset.classification || '';
-                    
-                    if (activeClassification === 'all' || cardClassification === activeClassification) {
-                        card.classList.remove('classification-hidden');
-                    } else {
-                        card.classList.add('classification-hidden');
-                    }
-                    
-                    // Update visibility considering all filters
-                    const isSearchHidden = card.classList.contains('search-hidden');
-                    const isEmployerHidden = card.classList.contains('employer-hidden');
-                    const isClassificationHidden = card.classList.contains('classification-hidden');
-                    
-                    if (isSearchHidden || isEmployerHidden || isClassificationHidden) {
-                        card.style.display = 'none';
-                    } else {
-                        card.style.display = '';
-                    }
-                });
-                
-                // Update active tab styling
-                subcategoryTabs.forEach(tab => {
-                    tab.classList.toggle('active', tab.dataset.classification === activeClassification);
-                });
-                
-                // Update search results info
-                const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
-                const searchResultsInfo = document.getElementById('search-results-info');
-                const searchInput = document.getElementById('job-search');
-                const searchQuery = searchInput ? searchInput.value.trim() : '';
-                
-                if (activeClassification !== 'all' && !searchQuery) {
-                    if (searchResultsInfo) {
-                        const tabName = document.querySelector(`.subcategory-tab[data-classification="${activeClassification}"]`);
-                        const label = tabName ? tabName.textContent.replace(/\d+/, '').trim() : activeClassification;
-                        searchResultsInfo.textContent = `Showing ${visibleCards.length} ${label} jobs`;
-                    }
-                } else if (!searchQuery && activeClassification === 'all') {
-                    // Check if employer filter is active
-                    const hiddenEmployers = JSON.parse(localStorage.getItem('humboldtjobs-hidden-employers') || '[]');
-                    if (hiddenEmployers.length > 0 && searchResultsInfo) {
-                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
-                    } else if (searchResultsInfo) {
-                        searchResultsInfo.textContent = '';
-                    }
-                }
-            }
-            
-            subcategoryTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    activeClassification = tab.dataset.classification;
-                    applyClassificationFilter();
-                });
-            });
-            
-            // Expose for other scripts to re-apply after their filters
-            window.applyClassificationFilter = applyClassificationFilter;
         })();
         
         // Employer Filter Functionality

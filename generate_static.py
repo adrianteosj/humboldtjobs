@@ -120,12 +120,14 @@ def generate_index_pages(env, session, common_data):
             **common_data,
             'jobs': page_jobs,
             'total': total,
+            'category_total': total,
             'page': page,
             'pages': total_pages,
             'page_title': 'Find Jobs in Humboldt County',
             'selected_category': None,
             'selected_location': None,
             'selected_employer': None,
+            'selected_classification': None,
             'subcategories': [],  # No subcategories on main index
         }
         
@@ -164,43 +166,47 @@ def generate_category_pages(env, session, common_data):
             .all()
         )
         
-        total = len(jobs)
-        total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+        category_total = len(jobs)
+        total_pages = max(1, (category_total + PER_PAGE - 1) // PER_PAGE)
         
         # Calculate subcategory counts for this category
         subcategories = []
+        subcat_jobs = {}  # Store jobs by classification for sub-category pages
+        
         if cat in CLASSIFICATION_RULES:
             subcat_counts = {}
             for job in jobs:
                 # Use stored classification or calculate on-the-fly
                 classification = job.classification or classifier.classify(job.title, cat)
                 if classification:
+                    job.classification = classification  # Ensure it's set
                     subcat_counts[classification] = subcat_counts.get(classification, 0) + 1
+                    if classification not in subcat_jobs:
+                        subcat_jobs[classification] = []
+                    subcat_jobs[classification].append(job)
             
             # Sort by count descending
             subcategories = sorted(subcat_counts.items(), key=lambda x: -x[1])
         
+        # Generate main category pages (All)
         for page in range(1, total_pages + 1):
             offset = (page - 1) * PER_PAGE
             page_jobs = jobs[offset:offset + PER_PAGE]
-            
-            # Ensure jobs have classification attribute set
-            for job in page_jobs:
-                if not job.classification and cat in CLASSIFICATION_RULES:
-                    job.classification = classifier.classify(job.title, cat)
             
             base_path = f"/category/{cat_slug}/"
             
             context = {
                 **common_data,
                 'jobs': page_jobs,
-                'total': total,
+                'total': category_total,
+                'category_total': category_total,
                 'page': page,
                 'pages': total_pages,
                 'page_title': f'{cat} Jobs',
                 'selected_category': cat,
                 'selected_location': None,
                 'selected_employer': None,
+                'selected_classification': None,
                 'base_path': base_path,
                 'prev_url': f"{base_path}page/{page - 1}/" if page > 1 else None,
                 'next_url': f"{base_path}page/{page + 1}/" if page < total_pages else None,
@@ -218,8 +224,50 @@ def generate_category_pages(env, session, common_data):
             output_path = output_dir / "index.html"
             output_path.write_text(html, encoding='utf-8')
         
+        # Generate sub-category pages
+        for subcat, subcat_count in subcategories:
+            subcat_slug = slugify(subcat)
+            subcat_job_list = subcat_jobs.get(subcat, [])
+            subcat_total_pages = max(1, (len(subcat_job_list) + PER_PAGE - 1) // PER_PAGE)
+            
+            for page in range(1, subcat_total_pages + 1):
+                offset = (page - 1) * PER_PAGE
+                page_jobs = subcat_job_list[offset:offset + PER_PAGE]
+                
+                base_path = f"/category/{cat_slug}/"
+                subcat_base_path = f"/category/{cat_slug}/{subcat_slug}/"
+                
+                context = {
+                    **common_data,
+                    'jobs': page_jobs,
+                    'total': len(subcat_job_list),
+                    'category_total': category_total,
+                    'page': page,
+                    'pages': subcat_total_pages,
+                    'page_title': f'{subcat} - {cat} Jobs',
+                    'selected_category': cat,
+                    'selected_location': None,
+                    'selected_employer': None,
+                    'selected_classification': subcat,
+                    'base_path': base_path,
+                    'prev_url': f"{subcat_base_path}page/{page - 1}/" if page > 1 else None,
+                    'next_url': f"{subcat_base_path}page/{page + 1}/" if page < subcat_total_pages else None,
+                    'subcategories': subcategories,
+                }
+                
+                html = template.render(**context)
+                
+                if page == 1:
+                    output_dir = OUTPUT_DIR / "category" / cat_slug / subcat_slug
+                else:
+                    output_dir = OUTPUT_DIR / "category" / cat_slug / subcat_slug / "page" / str(page)
+                
+                output_dir.mkdir(parents=True, exist_ok=True)
+                output_path = output_dir / "index.html"
+                output_path.write_text(html, encoding='utf-8')
+        
         subcats_info = f", {len(subcategories)} subcats" if subcategories else ""
-        print(f"  Generated: /category/{cat_slug}/ ({total} jobs, {total_pages} pages{subcats_info})")
+        print(f"  Generated: /category/{cat_slug}/ ({category_total} jobs, {total_pages} pages{subcats_info})")
 
 
 def generate_location_pages(env, session, common_data):
@@ -251,12 +299,14 @@ def generate_location_pages(env, session, common_data):
                 **common_data,
                 'jobs': page_jobs,
                 'total': total,
+                'category_total': total,
                 'page': page,
                 'pages': total_pages,
                 'page_title': f'Jobs in {loc}',
                 'selected_category': None,
                 'selected_location': loc,
                 'selected_employer': None,
+                'selected_classification': None,
                 'base_path': base_path,
                 'prev_url': f"{base_path}page/{page - 1}/" if page > 1 else None,
                 'next_url': f"{base_path}page/{page + 1}/" if page < total_pages else None,
