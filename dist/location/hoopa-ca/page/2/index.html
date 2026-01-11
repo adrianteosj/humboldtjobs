@@ -202,13 +202,57 @@
             margin-bottom: 1.5rem;
         }
 
+        .filter-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 1rem;
+        }
+
+        .filter-section-header:hover h3 {
+            color: var(--text-secondary);
+        }
+
         .filter-section h3 {
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-muted);
-            margin-bottom: 1rem;
+            margin: 0;
             font-weight: 600;
+            transition: color 0.15s;
+        }
+
+        .filter-toggle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .filter-section.collapsed .filter-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .filter-section-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+            max-height: 1000px;
+            opacity: 1;
+        }
+
+        .filter-section.collapsed .filter-section-content {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .filter-section.collapsed {
+            padding-bottom: 1.25rem;
+        }
+
+        .filter-section.collapsed .filter-section-header {
+            margin-bottom: 0;
         }
 
         .filter-list {
@@ -1001,752 +1045,771 @@
             </div>
             
             
-            <div class="filter-section">
-                <h3>Categories</h3>
-                <ul class="filter-list">
-                    <li>
-                        <a href="/" class="">
-                            All Jobs
-                            <span class="filter-count">561</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/education/" class="">
-                            Education
-                            <span class="filter-count">231</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/healthcare/" class="">
-                            Healthcare
-                            <span class="filter-count">202</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/government/" class="">
-                            Government
-                            <span class="filter-count">43</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/national-retail/" class="">
-                            National Retail
-                            <span class="filter-count">38</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/tribal-organizations/" class="">
-                            Tribal Organizations
-                            <span class="filter-count">14</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/hospitality-entertainment/" class="">
-                            Hospitality &amp; Entertainment
-                            <span class="filter-count">9</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/local-retail/" class="">
-                            Local Retail
-                            <span class="filter-count">8</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/construction-engineering/" class="">
-                            Construction &amp; Engineering
-                            <span class="filter-count">6</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/timber-forestry/" class="">
-                            Timber &amp; Forestry
-                            <span class="filter-count">4</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/nonprofit-social-services/" class="">
-                            Nonprofit &amp; Social Services
-                            <span class="filter-count">3</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/category/financial-services/" class="">
-                            Financial Services
-                            <span class="filter-count">3</span>
-                        </a>
-                    </li>
-                    
-                </ul>
+            <div class="filter-section" data-filter="categories">
+                <div class="filter-section-header">
+                    <h3>Categories</h3>
+                    <span class="filter-toggle">▼</span>
+                </div>
+                <div class="filter-section-content">
+                    <ul class="filter-list">
+                        <li>
+                            <a href="/" class="">
+                                All Jobs
+                                <span class="filter-count">561</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/education/" class="">
+                                Education
+                                <span class="filter-count">231</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/healthcare/" class="">
+                                Healthcare
+                                <span class="filter-count">202</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/government/" class="">
+                                Government
+                                <span class="filter-count">43</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/national-retail/" class="">
+                                National Retail
+                                <span class="filter-count">38</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/tribal-organizations/" class="">
+                                Tribal Organizations
+                                <span class="filter-count">14</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/hospitality-entertainment/" class="">
+                                Hospitality &amp; Entertainment
+                                <span class="filter-count">9</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/local-retail/" class="">
+                                Local Retail
+                                <span class="filter-count">8</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/construction-engineering/" class="">
+                                Construction &amp; Engineering
+                                <span class="filter-count">6</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/timber-forestry/" class="">
+                                Timber &amp; Forestry
+                                <span class="filter-count">4</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/nonprofit-social-services/" class="">
+                                Nonprofit &amp; Social Services
+                                <span class="filter-count">3</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/financial-services/" class="">
+                                Financial Services
+                                <span class="filter-count">3</span>
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </div>
             </div>
 
-            <div class="filter-section">
-                <h3>Locations</h3>
-                <ul class="filter-list">
-                    <li>
-                        <a href="/" class="">
-                            All Locations
-                            <span class="filter-count">561</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/eureka-ca/" class="">
-                            Eureka, CA
-                            <span class="filter-count">221</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/arcata-ca/" class="">
-                            Arcata, CA
-                            <span class="filter-count">142</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/humboldt-county-ca/" class="">
-                            Humboldt County, CA
-                            <span class="filter-count">67</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/fortuna-ca/" class="">
-                            Fortuna, CA
-                            <span class="filter-count">33</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/hoopa-ca/" class="active">
-                            Hoopa, CA
-                            <span class="filter-count">26</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/crescent-city-ca/" class="">
-                            Crescent City, CA
-                            <span class="filter-count">19</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/mckinleyville-ca/" class="">
-                            McKinleyville, CA
-                            <span class="filter-count">13</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/blue-lake-ca/" class="">
-                            Blue Lake, CA
-                            <span class="filter-count">12</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/klamath-ca/" class="">
-                            Klamath, CA
-                            <span class="filter-count">8</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="/location/ferndale-ca/" class="">
-                            Ferndale, CA
-                            <span class="filter-count">7</span>
-                        </a>
-                    </li>
-                    
-                </ul>
+            <div class="filter-section" data-filter="locations">
+                <div class="filter-section-header">
+                    <h3>Locations</h3>
+                    <span class="filter-toggle">▼</span>
+                </div>
+                <div class="filter-section-content">
+                    <ul class="filter-list">
+                        <li>
+                            <a href="/" class="">
+                                All Locations
+                                <span class="filter-count">561</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/eureka-ca/" class="">
+                                Eureka, CA
+                                <span class="filter-count">221</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/arcata-ca/" class="">
+                                Arcata, CA
+                                <span class="filter-count">142</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/humboldt-county-ca/" class="">
+                                Humboldt County, CA
+                                <span class="filter-count">67</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/fortuna-ca/" class="">
+                                Fortuna, CA
+                                <span class="filter-count">33</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/hoopa-ca/" class="active">
+                                Hoopa, CA
+                                <span class="filter-count">26</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/crescent-city-ca/" class="">
+                                Crescent City, CA
+                                <span class="filter-count">19</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/mckinleyville-ca/" class="">
+                                McKinleyville, CA
+                                <span class="filter-count">13</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/blue-lake-ca/" class="">
+                                Blue Lake, CA
+                                <span class="filter-count">12</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/klamath-ca/" class="">
+                                Klamath, CA
+                                <span class="filter-count">8</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/ferndale-ca/" class="">
+                                Ferndale, CA
+                                <span class="filter-count">7</span>
+                            </a>
+                        </li>
+                        
+                    </ul>
+                </div>
             </div>
 
-            <div class="filter-section" id="employer-filter-section">
-                <div class="employer-filter-header">
+            <div class="filter-section" id="employer-filter-section" data-filter="employers">
+                <div class="filter-section-header">
                     <h3>Employers</h3>
-                    <div class="employer-filter-actions">
-                        <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
-                        <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div class="employer-filter-actions">
+                            <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
+                            <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
+                        </div>
+                        <span class="filter-toggle">▼</span>
                     </div>
                 </div>
-                <div class="employer-filter-list">
-                    
-                    <div class="employer-filter-item" data-employer="blue lake casino hotel">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-1" 
-                               data-employer="blue lake casino hotel"
-                               checked>
-                        <label class="employer-filter-label" for="emp-1">
-                            <span>Blue Lake Casino Hotel</span>
-                            <span class="filter-count">9</span>
-                        </label>
+                <div class="filter-section-content">
+                    <div class="employer-filter-list">
+                        
+                        <div class="employer-filter-item" data-employer="blue lake casino hotel">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-1" 
+                                   data-employer="blue lake casino hotel"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-1">
+                                <span>Blue Lake Casino Hotel</span>
+                                <span class="filter-count">9</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="cal poly humboldt">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-2" 
+                                   data-employer="cal poly humboldt"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-2">
+                                <span>Cal Poly Humboldt</span>
+                                <span class="filter-count">114</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="changing tides family services">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-3" 
+                                   data-employer="changing tides family services"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-3">
+                                <span>Changing Tides Family Ser...</span>
+                                <span class="filter-count">2</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="city of arcata">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-4" 
+                                   data-employer="city of arcata"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-4">
+                                <span>City of Arcata</span>
+                                <span class="filter-count">3</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="city of blue lake">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-5" 
+                                   data-employer="city of blue lake"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-5">
+                                <span>City of Blue Lake</span>
+                                <span class="filter-count">3</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="city of eureka">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-6" 
+                                   data-employer="city of eureka"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-6">
+                                <span>City of Eureka</span>
+                                <span class="filter-count">2</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="city of ferndale">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-7" 
+                                   data-employer="city of ferndale"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-7">
+                                <span>City of Ferndale</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="city of fortuna">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-8" 
+                                   data-employer="city of fortuna"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-8">
+                                <span>City of Fortuna</span>
+                                <span class="filter-count">2</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="city of rio dell">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-9" 
+                                   data-employer="city of rio dell"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-9">
+                                <span>City of Rio Dell</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="coast central credit union">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-10" 
+                                   data-employer="coast central credit union"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-10">
+                                <span>Coast Central Credit Unio...</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="college of the redwoods">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-11" 
+                                   data-employer="college of the redwoods"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-11">
+                                <span>College of the Redwoods</span>
+                                <span class="filter-count">52</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="columbia bank">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-12" 
+                                   data-employer="columbia bank"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-12">
+                                <span>Columbia Bank</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="compass community credit union">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-13" 
+                                   data-employer="compass community credit union"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-13">
+                                <span>Compass Community Credit ...</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="costco">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-14" 
+                                   data-employer="costco"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-14">
+                                <span>Costco</span>
+                                <span class="filter-count">10</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="county of humboldt">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-15" 
+                                   data-employer="county of humboldt"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-15">
+                                <span>County of Humboldt</span>
+                                <span class="filter-count">30</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="danco group">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-16" 
+                                   data-employer="danco group"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-16">
+                                <span>Danco Group</span>
+                                <span class="filter-count">6</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="dollar general">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-17" 
+                                   data-employer="dollar general"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-17">
+                                <span>Dollar General</span>
+                                <span class="filter-count">10</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="eureka city schools">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-18" 
+                                   data-employer="eureka city schools"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-18">
+                                <span>Eureka City Schools</span>
+                                <span class="filter-count">24</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="eureka natural foods">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-19" 
+                                   data-employer="eureka natural foods"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-19">
+                                <span>Eureka Natural Foods</span>
+                                <span class="filter-count">2</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="food for people">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-20" 
+                                   data-employer="food for people"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-20">
+                                <span>Food for People</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="green diamond resource company">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-21" 
+                                   data-employer="green diamond resource company"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-21">
+                                <span>Green Diamond Resource Co...</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="hospice of humboldt">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-22" 
+                                   data-employer="hospice of humboldt"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-22">
+                                <span>Hospice of Humboldt</span>
+                                <span class="filter-count">8</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="humboldt county office of education">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-23" 
+                                   data-employer="humboldt county office of education"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-23">
+                                <span>Humboldt County Office of...</span>
+                                <span class="filter-count">3</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="humboldt senior resource center">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-24" 
+                                   data-employer="humboldt senior resource center"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-24">
+                                <span>Humboldt Senior Resource ...</span>
+                                <span class="filter-count">16</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="jones family tree service">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-25" 
+                                   data-employer="jones family tree service"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-25">
+                                <span>Jones Family Tree Service</span>
+                                <span class="filter-count">3</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="k&#39;ima:w medical center">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-26" 
+                                   data-employer="k&#39;ima:w medical center"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-26">
+                                <span>K&#39;ima:w Medical Center</span>
+                                <span class="filter-count">26</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="klamath-trinity joint unified">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-27" 
+                                   data-employer="klamath-trinity joint unified"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-27">
+                                <span>Klamath-Trinity Joint Uni...</span>
+                                <span class="filter-count">16</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="mad river community hospital">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-28" 
+                                   data-employer="mad river community hospital"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-28">
+                                <span>Mad River Community Hospi...</span>
+                                <span class="filter-count">2</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="mckinleyville union school district">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-29" 
+                                   data-employer="mckinleyville union school district"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-29">
+                                <span>McKinleyville Union Schoo...</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="north coast co-op">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-30" 
+                                   data-employer="north coast co-op"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-30">
+                                <span>North Coast Co-op</span>
+                                <span class="filter-count">6</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="northern humboldt union high school district">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-31" 
+                                   data-employer="northern humboldt union high school district"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-31">
+                                <span>Northern Humboldt Union H...</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="open door community health">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-32" 
+                                   data-employer="open door community health"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-32">
+                                <span>Open Door Community Healt...</span>
+                                <span class="filter-count">83</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="providence redwood memorial hospital">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-33" 
+                                   data-employer="providence redwood memorial hospital"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-33">
+                                <span>Providence Redwood Memori...</span>
+                                <span class="filter-count">9</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="providence st. joseph hospital">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-34" 
+                                   data-employer="providence st. joseph hospital"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-34">
+                                <span>Providence St. Joseph Hos...</span>
+                                <span class="filter-count">51</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="redwood community action agency">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-35" 
+                                   data-employer="redwood community action agency"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-35">
+                                <span>Redwood Community Action ...</span>
+                                <span class="filter-count">4</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="redwoods rural health center">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-36" 
+                                   data-employer="redwoods rural health center"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-36">
+                                <span>Redwoods Rural Health Cen...</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="safeway">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-37" 
+                                   data-employer="safeway"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-37">
+                                <span>Safeway</span>
+                                <span class="filter-count">4</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="sohum health">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-38" 
+                                   data-employer="sohum health"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-38">
+                                <span>SoHum Health</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="south bay union elementary school district - eureka">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-39" 
+                                   data-employer="south bay union elementary school district - eureka"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-39">
+                                <span>South Bay Union Elementar...</span>
+                                <span class="filter-count">2</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="southern humboldt joint unified school district">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-40" 
+                                   data-employer="southern humboldt joint unified school district"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-40">
+                                <span>Southern Humboldt Joint U...</span>
+                                <span class="filter-count">18</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="tj maxx">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-41" 
+                                   data-employer="tj maxx"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-41">
+                                <span>TJ Maxx</span>
+                                <span class="filter-count">2</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="united indian health services">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-42" 
+                                   data-employer="united indian health services"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-42">
+                                <span>United Indian Health Serv...</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="walgreens">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-43" 
+                                   data-employer="walgreens"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-43">
+                                <span>Walgreens</span>
+                                <span class="filter-count">7</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="walmart">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-44" 
+                                   data-employer="walmart"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-44">
+                                <span>Walmart</span>
+                                <span class="filter-count">5</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="wiyot tribe">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-45" 
+                                   data-employer="wiyot tribe"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-45">
+                                <span>Wiyot Tribe</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="yurok tribe">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-46" 
+                                   data-employer="yurok tribe"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-46">
+                                <span>Yurok Tribe</span>
+                                <span class="filter-count">14</span>
+                            </label>
+                        </div>
+                        
                     </div>
-                    
-                    <div class="employer-filter-item" data-employer="cal poly humboldt">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-2" 
-                               data-employer="cal poly humboldt"
-                               checked>
-                        <label class="employer-filter-label" for="emp-2">
-                            <span>Cal Poly Humboldt</span>
-                            <span class="filter-count">114</span>
-                        </label>
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                        <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View career pages →</a>
                     </div>
-                    
-                    <div class="employer-filter-item" data-employer="changing tides family services">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-3" 
-                               data-employer="changing tides family services"
-                               checked>
-                        <label class="employer-filter-label" for="emp-3">
-                            <span>Changing Tides Family Ser...</span>
-                            <span class="filter-count">2</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="city of arcata">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-4" 
-                               data-employer="city of arcata"
-                               checked>
-                        <label class="employer-filter-label" for="emp-4">
-                            <span>City of Arcata</span>
-                            <span class="filter-count">3</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="city of blue lake">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-5" 
-                               data-employer="city of blue lake"
-                               checked>
-                        <label class="employer-filter-label" for="emp-5">
-                            <span>City of Blue Lake</span>
-                            <span class="filter-count">3</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="city of eureka">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-6" 
-                               data-employer="city of eureka"
-                               checked>
-                        <label class="employer-filter-label" for="emp-6">
-                            <span>City of Eureka</span>
-                            <span class="filter-count">2</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="city of ferndale">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-7" 
-                               data-employer="city of ferndale"
-                               checked>
-                        <label class="employer-filter-label" for="emp-7">
-                            <span>City of Ferndale</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="city of fortuna">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-8" 
-                               data-employer="city of fortuna"
-                               checked>
-                        <label class="employer-filter-label" for="emp-8">
-                            <span>City of Fortuna</span>
-                            <span class="filter-count">2</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="city of rio dell">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-9" 
-                               data-employer="city of rio dell"
-                               checked>
-                        <label class="employer-filter-label" for="emp-9">
-                            <span>City of Rio Dell</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="coast central credit union">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-10" 
-                               data-employer="coast central credit union"
-                               checked>
-                        <label class="employer-filter-label" for="emp-10">
-                            <span>Coast Central Credit Unio...</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="college of the redwoods">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-11" 
-                               data-employer="college of the redwoods"
-                               checked>
-                        <label class="employer-filter-label" for="emp-11">
-                            <span>College of the Redwoods</span>
-                            <span class="filter-count">52</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="columbia bank">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-12" 
-                               data-employer="columbia bank"
-                               checked>
-                        <label class="employer-filter-label" for="emp-12">
-                            <span>Columbia Bank</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="compass community credit union">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-13" 
-                               data-employer="compass community credit union"
-                               checked>
-                        <label class="employer-filter-label" for="emp-13">
-                            <span>Compass Community Credit ...</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="costco">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-14" 
-                               data-employer="costco"
-                               checked>
-                        <label class="employer-filter-label" for="emp-14">
-                            <span>Costco</span>
-                            <span class="filter-count">10</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="county of humboldt">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-15" 
-                               data-employer="county of humboldt"
-                               checked>
-                        <label class="employer-filter-label" for="emp-15">
-                            <span>County of Humboldt</span>
-                            <span class="filter-count">30</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="danco group">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-16" 
-                               data-employer="danco group"
-                               checked>
-                        <label class="employer-filter-label" for="emp-16">
-                            <span>Danco Group</span>
-                            <span class="filter-count">6</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="dollar general">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-17" 
-                               data-employer="dollar general"
-                               checked>
-                        <label class="employer-filter-label" for="emp-17">
-                            <span>Dollar General</span>
-                            <span class="filter-count">10</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="eureka city schools">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-18" 
-                               data-employer="eureka city schools"
-                               checked>
-                        <label class="employer-filter-label" for="emp-18">
-                            <span>Eureka City Schools</span>
-                            <span class="filter-count">24</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="eureka natural foods">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-19" 
-                               data-employer="eureka natural foods"
-                               checked>
-                        <label class="employer-filter-label" for="emp-19">
-                            <span>Eureka Natural Foods</span>
-                            <span class="filter-count">2</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="food for people">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-20" 
-                               data-employer="food for people"
-                               checked>
-                        <label class="employer-filter-label" for="emp-20">
-                            <span>Food for People</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="green diamond resource company">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-21" 
-                               data-employer="green diamond resource company"
-                               checked>
-                        <label class="employer-filter-label" for="emp-21">
-                            <span>Green Diamond Resource Co...</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="hospice of humboldt">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-22" 
-                               data-employer="hospice of humboldt"
-                               checked>
-                        <label class="employer-filter-label" for="emp-22">
-                            <span>Hospice of Humboldt</span>
-                            <span class="filter-count">8</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="humboldt county office of education">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-23" 
-                               data-employer="humboldt county office of education"
-                               checked>
-                        <label class="employer-filter-label" for="emp-23">
-                            <span>Humboldt County Office of...</span>
-                            <span class="filter-count">3</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="humboldt senior resource center">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-24" 
-                               data-employer="humboldt senior resource center"
-                               checked>
-                        <label class="employer-filter-label" for="emp-24">
-                            <span>Humboldt Senior Resource ...</span>
-                            <span class="filter-count">16</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="jones family tree service">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-25" 
-                               data-employer="jones family tree service"
-                               checked>
-                        <label class="employer-filter-label" for="emp-25">
-                            <span>Jones Family Tree Service</span>
-                            <span class="filter-count">3</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="k&#39;ima:w medical center">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-26" 
-                               data-employer="k&#39;ima:w medical center"
-                               checked>
-                        <label class="employer-filter-label" for="emp-26">
-                            <span>K&#39;ima:w Medical Center</span>
-                            <span class="filter-count">26</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="klamath-trinity joint unified">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-27" 
-                               data-employer="klamath-trinity joint unified"
-                               checked>
-                        <label class="employer-filter-label" for="emp-27">
-                            <span>Klamath-Trinity Joint Uni...</span>
-                            <span class="filter-count">16</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="mad river community hospital">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-28" 
-                               data-employer="mad river community hospital"
-                               checked>
-                        <label class="employer-filter-label" for="emp-28">
-                            <span>Mad River Community Hospi...</span>
-                            <span class="filter-count">2</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="mckinleyville union school district">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-29" 
-                               data-employer="mckinleyville union school district"
-                               checked>
-                        <label class="employer-filter-label" for="emp-29">
-                            <span>McKinleyville Union Schoo...</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="north coast co-op">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-30" 
-                               data-employer="north coast co-op"
-                               checked>
-                        <label class="employer-filter-label" for="emp-30">
-                            <span>North Coast Co-op</span>
-                            <span class="filter-count">6</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="northern humboldt union high school district">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-31" 
-                               data-employer="northern humboldt union high school district"
-                               checked>
-                        <label class="employer-filter-label" for="emp-31">
-                            <span>Northern Humboldt Union H...</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="open door community health">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-32" 
-                               data-employer="open door community health"
-                               checked>
-                        <label class="employer-filter-label" for="emp-32">
-                            <span>Open Door Community Healt...</span>
-                            <span class="filter-count">83</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="providence redwood memorial hospital">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-33" 
-                               data-employer="providence redwood memorial hospital"
-                               checked>
-                        <label class="employer-filter-label" for="emp-33">
-                            <span>Providence Redwood Memori...</span>
-                            <span class="filter-count">9</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="providence st. joseph hospital">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-34" 
-                               data-employer="providence st. joseph hospital"
-                               checked>
-                        <label class="employer-filter-label" for="emp-34">
-                            <span>Providence St. Joseph Hos...</span>
-                            <span class="filter-count">51</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="redwood community action agency">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-35" 
-                               data-employer="redwood community action agency"
-                               checked>
-                        <label class="employer-filter-label" for="emp-35">
-                            <span>Redwood Community Action ...</span>
-                            <span class="filter-count">4</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="redwoods rural health center">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-36" 
-                               data-employer="redwoods rural health center"
-                               checked>
-                        <label class="employer-filter-label" for="emp-36">
-                            <span>Redwoods Rural Health Cen...</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="safeway">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-37" 
-                               data-employer="safeway"
-                               checked>
-                        <label class="employer-filter-label" for="emp-37">
-                            <span>Safeway</span>
-                            <span class="filter-count">4</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="sohum health">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-38" 
-                               data-employer="sohum health"
-                               checked>
-                        <label class="employer-filter-label" for="emp-38">
-                            <span>SoHum Health</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="south bay union elementary school district - eureka">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-39" 
-                               data-employer="south bay union elementary school district - eureka"
-                               checked>
-                        <label class="employer-filter-label" for="emp-39">
-                            <span>South Bay Union Elementar...</span>
-                            <span class="filter-count">2</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="southern humboldt joint unified school district">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-40" 
-                               data-employer="southern humboldt joint unified school district"
-                               checked>
-                        <label class="employer-filter-label" for="emp-40">
-                            <span>Southern Humboldt Joint U...</span>
-                            <span class="filter-count">18</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="tj maxx">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-41" 
-                               data-employer="tj maxx"
-                               checked>
-                        <label class="employer-filter-label" for="emp-41">
-                            <span>TJ Maxx</span>
-                            <span class="filter-count">2</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="united indian health services">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-42" 
-                               data-employer="united indian health services"
-                               checked>
-                        <label class="employer-filter-label" for="emp-42">
-                            <span>United Indian Health Serv...</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="walgreens">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-43" 
-                               data-employer="walgreens"
-                               checked>
-                        <label class="employer-filter-label" for="emp-43">
-                            <span>Walgreens</span>
-                            <span class="filter-count">7</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="walmart">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-44" 
-                               data-employer="walmart"
-                               checked>
-                        <label class="employer-filter-label" for="emp-44">
-                            <span>Walmart</span>
-                            <span class="filter-count">5</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="wiyot tribe">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-45" 
-                               data-employer="wiyot tribe"
-                               checked>
-                        <label class="employer-filter-label" for="emp-45">
-                            <span>Wiyot Tribe</span>
-                            <span class="filter-count">1</span>
-                        </label>
-                    </div>
-                    
-                    <div class="employer-filter-item" data-employer="yurok tribe">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-46" 
-                               data-employer="yurok tribe"
-                               checked>
-                        <label class="employer-filter-label" for="emp-46">
-                            <span>Yurok Tribe</span>
-                            <span class="filter-count">14</span>
-                        </label>
-                    </div>
-                    
-                </div>
-                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-                    <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View career pages →</a>
                 </div>
             </div>
 
-            <div class="filter-section" id="wage-filter-section">
-                <div class="wage-filter-header">
+            <div class="filter-section" id="wage-filter-section" data-filter="wage">
+                <div class="filter-section-header">
                     <h3>Wage Range</h3>
-                    <button class="wage-filter-reset" id="wage-filter-reset" title="Reset">Reset</button>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button class="wage-filter-reset" id="wage-filter-reset" title="Reset">Reset</button>
+                        <span class="filter-toggle">▼</span>
+                    </div>
                 </div>
+                <div class="filter-section-content">
                 <div class="wage-filter-list">
                     <div class="wage-filter-item">
                         <input type="checkbox" class="wage-filter-checkbox" id="wage-under20" data-min="0" data-max="20" checked>
@@ -1778,8 +1841,9 @@
                             <span>Undisclosed</span>
                         </label>
                     </div>
+                    </div>
+                    <p class="wage-filter-note">Annual salaries converted to hourly</p>
                 </div>
-                <p class="wage-filter-note">Annual salaries converted to hourly</p>
             </div>
         </aside>
 
@@ -2110,6 +2174,60 @@
                     });
                 });
             }
+            
+            // Collapsible filter sections
+            const filterSections = document.querySelectorAll('.filter-section[data-filter]');
+            const COLLAPSED_KEY = 'humboldtjobs-collapsed-filters';
+            
+            // Load collapsed state from localStorage
+            function getCollapsedFilters() {
+                try {
+                    return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || [];
+                } catch {
+                    return [];
+                }
+            }
+            
+            // Save collapsed state to localStorage
+            function saveCollapsedFilters(collapsed) {
+                localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsed));
+            }
+            
+            // Initialize collapsed state
+            const collapsedFilters = getCollapsedFilters();
+            
+            filterSections.forEach(section => {
+                const filterName = section.dataset.filter;
+                const header = section.querySelector('.filter-section-header');
+                
+                // Restore collapsed state
+                if (collapsedFilters.includes(filterName)) {
+                    section.classList.add('collapsed');
+                }
+                
+                // Toggle on header click
+                if (header) {
+                    header.addEventListener('click', (e) => {
+                        // Don't toggle if clicking on buttons inside header
+                        if (e.target.closest('button')) return;
+                        
+                        section.classList.toggle('collapsed');
+                        
+                        // Update localStorage
+                        const currentCollapsed = getCollapsedFilters();
+                        const isNowCollapsed = section.classList.contains('collapsed');
+                        
+                        if (isNowCollapsed && !currentCollapsed.includes(filterName)) {
+                            currentCollapsed.push(filterName);
+                        } else if (!isNowCollapsed) {
+                            const index = currentCollapsed.indexOf(filterName);
+                            if (index > -1) currentCollapsed.splice(index, 1);
+                        }
+                        
+                        saveCollapsedFilters(currentCollapsed);
+                    });
+                }
+            });
             
             const themeBtn = document.getElementById('theme-toggle-btn');
             const themeDropdown = document.getElementById('theme-dropdown');

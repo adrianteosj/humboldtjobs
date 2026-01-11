@@ -202,13 +202,57 @@
             margin-bottom: 1.5rem;
         }
 
+        .filter-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 1rem;
+        }
+
+        .filter-section-header:hover h3 {
+            color: var(--text-secondary);
+        }
+
         .filter-section h3 {
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-muted);
-            margin-bottom: 1rem;
+            margin: 0;
             font-weight: 600;
+            transition: color 0.15s;
+        }
+
+        .filter-toggle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .filter-section.collapsed .filter-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .filter-section-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+            max-height: 1000px;
+            opacity: 1;
+        }
+
+        .filter-section.collapsed .filter-section-content {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        .filter-section.collapsed {
+            padding-bottom: 1.25rem;
+        }
+
+        .filter-section.collapsed .filter-section-header {
+            margin-bottom: 0;
         }
 
         .filter-list {
@@ -1895,6 +1939,60 @@
                     });
                 });
             }
+            
+            // Collapsible filter sections
+            const filterSections = document.querySelectorAll('.filter-section[data-filter]');
+            const COLLAPSED_KEY = 'humboldtjobs-collapsed-filters';
+            
+            // Load collapsed state from localStorage
+            function getCollapsedFilters() {
+                try {
+                    return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || [];
+                } catch {
+                    return [];
+                }
+            }
+            
+            // Save collapsed state to localStorage
+            function saveCollapsedFilters(collapsed) {
+                localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsed));
+            }
+            
+            // Initialize collapsed state
+            const collapsedFilters = getCollapsedFilters();
+            
+            filterSections.forEach(section => {
+                const filterName = section.dataset.filter;
+                const header = section.querySelector('.filter-section-header');
+                
+                // Restore collapsed state
+                if (collapsedFilters.includes(filterName)) {
+                    section.classList.add('collapsed');
+                }
+                
+                // Toggle on header click
+                if (header) {
+                    header.addEventListener('click', (e) => {
+                        // Don't toggle if clicking on buttons inside header
+                        if (e.target.closest('button')) return;
+                        
+                        section.classList.toggle('collapsed');
+                        
+                        // Update localStorage
+                        const currentCollapsed = getCollapsedFilters();
+                        const isNowCollapsed = section.classList.contains('collapsed');
+                        
+                        if (isNowCollapsed && !currentCollapsed.includes(filterName)) {
+                            currentCollapsed.push(filterName);
+                        } else if (!isNowCollapsed) {
+                            const index = currentCollapsed.indexOf(filterName);
+                            if (index > -1) currentCollapsed.splice(index, 1);
+                        }
+                        
+                        saveCollapsedFilters(currentCollapsed);
+                    });
+                }
+            });
             
             const themeBtn = document.getElementById('theme-toggle-btn');
             const themeDropdown = document.getElementById('theme-dropdown');

@@ -14,79 +14,98 @@
             </div>
             {% endif %}
             
-            <div class="filter-section">
-                <h3>Categories</h3>
-                <ul class="filter-list">
-                    <li>
-                        <a href="/" class="{% if not selected_category and not selected_location and not selected_employer %}active{% endif %}">
-                            All Jobs
-                            <span class="filter-count">{{ total_all_jobs }}</span>
-                        </a>
-                    </li>
-                    {% for cat, count in categories %}
-                    <li>
-                        <a href="/category/{{ cat | slugify }}/" class="{% if selected_category == cat %}active{% endif %}">
-                            {{ cat }}
-                            <span class="filter-count">{{ count }}</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
+            <div class="filter-section" data-filter="categories">
+                <div class="filter-section-header">
+                    <h3>Categories</h3>
+                    <span class="filter-toggle">▼</span>
+                </div>
+                <div class="filter-section-content">
+                    <ul class="filter-list">
+                        <li>
+                            <a href="/" class="{% if not selected_category and not selected_location and not selected_employer %}active{% endif %}">
+                                All Jobs
+                                <span class="filter-count">{{ total_all_jobs }}</span>
+                            </a>
+                        </li>
+                        {% for cat, count in categories %}
+                        <li>
+                            <a href="/category/{{ cat | slugify }}/" class="{% if selected_category == cat %}active{% endif %}">
+                                {{ cat }}
+                                <span class="filter-count">{{ count }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
 
-            <div class="filter-section">
-                <h3>Locations</h3>
-                <ul class="filter-list">
-                    <li>
-                        <a href="/" class="{% if not selected_location and not selected_category and not selected_employer %}active{% endif %}">
-                            All Locations
-                            <span class="filter-count">{{ total_all_jobs }}</span>
-                        </a>
-                    </li>
-                    {% for loc, count in locations[:10] %}
-                    <li>
-                        <a href="/location/{{ loc | slugify }}/" class="{% if selected_location == loc %}active{% endif %}">
-                            {{ loc[:20] }}{% if loc|length > 20 %}...{% endif %}
-                            <span class="filter-count">{{ count }}</span>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
+            <div class="filter-section" data-filter="locations">
+                <div class="filter-section-header">
+                    <h3>Locations</h3>
+                    <span class="filter-toggle">▼</span>
+                </div>
+                <div class="filter-section-content">
+                    <ul class="filter-list">
+                        <li>
+                            <a href="/" class="{% if not selected_location and not selected_category and not selected_employer %}active{% endif %}">
+                                All Locations
+                                <span class="filter-count">{{ total_all_jobs }}</span>
+                            </a>
+                        </li>
+                        {% for loc, count in locations[:10] %}
+                        <li>
+                            <a href="/location/{{ loc | slugify }}/" class="{% if selected_location == loc %}active{% endif %}">
+                                {{ loc[:20] }}{% if loc|length > 20 %}...{% endif %}
+                                <span class="filter-count">{{ count }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
 
-            <div class="filter-section" id="employer-filter-section">
-                <div class="employer-filter-header">
+            <div class="filter-section" id="employer-filter-section" data-filter="employers">
+                <div class="filter-section-header">
                     <h3>Employers</h3>
-                    <div class="employer-filter-actions">
-                        <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
-                        <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <div class="employer-filter-actions">
+                            <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
+                            <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
+                        </div>
+                        <span class="filter-toggle">▼</span>
                     </div>
                 </div>
-                <div class="employer-filter-list">
-                    {% for emp in employers %}
-                    <div class="employer-filter-item" data-employer="{{ emp.name | lower }}">
-                        <input type="checkbox" 
-                               class="employer-filter-checkbox" 
-                               id="emp-{{ loop.index }}" 
-                               data-employer="{{ emp.name | lower }}"
-                               checked>
-                        <label class="employer-filter-label" for="emp-{{ loop.index }}">
-                            <span>{{ emp.name[:25] }}{% if emp.name|length > 25 %}...{% endif %}</span>
-                            <span class="filter-count">{{ emp.job_count }}</span>
-                        </label>
+                <div class="filter-section-content">
+                    <div class="employer-filter-list">
+                        {% for emp in employers %}
+                        <div class="employer-filter-item" data-employer="{{ emp.name | lower }}">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-{{ loop.index }}" 
+                                   data-employer="{{ emp.name | lower }}"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-{{ loop.index }}">
+                                <span>{{ emp.name[:25] }}{% if emp.name|length > 25 %}...{% endif %}</span>
+                                <span class="filter-count">{{ emp.job_count }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
-                </div>
-                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-                    <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View career pages →</a>
+                    <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                        <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View career pages →</a>
+                    </div>
                 </div>
             </div>
 
-            <div class="filter-section" id="wage-filter-section">
-                <div class="wage-filter-header">
+            <div class="filter-section" id="wage-filter-section" data-filter="wage">
+                <div class="filter-section-header">
                     <h3>Wage Range</h3>
-                    <button class="wage-filter-reset" id="wage-filter-reset" title="Reset">Reset</button>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button class="wage-filter-reset" id="wage-filter-reset" title="Reset">Reset</button>
+                        <span class="filter-toggle">▼</span>
+                    </div>
                 </div>
+                <div class="filter-section-content">
                 <div class="wage-filter-list">
                     <div class="wage-filter-item">
                         <input type="checkbox" class="wage-filter-checkbox" id="wage-under20" data-min="0" data-max="20" checked>
@@ -118,8 +137,9 @@
                             <span>Undisclosed</span>
                         </label>
                     </div>
+                    </div>
+                    <p class="wage-filter-note">Annual salaries converted to hourly</p>
                 </div>
-                <p class="wage-filter-note">Annual salaries converted to hourly</p>
             </div>
         </aside>
 
