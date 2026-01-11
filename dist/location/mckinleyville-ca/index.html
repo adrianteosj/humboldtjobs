@@ -3133,124 +3133,144 @@
             initializeFromStorage();
         })();
         
-        // Job Search Functionality
+        // Job Search Functionality - Searches ALL jobs via jobs.json
         (function() {
             const searchInput = document.getElementById('job-search');
             const searchClear = document.getElementById('search-clear');
             const searchResultsInfo = document.getElementById('search-results-info');
             const noSearchResults = document.getElementById('no-search-results');
-            
-            if (!searchInput) return; // Only run on pages with search
-            
-            const jobCards = document.querySelectorAll('.job-card');
             const jobList = document.querySelector('.job-list');
             const pagination = document.querySelector('.pagination');
+            const subcategoryTabs = document.querySelector('.subcategory-tabs');
+            
+            if (!searchInput || !jobList) return;
+            
+            let allJobs = null;
             let fuse = null;
-            let jobsData = [];
+            let originalContent = jobList.innerHTML;
+            let isSearchActive = false;
             
-            // Build jobs data from DOM for instant search
-            jobCards.forEach(card => {
-                jobsData.push({
-                    id: card.dataset.jobId,
-                    title: card.dataset.title || '',
-                    employer: card.dataset.employer || '',
-                    location: card.dataset.location || '',
-                    category: card.dataset.category || '',
-                    element: card
-                });
-            });
-            
-            // Initialize Fuse.js for fuzzy search
-            if (typeof Fuse !== 'undefined') {
-                fuse = new Fuse(jobsData, {
-                    keys: [
-                        { name: 'title', weight: 0.4 },
-                        { name: 'employer', weight: 0.35 },
-                        { name: 'location', weight: 0.15 },
-                        { name: 'category', weight: 0.1 }
-                    ],
-                    threshold: 0.4,
-                    ignoreLocation: true,
-                    minMatchCharLength: 2
-                });
+            // Load jobs.json for full search capability
+            async function loadJobsData() {
+                if (allJobs) return allJobs;
+                try {
+                    const response = await fetch('/static/jobs.json');
+                    allJobs = await response.json();
+                    
+                    // Initialize Fuse.js
+                    if (typeof Fuse !== 'undefined') {
+                        fuse = new Fuse(allJobs, {
+                            keys: [
+                                { name: 'title', weight: 0.4 },
+                                { name: 'employer', weight: 0.35 },
+                                { name: 'location', weight: 0.15 },
+                                { name: 'category', weight: 0.1 }
+                            ],
+                            threshold: 0.3,
+                            ignoreLocation: true,
+                            minMatchCharLength: 2
+                        });
+                    }
+                    return allJobs;
+                } catch (e) {
+                    console.error('Failed to load jobs data:', e);
+                    return [];
+                }
             }
             
-            function performSearch(query) {
-                query = query.trim().toLowerCase();
+            // Create a job card HTML
+            function createJobCard(job) {
+                const salaryHtml = job.salary 
+                    ? `<div class="job-salary">💰 ${job.salary}</div>`
+                    : `<div class="job-salary salary-undisclosed">💰 Undisclosed</div>`;
+                
+                return `
+                    <article class="job-card">
+                        <div class="job-card-header">
+                            <h2 class="job-title">
+                                <a href="${job.url}" target="_blank" rel="noopener">${job.title}</a>
+                            </h2>
+                            <span class="job-category">${job.category}</span>
+                        </div>
+                        <div class="job-meta">
+                            <span>🏢 ${job.employer}</span>
+                            ${job.location ? `<span>📍 ${job.location}</span>` : ''}
+                        </div>
+                        ${salaryHtml}
+                        <div class="job-footer">
+                            <span class="job-date">Recently added</span>
+                            <a href="${job.url}" target="_blank" rel="noopener" class="apply-btn">
+                                View & Apply →
+                            </a>
+                        </div>
+                    </article>
+                `;
+            }
+            
+            async function performSearch(query) {
+                query = query.trim();
                 
                 if (!query) {
-                    // Show all jobs (but respect employer filter)
-                    jobCards.forEach(card => {
-                        card.classList.remove('search-hidden');
-                        const isEmployerHidden = card.classList.contains('employer-hidden');
-                        card.style.display = isEmployerHidden ? 'none' : '';
-                    });
+                    // Restore original page content
+                    if (isSearchActive) {
+                        jobList.innerHTML = originalContent;
+                        isSearchActive = false;
+                    }
                     if (searchResultsInfo) searchResultsInfo.textContent = '';
                     if (noSearchResults) noSearchResults.classList.remove('visible');
                     if (pagination) pagination.style.display = '';
+                    if (subcategoryTabs) subcategoryTabs.style.display = '';
                     if (searchClear) searchClear.classList.remove('visible');
-                    
-                    // Re-apply employer filter count if active
-                    const hiddenEmployers = JSON.parse(localStorage.getItem('humboldtjobs-hidden-employers') || '[]');
-                    if (hiddenEmployers.length > 0) {
-                        const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
-                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
-                    }
                     return;
                 }
                 
                 if (searchClear) searchClear.classList.add('visible');
                 
-                let matchingIds = new Set();
+                // Load jobs data if not already loaded
+                await loadJobsData();
+                
+                let results = [];
                 
                 if (fuse) {
-                    // Use Fuse.js for fuzzy search
-                    const results = fuse.search(query);
-                    results.forEach(result => matchingIds.add(result.item.id));
-                } else {
+                    results = fuse.search(query).map(r => r.item);
+                } else if (allJobs) {
                     // Fallback to simple search
-                    jobsData.forEach(job => {
-                        if (job.title.includes(query) || 
-                            job.employer.includes(query) || 
-                            job.location.includes(query) ||
-                            job.category.includes(query)) {
-                            matchingIds.add(job.id);
-                        }
-                    });
+                    const q = query.toLowerCase();
+                    results = allJobs.filter(job => 
+                        job.title.toLowerCase().includes(q) || 
+                        job.employer.toLowerCase().includes(q) || 
+                        (job.location && job.location.toLowerCase().includes(q)) ||
+                        job.category.toLowerCase().includes(q)
+                    );
                 }
                 
-                // Show/hide jobs
-                let visibleCount = 0;
-                jobCards.forEach(card => {
-                    const isEmployerHidden = card.classList.contains('employer-hidden');
-                    if (matchingIds.has(card.dataset.jobId)) {
-                        card.classList.remove('search-hidden');
-                        if (!isEmployerHidden) {
-                            card.style.display = '';
-                            visibleCount++;
-                        }
-                    } else {
-                        card.classList.add('search-hidden');
-                        card.style.display = 'none';
-                    }
-                });
+                isSearchActive = true;
                 
-                // Update UI
-                if (visibleCount === 0) {
+                // Hide pagination and subcategory tabs during search
+                if (pagination) pagination.style.display = 'none';
+                if (subcategoryTabs) subcategoryTabs.style.display = 'none';
+                
+                if (results.length === 0) {
+                    jobList.innerHTML = '';
                     if (noSearchResults) noSearchResults.classList.add('visible');
                     if (searchResultsInfo) searchResultsInfo.textContent = '';
                 } else {
                     if (noSearchResults) noSearchResults.classList.remove('visible');
+                    
+                    // Limit to first 50 results for performance
+                    const displayResults = results.slice(0, 50);
+                    jobList.innerHTML = displayResults.map(createJobCard).join('');
+                    
                     if (searchResultsInfo) {
-                        searchResultsInfo.textContent = `Found ${visibleCount} job${visibleCount !== 1 ? 's' : ''} matching "${query}"`;
+                        const countText = results.length > 50 
+                            ? `Showing 50 of ${results.length} jobs` 
+                            : `Found ${results.length} job${results.length !== 1 ? 's' : ''}`;
+                        searchResultsInfo.textContent = `${countText} matching "${query}"`;
                     }
                 }
-                
-                // Hide pagination during search
-                if (pagination) pagination.style.display = query ? 'none' : '';
             }
             
-            // Debounce function for performance
+            // Debounce function
             function debounce(func, wait) {
                 let timeout;
                 return function executedFunction(...args) {
@@ -3265,7 +3285,7 @@
             
             searchInput.addEventListener('input', debounce(function(e) {
                 performSearch(e.target.value);
-            }, 150));
+            }, 250));
             
             if (searchClear) {
                 searchClear.addEventListener('click', function() {
@@ -3275,20 +3295,21 @@
                 });
             }
             
-            // Handle keyboard shortcuts
+            // Keyboard shortcuts
             document.addEventListener('keydown', function(e) {
-                // Focus search on "/" key
                 if (e.key === '/' && document.activeElement !== searchInput) {
                     e.preventDefault();
                     searchInput.focus();
                 }
-                // Clear search on Escape
                 if (e.key === 'Escape' && document.activeElement === searchInput) {
                     searchInput.value = '';
                     performSearch('');
                     searchInput.blur();
                 }
             });
+            
+            // Preload jobs data on focus for faster search
+            searchInput.addEventListener('focus', loadJobsData);
         })();
     </script>
 </body>
