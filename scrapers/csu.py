@@ -179,15 +179,25 @@ class CSUScraper(BaseScraper):
             
             # ============================================================
             # Pattern 7: Single pay rate (student jobs)
-            # "Pay Rate: $17.86/hour"
+            # "Pay Rate: $17.86/hour" or "Pay Rate: up to approx. $1,622.00month"
             # ============================================================
-            pay_rate_match = re.search(
-                r'Pay\s*Rate[:\s]*\$?([\d.]+)\s*/?\s*(?:hour|hr)',
+            # Hourly rate
+            pay_rate_hourly = re.search(
+                r'Pay\s*Rate[:\s]*(?:up\s+to\s+(?:approx\.?\s*)?)?\$?([\d,]+(?:\.\d{2})?)\s*/?\s*(?:hour|hr)',
                 text, re.IGNORECASE
             )
-            if pay_rate_match:
-                rate = pay_rate_match.group(1)
+            if pay_rate_hourly:
+                rate = pay_rate_hourly.group(1).replace(',', '')
                 return f"${rate}/hr"
+            
+            # Monthly rate
+            pay_rate_monthly = re.search(
+                r'Pay\s*Rate[:\s]*(?:up\s+to\s+(?:approx\.?\s*)?)?\$?([\d,]+(?:\.\d{2})?)\s*/?\s*(?:month|mo)',
+                text, re.IGNORECASE
+            )
+            if pay_rate_monthly:
+                rate = pay_rate_monthly.group(1).replace(',', '')
+                return f"Up to ${rate}/mo"
             
             # ============================================================
             # Pattern 8: "Salary: Dependent on qualifications" - mark as DOE
