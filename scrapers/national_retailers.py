@@ -82,8 +82,66 @@ class DollarGeneralScraper(BaseScraper):
                 self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
                 break
         
+        # Fetch salary for each job from detail pages
+        if jobs:
+            self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page_obj = browser.new_page(user_agent=USER_AGENT)
+                
+                for job in jobs:
+                    salary = self._fetch_job_salary(page_obj, job.url)
+                    if salary:
+                        job.salary_text = salary
+                        self.logger.debug(f"    Found salary for {job.title}: {salary}")
+                    time.sleep(0.5)
+                
+                browser.close()
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
+    
+    def _fetch_job_salary(self, page, url: str) -> Optional[str]:
+        """
+        Fetch salary from Dollar General job detail page.
+        
+        Dollar General shows salary as "New Hire Starting Pay Range: X.XX - Y.YY"
+        """
+        try:
+            page.goto(url, wait_until='domcontentloaded', timeout=30000)
+            page.wait_for_timeout(3000)  # Wait for JS to render
+            
+            text = page.inner_text('body')
+            
+            # Pattern: "New Hire Starting Pay Range: 16.90 - 17.00"
+            salary_match = re.search(
+                r'(?:New\s+Hire\s+)?(?:Starting\s+)?Pay\s+Range[:\s]*([\d.]+)\s*[-–]\s*([\d.]+)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low, high = salary_match.groups()
+                return f"${low} - ${high}/hr"
+            
+            # Fallback: look for any dollar range
+            salary_match = re.search(
+                r'\$([\d.]+)\s*[-–]\s*\$([\d.]+)\s*(?:/hr|hourly|per hour)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low, high = salary_match.groups()
+                try:
+                    if float(low) < 100:  # Likely hourly
+                        return f"${low} - ${high}/hr"
+                except:
+                    pass
+                return f"${low} - ${high}"
+            
+            return None
+        except Exception as e:
+            self.logger.debug(f"Error fetching salary from {url}: {e}")
+            return None
 
     def _parse_job(self, data: dict) -> Optional[JobData]:
         try:

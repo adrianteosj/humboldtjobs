@@ -68,6 +68,12 @@ class CSUScraper(BaseScraper):
         """
         Fetch salary from individual job page.
         
+        Handles multiple Cal Poly salary formats:
+        - Step-based monthly: "Salary Range: Step 1 ($4,241) – Step 20 ($6,177)"
+        - Step-based hourly: "Salary Range: Step 1 ($19.97/hour) – Step 17 ($27.42/hour)"
+        - Lecturer scale: "Lecturer A $5,507 - $6,677" (multiple levels)
+        - Simple range: "$4,583 - $5,833 per month"
+        
         Args:
             page: Playwright page object
             url: Job URL
@@ -76,45 +82,134 @@ class CSUScraper(BaseScraper):
             Salary text or None
         """
         try:
-            page.goto(url, wait_until='networkidle', timeout=15000)
+            page.goto(url, wait_until='networkidle', timeout=20000)
             
             # Wait for job content to load
             try:
-                page.wait_for_selector('.job-listing', timeout=5000)
+                page.wait_for_selector('#job-details', timeout=5000)
             except:
                 pass
             
             text = page.inner_text('body')
             
-            # Look for "Hourly Salary Range: $X.XX-$Y.YY" pattern (exact Cal Poly format)
-            salary_match = re.search(
-                r'(?:Hourly\s+)?Salary\s*Range[:\s]*\$[\d,.]+\s*[-–]\s*\$[\d,.]+',
-                text,
-                re.IGNORECASE
+            # ============================================================
+            # Pattern 1: Step-based hourly salary
+            # "Salary Range: Step 1 ($19.97/hour) – Step 17 ($27.42/hour)"
+            # ============================================================
+            hourly_step_match = re.search(
+                r'Salary\s*Range:\s*Step\s*\d+\s*\(\$?([\d.]+)/hour\)\s*[–-]\s*Step\s*\d+\s*\(\$?([\d.]+)/hour\)',
+                text, re.IGNORECASE
             )
-            if salary_match:
-                return salary_match.group(0)
+            if hourly_step_match:
+                low, high = hourly_step_match.groups()
+                return f"${low} - ${high}/hr"
             
-            # Look for monthly salary like "$4,583 - $5,833 per month"
-            salary_match = re.search(
+            # ============================================================
+            # Pattern 2: Step-based monthly salary
+            # "Salary Range: Step 1 ($4,241) – Step 20 ($6,177)"
+            # ============================================================
+            monthly_step_match = re.search(
+                r'Salary\s*Range:\s*Step\s*\d+\s*\(\$?([\d,]+)\)\s*[–-]\s*Step\s*\d+\s*\(\$?([\d,]+)\)',
+                text, re.IGNORECASE
+            )
+            if monthly_step_match:
+                low, high = monthly_step_match.groups()
+                return f"${low} - ${high}/mo"
+            
+            # ============================================================
+            # Pattern 3: Lecturer salary scale (multiple levels)
+            # "Lecturer A $5,507 - $6,677"
+            # "Lecturer B $6,221 - $13,224"
+            # "Lecturer C $6,825 - $14,523"
+            # ============================================================
+            lecturer_matches = re.findall(
+                r'Lecturer\s+([A-C])\s+\$?([\d,]+)\s*[-–]\s*\$?([\d,]+)',
+                text, re.IGNORECASE
+            )
+            if lecturer_matches:
+                # Format as multi-level salary
+                formatted = []
+                for level, low, high in lecturer_matches[:3]:  # Limit to 3 levels
+                    formatted.append(f"Lecturer {level.upper()}: ${low} - ${high}")
+                return ' | '.join(formatted)
+            
+            # ============================================================
+            # Pattern 4: Simple monthly salary
+            # "$4,583 - $5,833 per month"
+            # ============================================================
+            monthly_match = re.search(
                 r'\$[\d,]+\s*[-–]\s*\$[\d,]+\s*(?:per\s*month|monthly)',
-                text,
-                re.IGNORECASE
+                text, re.IGNORECASE
             )
-            if salary_match:
-                return salary_match.group(0)
+            if monthly_match:
+                return monthly_match.group(0)
             
-            # Look for annual salary
-            salary_match = re.search(
+            # ============================================================
+            # Pattern 5: Simple annual salary
+            # "$50,000 - $70,000 per year"
+            # ============================================================
+            annual_match = re.search(
                 r'\$[\d,]+\s*[-–]\s*\$[\d,]+\s*(?:per\s*year|annual|annually)',
-                text,
-                re.IGNORECASE
+                text, re.IGNORECASE
             )
-            if salary_match:
-                return salary_match.group(0)
+            if annual_match:
+                return annual_match.group(0)
+            
+            # ============================================================
+            # Pattern 6: Generic salary range (monthly or hourly)
+            # "Salary Range: $5,797-$8,445" or "Salary Range: $5,178 - $7,543"
+            # ============================================================
+            generic_range_match = re.search(
+                r'Salary\s*Range[:\s]*\$?([\d,]+(?:\.\d+)?)\s*[-–]\s*\$?([\d,]+(?:\.\d+)?)',
+                text, re.IGNORECASE
+            )
+            if generic_range_match:
+                low, high = generic_range_match.groups()
+                try:
+                    low_val = float(low.replace(',', ''))
+                    # Determine if hourly or monthly based on amount
+                    if low_val < 100:  # Likely hourly
+                        return f"${low} - ${high}/hr"
+                    elif low_val < 15000:  # Likely monthly
+                        return f"${low} - ${high}/mo"
+                    else:  # Likely annual
+                        return f"${low} - ${high}/yr"
+                except:
+                    return f"${low} - ${high}"
+            
+            # ============================================================
+            # Pattern 7: Single pay rate (student jobs)
+            # "Pay Rate: $17.86/hour"
+            # ============================================================
+            pay_rate_match = re.search(
+                r'Pay\s*Rate[:\s]*\$?([\d.]+)\s*/?\s*(?:hour|hr)',
+                text, re.IGNORECASE
+            )
+            if pay_rate_match:
+                rate = pay_rate_match.group(1)
+                return f"${rate}/hr"
+            
+            # ============================================================
+            # Pattern 8: "Salary: Dependent on qualifications" - mark as DOE
+            # ============================================================
+            if re.search(r'Salary:\s*Dependent\s+on\s+qualifications', text, re.IGNORECASE):
+                # Check if there's also a lecturer scale mentioned
+                if 'lecturer' in text.lower() and re.search(r'Lecturer\s+[A-C]', text):
+                    # Re-run lecturer pattern search
+                    lecturer_matches = re.findall(
+                        r'Lecturer\s+([A-C])\s+\$?([\d,]+)\s*[-–]\s*\$?([\d,]+)',
+                        text, re.IGNORECASE
+                    )
+                    if lecturer_matches:
+                        formatted = []
+                        for level, low, high in lecturer_matches[:3]:
+                            formatted.append(f"Lecturer {level.upper()}: ${low} - ${high}")
+                        return ' | '.join(formatted)
+                return "Depends on Qualifications"
             
             return None
-        except Exception:
+        except Exception as e:
+            self.logger.debug(f"Error fetching salary from {url}: {e}")
             return None
     
     def _scrape_all_pages(self, page: Page) -> List[JobData]:

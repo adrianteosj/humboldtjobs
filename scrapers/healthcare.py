@@ -199,10 +199,22 @@ class ProvidenceScraper(BaseScraper):
     def _fetch_job_salary_page(self, page, url: str) -> Optional[str]:
         """Fetch salary from individual Providence job page using Playwright"""
         try:
-            page.goto(url, wait_until='networkidle', timeout=15000)
-            page.wait_for_timeout(2000)
+            page.goto(url, wait_until='domcontentloaded', timeout=30000)
+            page.wait_for_timeout(3000)
             
             text = page.inner_text('body')
+            
+            # Look for "Pay Range: $ X.XX - $ Y.YY" pattern (Providence format with spaces after $)
+            salary_match = re.search(
+                r'Pay\s*Range[:\s]*\$\s*[\d,.]+\s*[-–]\s*\$\s*[\d,.]+',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                # Clean up the extracted salary (remove extra spaces)
+                salary = salary_match.group(0)
+                salary = re.sub(r'\$\s+', '$', salary)  # Remove space after $
+                return salary
             
             # Look for "Compensation is between $X to $Y per year" pattern
             salary_match = re.search(
@@ -213,14 +225,16 @@ class ProvidenceScraper(BaseScraper):
             if salary_match:
                 return salary_match.group(0)
             
-            # Look for salary range pattern
+            # Look for generic salary range pattern
             salary_match = re.search(
-                r'\$[\d,]+(?:\.\d+)?\s*[-–]\s*\$[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour|month)|annually|hourly|monthly)?',
+                r'\$\s*[\d,]+(?:\.\d+)?\s*[-–]\s*\$\s*[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour|month)|annually|hourly|monthly)?',
                 text,
                 re.IGNORECASE
             )
             if salary_match:
-                return salary_match.group(0)
+                salary = salary_match.group(0)
+                salary = re.sub(r'\$\s+', '$', salary)
+                return salary
             
             return None
         except Exception:
@@ -508,7 +522,7 @@ class KimawMedicalScraper(BaseScraper):
             soup = BeautifulSoup(response.text, 'lxml')
             text = soup.get_text()
             
-            # Look for "Salary Level: Grade X ($X.XX-$Y.YY)" pattern
+            # Pattern 1: "Salary Level: Grade X ($X.XX-$Y.YY)"
             salary_match = re.search(
                 r'Salary\s*Level[:\s]*(?:Grade\s*\d+\s*)?\(?\$[\d,.]+\s*[-–]\s*\$[\d,.]+\)?',
                 text,
@@ -517,14 +531,40 @@ class KimawMedicalScraper(BaseScraper):
             if salary_match:
                 return salary_match.group(0)
             
-            # Fallback: just look for salary range
+            # Pattern 2: "Salary Range: $X - $Y per hour/year"
             salary_match = re.search(
-                r'\$[\d,.]+\s*[-–]\s*\$[\d,.]+\s*(?:hourly|per hour|/hr)?',
+                r'Salary\s*(?:Range)?[:\s]*\$?([\d,.]+K?)\s*[-–]\s*\$?([\d,.]+K?)\s*(?:per\s+(?:hour|year)|hourly|annually|/hr|DOE)?',
                 text,
                 re.IGNORECASE
             )
             if salary_match:
-                return salary_match.group(0)
+                low, high = salary_match.groups()
+                # Check if it's in K format (like $160K)
+                if 'K' in low.upper() or 'K' in high.upper():
+                    return f"${low} - ${high}/yr"
+                # Check if it looks like hourly (small numbers)
+                try:
+                    low_val = float(low.replace(',', '').replace('K', '000'))
+                    if low_val < 200:
+                        return f"${low} - ${high}/hr"
+                    else:
+                        return f"${low} - ${high}/yr"
+                except:
+                    return f"${low} - ${high}"
+            
+            # Pattern 3: "Salary: $X - $Y/hr" or "$X - $Y hourly"
+            salary_match = re.search(
+                r'\$([\d,.]+)\s*[-–]\s*\$([\d,.]+)\s*(?:/hr|hourly|per hour)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low, high = salary_match.groups()
+                return f"${low} - ${high}/hr"
+            
+            # Pattern 4: "Salary Level: DOE" - Depends on Experience
+            if re.search(r'Salary\s*(?:Level)?[:\s]*DOE', text, re.IGNORECASE):
+                return "Depends on Experience"
             
             return None
         except Exception:

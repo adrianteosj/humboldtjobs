@@ -67,12 +67,91 @@ class RedwoodsScraper(BaseScraper):
                 
                 self.logger.info(f"  Found {len(all_jobs)} jobs from College of the Redwoods")
                 
+                # Fetch salary for each job
+                self.logger.info(f"  Fetching salary details for {len(all_jobs)} jobs...")
+                for job in all_jobs:
+                    salary = self._fetch_job_salary(page, job.url)
+                    if salary:
+                        job.salary_text = salary
+                        self.logger.debug(f"    Found salary for {job.title}: {salary}")
+                    import time
+                    time.sleep(0.3)
+                
             except Exception as e:
                 self.logger.error(f"  Error scraping College of the Redwoods: {e}")
             
             browser.close()
         
         return all_jobs
+    
+    def _fetch_job_salary(self, page, url: str) -> Optional[str]:
+        """
+        Fetch salary from individual job page.
+        
+        College of the Redwoods uses a table structure with:
+        - <th>Salary</th><td>$62,212.80 - $70,054.40/Annually (...)</td>
+        - Or "Based on education" for faculty positions
+        
+        Args:
+            page: Playwright page object
+            url: Job URL
+            
+        Returns:
+            Salary text or None
+        """
+        try:
+            page.goto(url, wait_until='networkidle', timeout=20000)
+            page.wait_for_timeout(1000)
+            
+            html = page.content()
+            soup = BeautifulSoup(html, 'lxml')
+            
+            # Find the Salary row (th with "Salary" text, not "Salary Grade")
+            ths = soup.find_all('th')
+            for th in ths:
+                th_text = th.get_text(strip=True)
+                if th_text == 'Salary':  # Exact match to avoid "Salary Grade"
+                    td = th.find_next_sibling('td')
+                    if td:
+                        salary_text = td.get_text(strip=True)
+                        
+                        # Skip if it's just "Based on education" or similar
+                        if salary_text.lower().startswith('based on'):
+                            return "Based on Education"
+                        
+                        # Skip empty
+                        if not salary_text or salary_text == '':
+                            return None
+                        
+                        # Extract the main salary range
+                        # Format: "$62,212.80 - $70,054.40/Annually (20-step...)"
+                        salary_match = re.search(
+                            r'\$([\d,]+(?:\.\d{2})?)\s*[-–]\s*\$([\d,]+(?:\.\d{2})?)\s*/?\s*(\w+)?',
+                            salary_text
+                        )
+                        if salary_match:
+                            low, high, period = salary_match.groups()
+                            if period:
+                                period = period.lower()
+                                if 'annual' in period:
+                                    return f"${low} - ${high}/yr"
+                                elif 'hour' in period:
+                                    return f"${low} - ${high}/hr"
+                                elif 'month' in period:
+                                    return f"${low} - ${high}/mo"
+                            return f"${low} - ${high}"
+                        
+                        # If no range found but has dollar amount
+                        single_match = re.search(r'\$([\d,]+(?:\.\d{2})?)', salary_text)
+                        if single_match:
+                            return f"${single_match.group(1)}"
+                        
+                        return salary_text[:100]  # Return first 100 chars as fallback
+            
+            return None
+        except Exception as e:
+            self.logger.debug(f"Error fetching salary from {url}: {e}")
+            return None
     
     def _parse_html(self, html: str) -> List[JobData]:
         soup = BeautifulSoup(html, 'lxml')

@@ -124,63 +124,233 @@ class WorkdayScraper(BaseScraper):
             return None
     
     def _extract_salary_from_description(self, description_html: str) -> Optional[str]:
-        """Extract salary/compensation from job description HTML"""
+        """
+        Extract salary/compensation from job description HTML.
+        
+        Handles multiple formats including:
+        - Simple range: "Compensation Range: $27.00-$31.35"
+        - Role-based ranges: "MA I - $27.00 to $31.35", "Physician: $234,635.20 - $294,891.20"
+        - Single base wages: "RN I: $42.00"
+        - Year-based: "1st year $98,420.40; 2nd year $113,823.84"
+        - Multi-line: "Physician:" on one line, "$X - $Y" on the next
+        """
         if not description_html:
             return None
         
         soup = BeautifulSoup(description_html, 'html.parser')
-        text = soup.get_text()
+        text = soup.get_text(separator='\n')
         
-        # Pattern for "Compensation: $X to $Y" or "Compensation: $X - $Y"
-        salary_match = re.search(
-            r'(?:compensation|salary|pay(?:\s+rate)?)[:\s]*\$?([\d,]+(?:\.\d{2})?)\s*(?:to|-)\s*\$?([\d,]+(?:\.\d{2})?)',
-            text, re.IGNORECASE
-        )
-        if salary_match:
-            low, high = salary_match.groups()
-            return f"${low} - ${high}"
-        
-        # Pattern for "Compensation Range: $X-$Y"
+        # ============================================================
+        # 1. First, try to find "Compensation Range:" pattern (simplest)
+        # ============================================================
         range_match = re.search(
-            r'(?:compensation\s+range|salary\s+range|pay\s+range)[:\s]*\$?([\d,]+(?:\.\d{2})?)\s*[-–]\s*\$?([\d,]+(?:\.\d{2})?)',
+            r'(?:compensation\s+range|salary\s+range|pay\s+range)\s*:\s*\$?([\d,]+(?:\.\d{2})?)\s*[-–]\s*\$?([\d,]+(?:\.\d{2})?)',
             text, re.IGNORECASE
         )
         if range_match:
             low, high = range_match.groups()
-            return f"${low} - ${high}"
+            # Filter out $0.00 salaries
+            try:
+                low_val = float(low.replace(',', ''))
+                high_val = float(high.replace(',', ''))
+                if low_val == 0 and high_val == 0:
+                    pass  # Skip and continue to other patterns
+                elif low_val < 500:  # Likely hourly
+                    return f"${low} - ${high}/hr"
+                else:
+                    return f"${low} - ${high}/yr"
+            except:
+                return f"${low} - ${high}"
         
-        # Pattern for job title salary like "RN I: $42.00" or "RN base wage: $42.00"
-        # Look for reasonable hourly wages (>$15 and < $200)
-        title_wage_match = re.search(
-            r'(?:base\s+wage|starting\s+(?:wage|salary|pay))[:\s]*\$?([\d,]+(?:\.\d{2})?)',
+        # ============================================================
+        # 2. Look for year-based salaries (for residents)
+        # "1st year $98,420.40; 2nd year $113,823.84"
+        # ============================================================
+        year_match = re.search(
+            r'(?:1st|first)\s+year\s+\$?([\d,]+(?:\.\d{2})?)\s*;?\s*(?:2nd|second)\s+year\s+\$?([\d,]+(?:\.\d{2})?)',
             text, re.IGNORECASE
         )
-        if title_wage_match:
-            wage = title_wage_match.group(1)
-            # Check if it's a reasonable hourly amount
-            try:
-                amount = float(wage.replace(',', ''))
-                if 15 <= amount <= 200:
-                    return f"${wage}/hour"
-            except:
-                pass
+        if year_match:
+            year1, year2 = year_match.groups()
+            return f"Year 1: ${year1} | Year 2: ${year2}"
         
-        # Pattern for single salary "Compensation: $X" (but only if > $10,000 to avoid differentials)
-        single_match = re.search(
-            r'(?:compensation|salary|pay(?:\s+rate)?)[:\s]*\$?([\d,]+(?:\.\d{2})?)',
+        # ============================================================
+        # 3. Extract role-based salary lines
+        # ============================================================
+        salary_entries = []
+        lines = text.split('\n')
+        
+        # Track pending role (for multi-line patterns like "Physician:" on one line, salary on next)
+        pending_role = None
+        in_compensation_section = False
+        
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line or len(line) > 100:  # Skip empty or very long lines
+                continue
+            
+            # Check if we're entering compensation section
+            if 'compensation' in line.lower():
+                in_compensation_section = True
+            
+            # Check if we're leaving compensation section
+            if in_compensation_section and ('essential duties' in line.lower() or 'responsibilities' in line.lower()):
+                in_compensation_section = False
+                break
+            
+            # Pattern: "Role Name - $X to $Y" (MA Trainee - $24.00 to $27.87)
+            role_range_to = re.match(
+                r'^([A-Za-z\s]+(?:I{1,3}|Trainee)?)\s*[-–]\s*\$([\d,]+(?:\.\d{2})?)\s+to\s+\$([\d,]+(?:\.\d{2})?)',
+                line, re.IGNORECASE
+            )
+            if role_range_to:
+                role, low, high = role_range_to.groups()
+                role = role.strip()
+                # Skip if role is too generic or salary is $0
+                if role.lower() not in ['compensation', 'salary', 'pay']:
+                    try:
+                        if float(low.replace(',', '')) > 0:
+                            salary_entries.append({
+                                'role': role,
+                                'low': low,
+                                'high': high,
+                                'type': 'range'
+                            })
+                    except:
+                        pass
+                pending_role = None
+                continue
+            
+            # Pattern: "Role Name: $X - $Y" or "Role Name: $X to $Y" (Physician: $234,635.20 - $294,891.20, APC: $X - $Y)
+            role_range_dash = re.match(
+                r'^([A-Za-z/\s]+(?:I{1,3})?)\s*:\s*\$([\d,]+(?:\.\d{2})?)\s*(?:[-–]|to)\s*\$([\d,]+(?:\.\d{2})?)',
+                line, re.IGNORECASE
+            )
+            if role_range_dash:
+                role, low, high = role_range_dash.groups()
+                role = role.strip()
+                # Skip if role is just "Compensation" or similar, or salary is $0
+                if role.lower() not in ['compensation', 'compensation range', 'salary', 'pay', 'salary range']:
+                    try:
+                        if float(low.replace(',', '')) > 0:
+                            salary_entries.append({
+                                'role': role,
+                                'low': low,
+                                'high': high,
+                                'type': 'range'
+                            })
+                    except:
+                        pass
+                pending_role = None
+                continue
+            
+            # Pattern: "Role Name:" alone on a line (pending for next line's salary)
+            role_alone = re.match(r'^([A-Za-z/\s]+(?:I{1,3})?)\s*:?\s*$', line)
+            if role_alone and in_compensation_section:
+                potential_role = role_alone.group(1).strip()
+                if potential_role.lower() not in ['compensation', 'salary', 'pay', '']:
+                    pending_role = potential_role
+                continue
+            
+            # Pattern: Salary range alone "$X - $Y" or "$X to $Y" (following a role on previous line)
+            salary_alone = re.match(r'^\$([\d,]+(?:\.\d{2})?)\s*(?:[-–]|to)\s*\$([\d,]+(?:\.\d{2})?)$', line)
+            if salary_alone:
+                low, high = salary_alone.groups()
+                try:
+                    if float(low.replace(',', '')) > 0:
+                        if pending_role:
+                            salary_entries.append({
+                                'role': pending_role,
+                                'low': low,
+                                'high': high,
+                                'type': 'range'
+                            })
+                        elif in_compensation_section and not salary_entries:
+                            # First salary after COMPENSATION: without explicit role
+                            salary_entries.append({
+                                'role': None,
+                                'low': low,
+                                'high': high,
+                                'type': 'range'
+                            })
+                except:
+                    pass
+                pending_role = None
+                continue
+            
+            # Pattern: "Role Name: $X" single wage (RN I: $42.00)
+            single_wage = re.match(
+                r'^([A-Za-z\s]+(?:I{1,3})?)\s*:\s*\$([\d,]+(?:\.\d{2})?)$',
+                line, re.IGNORECASE
+            )
+            if single_wage:
+                role, wage = single_wage.groups()
+                role = role.strip()
+                try:
+                    wage_val = float(wage.replace(',', ''))
+                    # Only capture if it looks like a reasonable wage
+                    if 15 <= wage_val <= 500:
+                        salary_entries.append({
+                            'role': role,
+                            'wage': wage,
+                            'type': 'single'
+                        })
+                except:
+                    pass
+                pending_role = None
+                continue
+            
+            # Reset pending role if line doesn't match any pattern
+            if not line.startswith('$'):
+                pending_role = None
+        
+        # ============================================================
+        # 4. Format salary entries for display
+        # ============================================================
+        if salary_entries:
+            # Limit to 3 most relevant entries to keep display manageable
+            entries_to_show = salary_entries[:3]
+            
+            formatted = []
+            for entry in entries_to_show:
+                role_prefix = f"{entry['role']}: " if entry.get('role') else ""
+                
+                if entry['type'] == 'range':
+                    try:
+                        low_val = float(entry['low'].replace(',', ''))
+                        # Determine if hourly or annual
+                        if low_val < 500:
+                            formatted.append(f"{role_prefix}${entry['low']} - ${entry['high']}/hr")
+                        else:
+                            formatted.append(f"{role_prefix}${entry['low']} - ${entry['high']}/yr")
+                    except:
+                        formatted.append(f"{role_prefix}${entry['low']} - ${entry['high']}")
+                else:  # single
+                    formatted.append(f"{role_prefix}${entry['wage']}/hr")
+            
+            if formatted:
+                return ' | '.join(formatted)
+        
+        # ============================================================
+        # 5. Fallback: Simple compensation match
+        # ============================================================
+        simple_match = re.search(
+            r'(?:compensation|salary)[:\s]*\$?([\d,]+(?:\.\d{2})?)\s*(?:to|-)\s*\$?([\d,]+(?:\.\d{2})?)',
             text, re.IGNORECASE
         )
-        if single_match:
-            amount_str = single_match.group(1)
+        if simple_match:
+            low, high = simple_match.groups()
             try:
-                amount = float(amount_str.replace(',', ''))
-                # Only use if it's a reasonable annual salary (>$20k) or hourly rate (>$15)
-                if amount >= 20000:
-                    return f"${amount_str}"
-                elif 15 <= amount <= 200:
-                    return f"${amount_str}/hour"
+                low_val = float(low.replace(',', ''))
+                high_val = float(high.replace(',', ''))
+                if low_val == 0 and high_val == 0:
+                    return None  # Skip $0 salaries
+                if low_val < 500:
+                    return f"${low} - ${high}/hr"
+                else:
+                    return f"${low} - ${high}/yr"
             except:
-                pass
+                return f"${low} - ${high}"
         
         return None
     

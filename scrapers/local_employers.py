@@ -508,6 +508,16 @@ class UKGScraper(BaseScraper):
                 html = page.content()
                 jobs = self._parse_html(html)
                 
+                # Fetch salary for each job from detail pages
+                self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+                for job in jobs:
+                    salary = self._fetch_job_salary(page, job.url)
+                    if salary:
+                        job.salary_text = salary
+                        self.logger.debug(f"    Found salary for {job.title}: {salary}")
+                    import time
+                    time.sleep(0.5)
+                
             except Exception as e:
                 self.logger.error(f"Error scraping {self.employer_name}: {e}")
             finally:
@@ -515,6 +525,54 @@ class UKGScraper(BaseScraper):
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
+    
+    def _fetch_job_salary(self, page, url: str) -> Optional[str]:
+        """
+        Fetch salary from UKG job detail page.
+        
+        UKG shows salary as "Hourly Range: $17.11 USD to $21.40 USD"
+        """
+        try:
+            page.goto(url, wait_until='domcontentloaded', timeout=20000)
+            page.wait_for_timeout(2000)
+            
+            text = page.inner_text('body')
+            
+            # Pattern 1: "Hourly Range: $17.11 USD to $21.40 USD"
+            salary_match = re.search(
+                r'Hourly\s*Range[:\s]*\$([\d.]+)\s*(?:USD)?\s*to\s*\$([\d.]+)\s*(?:USD)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low, high = salary_match.groups()
+                return f"${low} - ${high}/hr"
+            
+            # Pattern 2: "Salary Range: $X to $Y"
+            salary_match = re.search(
+                r'(?:Salary|Pay)\s*Range[:\s]*\$([\d,.]+)\s*(?:USD)?\s*to\s*\$([\d,.]+)\s*(?:USD)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low, high = salary_match.groups()
+                try:
+                    low_val = float(low.replace(',', ''))
+                    if low_val < 200:
+                        return f"${low} - ${high}/hr"
+                    else:
+                        return f"${low} - ${high}/yr"
+                except:
+                    return f"${low} - ${high}"
+            
+            # Pattern 3: "Starting wage is based upon..." (union position)
+            if re.search(r'Starting wage is based upon', text, re.IGNORECASE):
+                return "Based on Experience"
+            
+            return None
+        except Exception as e:
+            self.logger.debug(f"Error fetching salary from {url}: {e}")
+            return None
     
     def _parse_html(self, html: str) -> List[JobData]:
         soup = BeautifulSoup(html, 'lxml')
@@ -705,13 +763,15 @@ class DancoGroupScraper(BaseScraper):
         self.employer_name = 'Danco Group'
         self.url = DANCO_GROUP_URL
         self.category = 'Construction'
+        self.session = requests.Session()
+        self.session.headers.update({'User-Agent': USER_AGENT})
     
     def scrape(self) -> List[JobData]:
         self.logger.info(f"Scraping {self.employer_name}...")
         jobs = []
         
         try:
-            response = requests.get(self.url, headers={'User-Agent': USER_AGENT}, timeout=30)
+            response = self.session.get(self.url, timeout=30)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, 'lxml')
             
@@ -753,9 +813,72 @@ class DancoGroupScraper(BaseScraper):
                 
                 if self.validate_job(job):
                     jobs.append(job)
+            
+            # Fetch salary for each job from detail pages
+            self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+            for job in jobs:
+                salary = self._fetch_job_salary(job.url)
+                if salary:
+                    job.salary_text = salary
+                    self.logger.debug(f"    Found salary for {job.title}: {salary}")
+                import time
+                time.sleep(0.3)
                     
         except Exception as e:
             self.logger.error(f"Error scraping {self.employer_name}: {e}")
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
+    
+    def _fetch_job_salary(self, url: str) -> Optional[str]:
+        """
+        Fetch salary from Danco Group job detail page.
+        
+        Danco shows salary as "Salary: $15.00 - $20.00 per hour"
+        """
+        try:
+            response = self.session.get(url, timeout=15)
+            if response.status_code != 200:
+                return None
+            
+            soup = BeautifulSoup(response.text, 'lxml')
+            text = soup.get_text()
+            
+            # Pattern 1: "Salary: $15.00 - $20.00 per hour"
+            salary_match = re.search(
+                r'Salary[:\s]*\$([\d.]+)\s*[-–]\s*\$([\d.]+)\s*(?:per\s*hour|hourly|/hr)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low, high = salary_match.groups()
+                return f"${low} - ${high}/hr"
+            
+            # Pattern 2: "Pay: $X - $Y"
+            salary_match = re.search(
+                r'(?:Pay|Wage|Rate)[:\s]*\$([\d.]+)\s*[-–]\s*\$([\d.]+)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low, high = salary_match.groups()
+                try:
+                    if float(low) < 200:
+                        return f"${low} - ${high}/hr"
+                except:
+                    pass
+                return f"${low} - ${high}"
+            
+            # Pattern 3: Single salary "Salary: $X per hour"
+            salary_match = re.search(
+                r'(?:Salary|Pay|Wage)[:\s]*\$([\d.]+)\s*(?:per\s*hour|hourly|/hr)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                rate = salary_match.group(1)
+                return f"${rate}/hr"
+            
+            return None
+        except Exception:
+            return None
