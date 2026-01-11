@@ -81,6 +81,46 @@
                     <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View career pages →</a>
                 </div>
             </div>
+
+            <div class="filter-section" id="wage-filter-section">
+                <div class="wage-filter-header">
+                    <h3>Wage Range</h3>
+                    <button class="wage-filter-reset" id="wage-filter-reset" title="Reset">Reset</button>
+                </div>
+                <div class="wage-filter-list">
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-under20" data-min="0" data-max="20" checked>
+                        <label class="wage-filter-label" for="wage-under20">
+                            <span>Under $20/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-20-30" data-min="20" data-max="30" checked>
+                        <label class="wage-filter-label" for="wage-20-30">
+                            <span>$20 - $30/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-30-50" data-min="30" data-max="50" checked>
+                        <label class="wage-filter-label" for="wage-30-50">
+                            <span>$30 - $50/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-50plus" data-min="50" data-max="999" checked>
+                        <label class="wage-filter-label" for="wage-50plus">
+                            <span>$50+/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-undisclosed" data-undisclosed="true" checked>
+                        <label class="wage-filter-label" for="wage-undisclosed">
+                            <span>Undisclosed</span>
+                        </label>
+                    </div>
+                </div>
+                <p class="wage-filter-note">Annual salaries converted to hourly</p>
+            </div>
         </aside>
 
         <!-- Main Content -->

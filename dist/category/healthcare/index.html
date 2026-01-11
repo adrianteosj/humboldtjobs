@@ -823,6 +823,79 @@
             color: var(--accent-green);
         }
 
+        /* Wage Range Filter */
+        .wage-filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .wage-filter-reset {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s;
+        }
+
+        .wage-filter-reset:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-green);
+        }
+
+        .wage-filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .wage-filter-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s;
+        }
+
+        .wage-filter-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .wage-filter-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-green);
+            cursor: pointer;
+        }
+
+        .wage-filter-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex: 1;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .wage-filter-item.unchecked .wage-filter-label {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .wage-filter-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+        }
+
         /* Sub-category tabs */
         .subcategory-tabs {
             display: flex;
@@ -1667,6 +1740,46 @@
                 <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
                     <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View career pages →</a>
                 </div>
+            </div>
+
+            <div class="filter-section" id="wage-filter-section">
+                <div class="wage-filter-header">
+                    <h3>Wage Range</h3>
+                    <button class="wage-filter-reset" id="wage-filter-reset" title="Reset">Reset</button>
+                </div>
+                <div class="wage-filter-list">
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-under20" data-min="0" data-max="20" checked>
+                        <label class="wage-filter-label" for="wage-under20">
+                            <span>Under $20/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-20-30" data-min="20" data-max="30" checked>
+                        <label class="wage-filter-label" for="wage-20-30">
+                            <span>$20 - $30/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-30-50" data-min="30" data-max="50" checked>
+                        <label class="wage-filter-label" for="wage-30-50">
+                            <span>$30 - $50/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-50plus" data-min="50" data-max="999" checked>
+                        <label class="wage-filter-label" for="wage-50plus">
+                            <span>$50+/hr</span>
+                        </label>
+                    </div>
+                    <div class="wage-filter-item">
+                        <input type="checkbox" class="wage-filter-checkbox" id="wage-undisclosed" data-undisclosed="true" checked>
+                        <label class="wage-filter-label" for="wage-undisclosed">
+                            <span>Undisclosed</span>
+                        </label>
+                    </div>
+                </div>
+                <p class="wage-filter-note">Annual salaries converted to hourly</p>
             </div>
         </aside>
 
@@ -2886,6 +2999,194 @@ The Chaplain provides spiritual care and support to hospice patients and their f
                 selectNoneBtn.addEventListener('click', () => {
                     employerCheckboxes.forEach(cb => cb.checked = false);
                     applyEmployerFilter();
+                });
+            }
+        })();
+        
+        // Wage Filter Functionality
+        (function() {
+            const wageCheckboxes = document.querySelectorAll('.wage-filter-checkbox');
+            const resetBtn = document.getElementById('wage-filter-reset');
+            const jobList = document.querySelector('.job-list');
+            const pagination = document.querySelector('.pagination');
+            const searchResultsInfo = document.getElementById('search-results-info');
+            const noSearchResults = document.getElementById('no-search-results');
+            const subcategoryTabs = document.querySelector('.subcategory-tabs');
+            
+            if (!wageCheckboxes.length || !jobList) return;
+            
+            let allJobs = null;
+            let originalContent = jobList.innerHTML;
+            let isFilterActive = false;
+            
+            // Parse salary string to hourly rate
+            function parseHourlyRate(salaryStr) {
+                if (!salaryStr) return null;
+                
+                const str = salaryStr.toLowerCase().replace(/,/g, '');
+                
+                // Extract first number (for ranges, use the lower bound)
+                const numbers = str.match(/\$?([\d.]+)/g);
+                if (!numbers || numbers.length === 0) return null;
+                
+                const firstNum = parseFloat(numbers[0].replace('$', ''));
+                if (isNaN(firstNum) || firstNum <= 0) return null;
+                
+                // Determine if it's hourly, daily, or annual
+                const isHourly = str.includes('hour') || str.includes('/hr') || str.includes('per hour');
+                const isDaily = str.includes('daily') || str.includes('day');
+                const isAnnual = str.includes('annual') || str.includes('year') || str.includes('/yr');
+                
+                // If no unit specified, guess based on magnitude
+                if (!isHourly && !isDaily && !isAnnual) {
+                    if (firstNum > 500) {
+                        // Likely annual
+                        return firstNum / 2080;
+                    } else if (firstNum > 100) {
+                        // Likely daily
+                        return firstNum / 8;
+                    } else {
+                        // Likely hourly
+                        return firstNum;
+                    }
+                }
+                
+                if (isHourly) return firstNum;
+                if (isDaily) return firstNum / 8; // Assume 8-hour day
+                if (isAnnual) return firstNum / 2080; // Standard work hours/year
+                
+                return firstNum;
+            }
+            
+            // Load jobs.json
+            async function loadJobsData() {
+                if (allJobs) return allJobs;
+                try {
+                    const response = await fetch('/static/jobs.json');
+                    allJobs = await response.json();
+                    return allJobs;
+                } catch (e) {
+                    console.error('Failed to load jobs data:', e);
+                    return [];
+                }
+            }
+            
+            // Create job card HTML
+            function createJobCard(job) {
+                const salaryHtml = job.salary 
+                    ? `<div class="job-salary">💰 ${job.salary}</div>`
+                    : `<div class="job-salary salary-undisclosed">💰 Undisclosed</div>`;
+                
+                return `
+                    <article class="job-card">
+                        <div class="job-card-header">
+                            <h2 class="job-title">
+                                <a href="${job.url}" target="_blank" rel="noopener">${job.title}</a>
+                            </h2>
+                            <span class="job-category">${job.category}</span>
+                        </div>
+                        <div class="job-meta">
+                            <span>🏢 ${job.employer}</span>
+                            ${job.location ? `<span>📍 ${job.location}</span>` : ''}
+                        </div>
+                        ${salaryHtml}
+                        <div class="job-footer">
+                            <span class="job-source">via Humboldt Jobs</span>
+                            <a href="${job.url}" target="_blank" rel="noopener" class="apply-btn">View & Apply →</a>
+                        </div>
+                    </article>
+                `;
+            }
+            
+            // Apply wage filter
+            async function applyWageFilter() {
+                const jobs = await loadJobsData();
+                if (!jobs.length) return;
+                
+                // Get selected wage ranges
+                const selectedRanges = [];
+                let showUndisclosed = false;
+                
+                wageCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        if (cb.dataset.undisclosed === 'true') {
+                            showUndisclosed = true;
+                        } else {
+                            selectedRanges.push({
+                                min: parseFloat(cb.dataset.min),
+                                max: parseFloat(cb.dataset.max)
+                            });
+                        }
+                    }
+                });
+                
+                // Update checkbox visual state
+                wageCheckboxes.forEach(cb => {
+                    const item = cb.closest('.wage-filter-item');
+                    if (item) {
+                        item.classList.toggle('unchecked', !cb.checked);
+                    }
+                });
+                
+                // Check if all are selected (no filter active)
+                const allSelected = Array.from(wageCheckboxes).every(cb => cb.checked);
+                
+                if (allSelected) {
+                    // Reset to original view
+                    if (isFilterActive) {
+                        jobList.innerHTML = originalContent;
+                        if (pagination) pagination.style.display = '';
+                        if (subcategoryTabs) subcategoryTabs.style.display = '';
+                        if (noSearchResults) noSearchResults.classList.remove('visible');
+                        if (searchResultsInfo) searchResultsInfo.textContent = '';
+                        isFilterActive = false;
+                    }
+                    return;
+                }
+                
+                isFilterActive = true;
+                
+                // Filter jobs by wage
+                const filteredJobs = jobs.filter(job => {
+                    const hourlyRate = parseHourlyRate(job.salary);
+                    
+                    // Handle undisclosed
+                    if (!hourlyRate || !job.salary) {
+                        return showUndisclosed;
+                    }
+                    
+                    // Check against selected ranges
+                    return selectedRanges.some(range => 
+                        hourlyRate >= range.min && hourlyRate < range.max
+                    );
+                });
+                
+                // Hide pagination and subcategory tabs when filtering
+                if (pagination) pagination.style.display = 'none';
+                if (subcategoryTabs) subcategoryTabs.style.display = 'none';
+                
+                if (filteredJobs.length === 0) {
+                    jobList.innerHTML = '';
+                    if (noSearchResults) noSearchResults.classList.add('visible');
+                    if (searchResultsInfo) searchResultsInfo.textContent = 'No jobs match selected wage ranges';
+                } else {
+                    if (noSearchResults) noSearchResults.classList.remove('visible');
+                    jobList.innerHTML = filteredJobs.map(createJobCard).join('');
+                    if (searchResultsInfo) {
+                        searchResultsInfo.textContent = `Showing ${filteredJobs.length} jobs in selected wage ranges`;
+                    }
+                }
+            }
+            
+            // Event listeners
+            wageCheckboxes.forEach(cb => {
+                cb.addEventListener('change', applyWageFilter);
+            });
+            
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    wageCheckboxes.forEach(cb => cb.checked = true);
+                    applyWageFilter();
                 });
             }
         })();
