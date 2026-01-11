@@ -56,14 +56,14 @@
 
             <div class="filter-section" id="employer-filter-section">
                 <div class="employer-filter-header">
-                    <h3>Top Employers</h3>
+                    <h3>Employers</h3>
                     <div class="employer-filter-actions">
                         <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
                         <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
                     </div>
                 </div>
                 <div class="employer-filter-list">
-                    {% for emp in employers[:10] %}
+                    {% for emp in employers %}
                     <div class="employer-filter-item" data-employer="{{ emp.name | lower }}">
                         <input type="checkbox" 
                                class="employer-filter-checkbox" 
@@ -78,7 +78,7 @@
                     {% endfor %}
                 </div>
                 <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
-                    <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View all employers →</a>
+                    <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View career pages →</a>
                 </div>
             </div>
         </aside>

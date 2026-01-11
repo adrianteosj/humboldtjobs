@@ -72,7 +72,6 @@ def get_common_data(session):
         session.query(Employer)
         .filter(Employer.job_count > 0)
         .order_by(Employer.job_count.desc())
-        .limit(15)
         .all()
     )
     
