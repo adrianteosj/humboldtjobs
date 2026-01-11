@@ -54,18 +54,32 @@
                 </ul>
             </div>
 
-            <div class="filter-section">
-                <h3>Top Employers</h3>
-                <ul class="filter-list">
+            <div class="filter-section" id="employer-filter-section">
+                <div class="employer-filter-header">
+                    <h3>Top Employers</h3>
+                    <div class="employer-filter-actions">
+                        <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
+                        <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
+                    </div>
+                </div>
+                <div class="employer-filter-list">
                     {% for emp in employers[:10] %}
-                    <li>
-                        <a href="/employer/{{ emp.name | slugify }}/" class="{% if selected_employer == emp.name %}active{% endif %}">
-                            {{ emp.name[:25] }}{% if emp.name|length > 25 %}...{% endif %}
+                    <div class="employer-filter-item" data-employer="{{ emp.name | lower }}">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-{{ loop.index }}" 
+                               data-employer="{{ emp.name | lower }}"
+                               checked>
+                        <label class="employer-filter-label" for="emp-{{ loop.index }}">
+                            <span>{{ emp.name[:25] }}{% if emp.name|length > 25 %}...{% endif %}</span>
                             <span class="filter-count">{{ emp.job_count }}</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     {% endfor %}
-                </ul>
+                </div>
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                    <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View all employers →</a>
+                </div>
             </div>
         </aside>
 
@@ -76,10 +90,43 @@
                 <p>{{ total }} open position{% if total != 1 %}s{% endif %} from local employers</p>
             </div>
 
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           id="job-search" 
+                           class="search-input" 
+                           placeholder="Search jobs by title, employer, or location..."
+                           autocomplete="off">
+                    <button class="search-clear" id="search-clear" aria-label="Clear search">✕</button>
+                </div>
+                <div class="search-results-info" id="search-results-info"></div>
+            </div>
+
+            <!-- Sub-category Tabs (shown when viewing a category with classifications) -->
+            {% if subcategories and subcategories | length > 0 %}
+            <div class="subcategory-tabs" id="subcategory-tabs">
+                <button class="subcategory-tab active" data-classification="all">
+                    All<span class="tab-count">{{ total }}</span>
+                </button>
+                {% for subcat, count in subcategories %}
+                <button class="subcategory-tab" data-classification="{{ subcat | lower }}">
+                    {{ subcat }}<span class="tab-count">{{ count }}</span>
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="no-search-results" id="no-search-results">
+                <h3>No matching jobs found</h3>
+                <p>Try different keywords or <a href="/" style="color: var(--accent-green);">browse all jobs</a></p>
+            </div>
+
             {% if jobs %}
             <div class="job-list">
                 {% for job in jobs %}
-                <article class="job-card">
+                <article class="job-card" data-job-id="{{ job.id }}" data-employer="{{ job.employer | lower }}" data-title="{{ job.title | lower }}" data-location="{{ (job.location or '') | lower }}" data-category="{{ job.category | lower }}" data-classification="{{ (job.classification or '') | lower }}">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="{{ job.url }}" target="_blank" rel="noopener">{{ job.title }}</a>
@@ -97,11 +144,9 @@
                         {% endif %}
                     </div>
                     
-                    {% if job.salary_text %}
-                    <div class="job-salary">
-                        💰 {{ job.salary_text }}
+                    <div class="job-salary {% if not job.salary_text %}salary-undisclosed{% endif %}">
+                        💰 {{ job.salary_text if job.salary_text else 'Undisclosed' }}
                     </div>
-                    {% endif %}
                     
                     {% if job.description %}
                     <p class="job-description">{{ job.description[:200] }}{% if job.description|length > 200 %}...{% endif %}</p>

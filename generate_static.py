@@ -3,6 +3,7 @@
 Static Site Generator for Humboldt Jobs
 Generates static HTML files for deployment to Netlify or similar platforms.
 """
+import json
 import os
 import re
 import shutil
@@ -13,6 +14,7 @@ from sqlalchemy import func
 
 from db.database import get_session
 from db.models import Job, Employer
+from processing.normalizer import JobClassifier, CLASSIFICATION_RULES
 
 # Configuration
 OUTPUT_DIR = Path("dist")
@@ -124,6 +126,7 @@ def generate_index_pages(env, session, common_data):
             'selected_category': None,
             'selected_location': None,
             'selected_employer': None,
+            'subcategories': [],  # No subcategories on main index
         }
         
         # Add pagination URLs
@@ -149,6 +152,7 @@ def generate_category_pages(env, session, common_data):
     print("Generating category pages...")
     
     template = env.get_template("static/index.html")
+    classifier = JobClassifier()
     
     for cat, count in common_data['categories']:
         cat_slug = slugify(cat)
@@ -163,9 +167,27 @@ def generate_category_pages(env, session, common_data):
         total = len(jobs)
         total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
         
+        # Calculate subcategory counts for this category
+        subcategories = []
+        if cat in CLASSIFICATION_RULES:
+            subcat_counts = {}
+            for job in jobs:
+                # Use stored classification or calculate on-the-fly
+                classification = job.classification or classifier.classify(job.title, cat)
+                if classification:
+                    subcat_counts[classification] = subcat_counts.get(classification, 0) + 1
+            
+            # Sort by count descending
+            subcategories = sorted(subcat_counts.items(), key=lambda x: -x[1])
+        
         for page in range(1, total_pages + 1):
             offset = (page - 1) * PER_PAGE
             page_jobs = jobs[offset:offset + PER_PAGE]
+            
+            # Ensure jobs have classification attribute set
+            for job in page_jobs:
+                if not job.classification and cat in CLASSIFICATION_RULES:
+                    job.classification = classifier.classify(job.title, cat)
             
             base_path = f"/category/{cat_slug}/"
             
@@ -182,6 +204,7 @@ def generate_category_pages(env, session, common_data):
                 'base_path': base_path,
                 'prev_url': f"{base_path}page/{page - 1}/" if page > 1 else None,
                 'next_url': f"{base_path}page/{page + 1}/" if page < total_pages else None,
+                'subcategories': subcategories,
             }
             
             html = template.render(**context)
@@ -195,7 +218,8 @@ def generate_category_pages(env, session, common_data):
             output_path = output_dir / "index.html"
             output_path.write_text(html, encoding='utf-8')
         
-        print(f"  Generated: /category/{cat_slug}/ ({total} jobs, {total_pages} pages)")
+        subcats_info = f", {len(subcategories)} subcats" if subcategories else ""
+        print(f"  Generated: /category/{cat_slug}/ ({total} jobs, {total_pages} pages{subcats_info})")
 
 
 def generate_location_pages(env, session, common_data):
@@ -236,6 +260,7 @@ def generate_location_pages(env, session, common_data):
                 'base_path': base_path,
                 'prev_url': f"{base_path}page/{page - 1}/" if page > 1 else None,
                 'next_url': f"{base_path}page/{page + 1}/" if page < total_pages else None,
+                'subcategories': [],  # No subcategories on location pages
             }
             
             html = template.render(**context)
@@ -462,6 +487,35 @@ def copy_static_assets():
     print(f"  Copied: {src} -> {dst}")
 
 
+def generate_jobs_json(session):
+    """Generate jobs.json for client-side search."""
+    print("Generating jobs.json for search...")
+    
+    jobs = (
+        session.query(Job)
+        .filter(Job.is_active == True)
+        .order_by(Job.scraped_at.desc())
+        .all()
+    )
+    
+    jobs_data = []
+    for job in jobs:
+        jobs_data.append({
+            'id': job.id,
+            'title': job.title,
+            'employer': job.employer,
+            'category': job.category,
+            'location': job.location or '',
+            'salary': job.salary_text or '',
+            'url': job.url,
+            'slug': slugify(job.employer),
+        })
+    
+    output_path = OUTPUT_DIR / "static" / "jobs.json"
+    output_path.write_text(json.dumps(jobs_data, ensure_ascii=False), encoding='utf-8')
+    print(f"  Generated: jobs.json ({len(jobs_data)} jobs)")
+
+
 def generate_sitemap(session):
     """Generate sitemap.xml for SEO."""
     print("Generating sitemap.xml...")
@@ -571,6 +625,9 @@ def main():
         
         # Copy static assets
         copy_static_assets()
+        
+        # Generate search data
+        generate_jobs_json(session)
         
         # Generate SEO files
         generate_sitemap(session)

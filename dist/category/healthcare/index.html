@@ -365,6 +365,13 @@
             display: inline-block;
         }
 
+        .job-salary.salary-undisclosed {
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            font-weight: 500;
+            font-style: italic;
+        }
+
         .job-footer {
             display: flex;
             justify-content: space-between;
@@ -639,7 +646,214 @@
         .footer-heart {
             color: #ef4444;
         }
+
+        /* Search bar */
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1.1rem;
+            display: none;
+        }
+
+        .search-clear:hover {
+            color: var(--text-primary);
+        }
+
+        .search-clear.visible {
+            display: block;
+        }
+
+        .search-results-info {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .job-card.search-hidden {
+            display: none;
+        }
+
+        .no-search-results {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .no-search-results.visible {
+            display: block;
+        }
+
+        /* Employer filter checkboxes */
+        .employer-filter-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.25rem;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s;
+        }
+
+        .employer-filter-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .employer-filter-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-green);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .employer-filter-label {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .employer-filter-label:hover {
+            color: var(--text-primary);
+        }
+
+        .employer-filter-item.unchecked .employer-filter-label {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .employer-filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .employer-filter-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .employer-filter-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s;
+        }
+
+        .employer-filter-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-green);
+        }
+
+        /* Sub-category tabs */
+        .subcategory-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+        }
+
+        .subcategory-tab {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .subcategory-tab:hover {
+            border-color: var(--accent-green);
+            color: var(--text-primary);
+        }
+
+        .subcategory-tab.active {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .subcategory-tab .tab-count {
+            margin-left: 0.5rem;
+            padding: 0.125rem 0.5rem;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 999px;
+            font-size: 0.75rem;
+        }
+
+        .subcategory-tab.active .tab-count {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .job-card.classification-hidden {
+            display: none;
+        }
     </style>
+    
+    <!-- Fuse.js for fuzzy search -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 </head>
 <body>
     <header>
@@ -863,81 +1077,140 @@
                 </ul>
             </div>
 
-            <div class="filter-section">
-                <h3>Top Employers</h3>
-                <ul class="filter-list">
+            <div class="filter-section" id="employer-filter-section">
+                <div class="employer-filter-header">
+                    <h3>Top Employers</h3>
+                    <div class="employer-filter-actions">
+                        <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
+                        <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
+                    </div>
+                </div>
+                <div class="employer-filter-list">
                     
-                    <li>
-                        <a href="/employer/cal-poly-humboldt/" class="">
-                            Cal Poly Humboldt
+                    <div class="employer-filter-item" data-employer="cal poly humboldt">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-1" 
+                               data-employer="cal poly humboldt"
+                               checked>
+                        <label class="employer-filter-label" for="emp-1">
+                            <span>Cal Poly Humboldt</span>
                             <span class="filter-count">114</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/open-door-community-health/" class="">
-                            Open Door Community Healt...
+                    <div class="employer-filter-item" data-employer="open door community health">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-2" 
+                               data-employer="open door community health"
+                               checked>
+                        <label class="employer-filter-label" for="emp-2">
+                            <span>Open Door Community Healt...</span>
                             <span class="filter-count">83</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/college-of-the-redwoods/" class="">
-                            College of the Redwoods
+                    <div class="employer-filter-item" data-employer="college of the redwoods">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-3" 
+                               data-employer="college of the redwoods"
+                               checked>
+                        <label class="employer-filter-label" for="emp-3">
+                            <span>College of the Redwoods</span>
                             <span class="filter-count">52</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/providence-st-joseph-hospital/" class="">
-                            Providence St. Joseph Hos...
+                    <div class="employer-filter-item" data-employer="providence st. joseph hospital">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-4" 
+                               data-employer="providence st. joseph hospital"
+                               checked>
+                        <label class="employer-filter-label" for="emp-4">
+                            <span>Providence St. Joseph Hos...</span>
                             <span class="filter-count">51</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/county-of-humboldt/" class="">
-                            County of Humboldt
+                    <div class="employer-filter-item" data-employer="county of humboldt">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-5" 
+                               data-employer="county of humboldt"
+                               checked>
+                        <label class="employer-filter-label" for="emp-5">
+                            <span>County of Humboldt</span>
                             <span class="filter-count">30</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/kimaw-medical-center/" class="">
-                            K&#39;ima:w Medical Center
+                    <div class="employer-filter-item" data-employer="k&#39;ima:w medical center">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-6" 
+                               data-employer="k&#39;ima:w medical center"
+                               checked>
+                        <label class="employer-filter-label" for="emp-6">
+                            <span>K&#39;ima:w Medical Center</span>
                             <span class="filter-count">27</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/eureka-city-schools/" class="">
-                            Eureka City Schools
+                    <div class="employer-filter-item" data-employer="eureka city schools">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-7" 
+                               data-employer="eureka city schools"
+                               checked>
+                        <label class="employer-filter-label" for="emp-7">
+                            <span>Eureka City Schools</span>
                             <span class="filter-count">24</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/klamath/" class="">
-                            Klamath
+                    <div class="employer-filter-item" data-employer="klamath">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-8" 
+                               data-employer="klamath"
+                               checked>
+                        <label class="employer-filter-label" for="emp-8">
+                            <span>Klamath</span>
                             <span class="filter-count">20</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/southern-humboldt-joint-unified-school-district/" class="">
-                            Southern Humboldt Joint U...
+                    <div class="employer-filter-item" data-employer="southern humboldt joint unified school district">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-9" 
+                               data-employer="southern humboldt joint unified school district"
+                               checked>
+                        <label class="employer-filter-label" for="emp-9">
+                            <span>Southern Humboldt Joint U...</span>
                             <span class="filter-count">18</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/humboldt-senior-resource-center/" class="">
-                            Humboldt Senior Resource ...
+                    <div class="employer-filter-item" data-employer="humboldt senior resource center">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-10" 
+                               data-employer="humboldt senior resource center"
+                               checked>
+                        <label class="employer-filter-label" for="emp-10">
+                            <span>Humboldt Senior Resource ...</span>
                             <span class="filter-count">17</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                </ul>
+                </div>
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                    <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View all employers →</a>
+                </div>
             </div>
         </aside>
 
@@ -948,10 +1221,51 @@
                 <p>202 open positions from local employers</p>
             </div>
 
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           id="job-search" 
+                           class="search-input" 
+                           placeholder="Search jobs by title, employer, or location..."
+                           autocomplete="off">
+                    <button class="search-clear" id="search-clear" aria-label="Clear search">✕</button>
+                </div>
+                <div class="search-results-info" id="search-results-info"></div>
+            </div>
+
+            <!-- Sub-category Tabs (shown when viewing a category with classifications) -->
+            
+            <div class="subcategory-tabs" id="subcategory-tabs">
+                <button class="subcategory-tab active" data-classification="all">
+                    All<span class="tab-count">202</span>
+                </button>
+                
+                <button class="subcategory-tab" data-classification="clinical">
+                    Clinical<span class="tab-count">112</span>
+                </button>
+                
+                <button class="subcategory-tab" data-classification="administrative">
+                    Administrative<span class="tab-count">7</span>
+                </button>
+                
+                <button class="subcategory-tab" data-classification="support">
+                    Support<span class="tab-count">4</span>
+                </button>
+                
+            </div>
+            
+
+            <div class="no-search-results" id="no-search-results">
+                <h3>No matching jobs found</h3>
+                <p>Try different keywords or <a href="/" style="color: var(--accent-green);">browse all jobs</a></p>
+            </div>
+
             
             <div class="job-list">
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="597" data-employer="humboldt senior resource center" data-title="food service aide (52395)" data-location="arcata, ca" data-category="healthcare" data-classification="support">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/195511" target="_blank" rel="noopener">Food Service Aide (52395)</a>
@@ -969,7 +1283,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for a part-time Food  Service Aide to support our Heritage Cafe in Arcata. The schedule for this position i...</p>
@@ -992,7 +1308,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="596" data-employer="humboldt senior resource center" data-title="driver/production assistant (52394)" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/195523" target="_blank" rel="noopener">Driver/Production Assistant (52394)</a>
@@ -1010,7 +1326,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for a Driver and Production Assistant to support our Nutrition sites and our Meals on Wheels program. This ...</p>
@@ -1033,7 +1351,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="595" data-employer="humboldt senior resource center" data-title="facility maintenance technician (52290)" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/194257" target="_blank" rel="noopener">Facility Maintenance Technician (52290)</a>
@@ -1051,7 +1369,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for a full-time Facility Maintenance Technician. The schedule for this position is Monday through Friday, 7...</p>
@@ -1074,7 +1394,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="594" data-employer="humboldt senior resource center" data-title="home care assistant (52281)" data-location="fortuna, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/193257" target="_blank" rel="noopener">Home Care Assistant (52281)</a>
@@ -1092,7 +1412,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for a Home Care Assistant to support the in-home care services in the Fortuna area, under Redwood Coast PAC...</p>
@@ -1115,7 +1437,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="593" data-employer="humboldt senior resource center" data-title="driver (per diem) (52287)" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/193273" target="_blank" rel="noopener">Driver (per diem) (52287)</a>
@@ -1133,7 +1455,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for a per-diem driver to support the transportation services for Adult Day Health Services and Redwood Coas...</p>
@@ -1156,7 +1480,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="592" data-employer="humboldt senior resource center" data-title="carepartner (in-home) (52230)" data-location="fortuna, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/192307" target="_blank" rel="noopener">CarePartner (In-Home) (52230)</a>
@@ -1174,7 +1498,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for Care Partners to support Redwood Coast PACE participants in their home. The shifts we are looking to co...</p>
@@ -1197,7 +1523,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="591" data-employer="humboldt senior resource center" data-title="dining center coordinator - substitute (52175)" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/192320" target="_blank" rel="noopener">Dining Center Coordinator - substitute (52175)</a>
@@ -1215,7 +1541,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for a substitute Dining Center Coordinator to support our Heritage Cafe locations in Arcata, Eureka, and Fo...</p>
@@ -1238,7 +1566,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="590" data-employer="humboldt senior resource center" data-title="food service rover (temporary) (52176)" data-location="fortuna, ca" data-category="healthcare" data-classification="support">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/190851" target="_blank" rel="noopener">Food Service Rover (Temporary) (52176)</a>
@@ -1256,7 +1584,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for a Food Service Rover to support our programs on a temporary assignment through the end of January 2026 ...</p>
@@ -1279,7 +1609,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="589" data-employer="humboldt senior resource center" data-title="primary care physician (52132)" data-location="fortuna, ca" data-category="healthcare" data-classification="clinical">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/189768" target="_blank" rel="noopener">Primary Care Physician (52132)</a>
@@ -1297,7 +1627,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Redwood Coast PACE with Humboldt Senior Resource Center is looking for either a part-time or full-time Primary Care Physician to provide care for our ...</p>
@@ -1320,7 +1652,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="588" data-employer="humboldt senior resource center" data-title="physical therapist (pt) (51820)" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/182803" target="_blank" rel="noopener">Physical Therapist (PT) (51820)</a>
@@ -1338,7 +1670,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking to hire a Physical Therapist to support our participants in our Redwood Coast PACE program. This position w...</p>
@@ -1361,7 +1695,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="587" data-employer="humboldt senior resource center" data-title="carepartner (in-home) (51769)" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/181239" target="_blank" rel="noopener">CarePartner (In-Home) (51769)</a>
@@ -1379,7 +1713,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for full- or part-time CarePartners to support our Home Care services in our Redwood Coast PACE program. We...</p>
@@ -1402,7 +1738,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="586" data-employer="humboldt senior resource center" data-title="hdm driver (hsrc vehicle) - per diem (51626)" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/177561" target="_blank" rel="noopener">HDM Driver (HSRC Vehicle) - per diem (51626)</a>
@@ -1420,7 +1756,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">JOB SUMMARY:  Transport packaged meals as appropriate to homebound elderly within Eureka, Arcata, McKinleyville, and Fortuna areas while following foo...</p>
@@ -1443,7 +1781,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="585" data-employer="humboldt senior resource center" data-title="food service aide - per diem (51627)" data-location="eureka, ca" data-category="healthcare" data-classification="support">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/177568" target="_blank" rel="noopener">Food Service Aide - Per Diem (51627)</a>
@@ -1461,7 +1799,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">JOB SUMMARY: Responsible for food handling and packaging of home delivered meals, and clean-up of the mid-day meal at the dining site kitchen.   ...</p>
@@ -1484,7 +1824,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="584" data-employer="humboldt senior resource center" data-title="carepartner (center) - pace (51409)" data-location="fortuna, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/171605" target="_blank" rel="noopener">CarePartner (Center) - PACE (51409)</a>
@@ -1502,7 +1842,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">The schedule for this position is 6.5 hours a day, Monday through Friday (between 8 am and 3:30 pm) JOB SUMMARY: Under the supervision of the Therap...</p>
@@ -1525,7 +1867,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="583" data-employer="humboldt senior resource center" data-title="carepartner (in-home) (51235)" data-location="arcata, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/167836" target="_blank" rel="noopener">CarePartner (In-Home) (51235)</a>
@@ -1543,7 +1885,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Humboldt Senior Resource Center is looking for Care Partners In The Area of Arcata to support Redwood Coast PACE participants in their homes. The shif...</p>
@@ -1566,7 +1910,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="582" data-employer="humboldt senior resource center" data-title="nurse practitioner (50934)" data-location="fortuna, ca" data-category="healthcare" data-classification="clinical">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/159570" target="_blank" rel="noopener">Nurse Practitioner (50934)</a>
@@ -1584,7 +1928,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Redwood Coast PACE with Humboldt Senior Resource Center is looking for either a part-time or full-time Nurse Practitioner to provide care for our part...</p>
@@ -1607,7 +1953,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="577" data-employer="hospice of humboldt" data-title="hospice aide" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/369961" target="_blank" rel="noopener">Hospice Aide</a>
@@ -1623,7 +1969,9 @@
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">** Applicants must have a current CNA to apply **
@@ -1650,7 +1998,7 @@ The Hospice Aide provides personal care for patients in their place of residenc.
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="576" data-employer="hospice of humboldt" data-title="hospice house rn  **night shift**" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/375258" target="_blank" rel="noopener">Hospice House RN  **Night Shift**</a>
@@ -1668,7 +2016,9 @@ The Hospice Aide provides personal care for patients in their place of residenc.
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Position Overview
@@ -1693,7 +2043,7 @@ Provide skilled nursing care to patients residing in the Ida Emmerson Hospice Ho
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="575" data-employer="hospice of humboldt" data-title="hospice house aide" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/377411" target="_blank" rel="noopener">Hospice House Aide</a>
@@ -1711,7 +2061,9 @@ Provide skilled nursing care to patients residing in the Ida Emmerson Hospice Ho
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Position Overview 
@@ -1736,7 +2088,7 @@ The Hospice House Aide provides compassionate care and support to patients and f
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="574" data-employer="hospice of humboldt" data-title="chaplain" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/390891" target="_blank" rel="noopener">Chaplain</a>
@@ -1752,7 +2104,9 @@ The Hospice House Aide provides compassionate care and support to patients and f
                         
                     </div>
                     
-                    
+                    <div class="job-salary salary-undisclosed">
+                        💰 Undisclosed
+                    </div>
                     
                     
                     <p class="job-description">Position Overview
@@ -1921,6 +2275,353 @@ The Chaplain provides spiritual care and support to hospice patients and their f
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
                 if (getStoredTheme() === 'system') {
                     applyTheme('system');
+                }
+            });
+        })();
+        
+        // Sub-category Filter Functionality
+        (function() {
+            const subcategoryTabs = document.querySelectorAll('.subcategory-tab');
+            const jobCards = document.querySelectorAll('.job-card');
+            
+            if (subcategoryTabs.length === 0) return;
+            
+            let activeClassification = 'all';
+            
+            function applyClassificationFilter() {
+                jobCards.forEach(card => {
+                    const cardClassification = card.dataset.classification || '';
+                    
+                    if (activeClassification === 'all' || cardClassification === activeClassification) {
+                        card.classList.remove('classification-hidden');
+                    } else {
+                        card.classList.add('classification-hidden');
+                    }
+                    
+                    // Update visibility considering all filters
+                    const isSearchHidden = card.classList.contains('search-hidden');
+                    const isEmployerHidden = card.classList.contains('employer-hidden');
+                    const isClassificationHidden = card.classList.contains('classification-hidden');
+                    
+                    if (isSearchHidden || isEmployerHidden || isClassificationHidden) {
+                        card.style.display = 'none';
+                    } else {
+                        card.style.display = '';
+                    }
+                });
+                
+                // Update active tab styling
+                subcategoryTabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.classification === activeClassification);
+                });
+                
+                // Update search results info
+                const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
+                const searchResultsInfo = document.getElementById('search-results-info');
+                const searchInput = document.getElementById('job-search');
+                const searchQuery = searchInput ? searchInput.value.trim() : '';
+                
+                if (activeClassification !== 'all' && !searchQuery) {
+                    if (searchResultsInfo) {
+                        const tabName = document.querySelector(`.subcategory-tab[data-classification="${activeClassification}"]`);
+                        const label = tabName ? tabName.textContent.replace(/\d+/, '').trim() : activeClassification;
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} ${label} jobs`;
+                    }
+                } else if (!searchQuery && activeClassification === 'all') {
+                    // Check if employer filter is active
+                    const hiddenEmployers = JSON.parse(localStorage.getItem('humboldtjobs-hidden-employers') || '[]');
+                    if (hiddenEmployers.length > 0 && searchResultsInfo) {
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
+                    } else if (searchResultsInfo) {
+                        searchResultsInfo.textContent = '';
+                    }
+                }
+            }
+            
+            subcategoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    activeClassification = tab.dataset.classification;
+                    applyClassificationFilter();
+                });
+            });
+            
+            // Expose for other scripts to re-apply after their filters
+            window.applyClassificationFilter = applyClassificationFilter;
+        })();
+        
+        // Employer Filter Functionality
+        (function() {
+            const employerCheckboxes = document.querySelectorAll('.employer-filter-checkbox');
+            const selectAllBtn = document.getElementById('employer-select-all');
+            const selectNoneBtn = document.getElementById('employer-select-none');
+            const jobCards = document.querySelectorAll('.job-card');
+            
+            if (employerCheckboxes.length === 0) return; // Only run on pages with employer filters
+            
+            const STORAGE_KEY = 'humboldtjobs-hidden-employers';
+            
+            // Load hidden employers from localStorage
+            function getHiddenEmployers() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+            
+            // Save hidden employers to localStorage
+            function saveHiddenEmployers(employers) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(employers));
+                } catch (e) {
+                    console.warn('Could not save employer preferences');
+                }
+            }
+            
+            // Apply filter to job cards
+            function applyEmployerFilter() {
+                const hiddenEmployers = new Set();
+                employerCheckboxes.forEach(checkbox => {
+                    const employer = checkbox.dataset.employer;
+                    const item = checkbox.closest('.employer-filter-item');
+                    if (!checkbox.checked) {
+                        hiddenEmployers.add(employer);
+                        if (item) item.classList.add('unchecked');
+                    } else {
+                        if (item) item.classList.remove('unchecked');
+                    }
+                });
+                
+                // Filter job cards (but respect search filter too)
+                jobCards.forEach(card => {
+                    const cardEmployer = card.dataset.employer;
+                    const isSearchHidden = card.classList.contains('search-hidden');
+                    
+                    if (hiddenEmployers.has(cardEmployer)) {
+                        card.classList.add('employer-hidden');
+                    } else {
+                        card.classList.remove('employer-hidden');
+                    }
+                    
+                    // Show card only if it passes both filters
+                    if (card.classList.contains('employer-hidden') || isSearchHidden) {
+                        card.style.display = 'none';
+                    } else {
+                        card.style.display = '';
+                    }
+                });
+                
+                // Save preferences
+                saveHiddenEmployers(Array.from(hiddenEmployers));
+                
+                // Update visible count
+                updateVisibleCount();
+            }
+            
+            function updateVisibleCount() {
+                const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
+                const searchResultsInfo = document.getElementById('search-results-info');
+                const searchInput = document.getElementById('job-search');
+                
+                // Only show count when filtering is active
+                const hiddenEmployers = getHiddenEmployers();
+                const searchQuery = searchInput ? searchInput.value.trim() : '';
+                
+                if (hiddenEmployers.length > 0 && !searchQuery) {
+                    if (searchResultsInfo) {
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
+                    }
+                }
+            }
+            
+            // Initialize checkboxes from stored preferences
+            function initializeFromStorage() {
+                const hiddenEmployers = new Set(getHiddenEmployers());
+                employerCheckboxes.forEach(checkbox => {
+                    const employer = checkbox.dataset.employer;
+                    checkbox.checked = !hiddenEmployers.has(employer);
+                });
+                applyEmployerFilter();
+            }
+            
+            // Event listeners
+            employerCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', applyEmployerFilter);
+            });
+            
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', () => {
+                    employerCheckboxes.forEach(cb => cb.checked = true);
+                    applyEmployerFilter();
+                });
+            }
+            
+            if (selectNoneBtn) {
+                selectNoneBtn.addEventListener('click', () => {
+                    employerCheckboxes.forEach(cb => cb.checked = false);
+                    applyEmployerFilter();
+                });
+            }
+            
+            // Initialize
+            initializeFromStorage();
+        })();
+        
+        // Job Search Functionality
+        (function() {
+            const searchInput = document.getElementById('job-search');
+            const searchClear = document.getElementById('search-clear');
+            const searchResultsInfo = document.getElementById('search-results-info');
+            const noSearchResults = document.getElementById('no-search-results');
+            
+            if (!searchInput) return; // Only run on pages with search
+            
+            const jobCards = document.querySelectorAll('.job-card');
+            const jobList = document.querySelector('.job-list');
+            const pagination = document.querySelector('.pagination');
+            let fuse = null;
+            let jobsData = [];
+            
+            // Build jobs data from DOM for instant search
+            jobCards.forEach(card => {
+                jobsData.push({
+                    id: card.dataset.jobId,
+                    title: card.dataset.title || '',
+                    employer: card.dataset.employer || '',
+                    location: card.dataset.location || '',
+                    category: card.dataset.category || '',
+                    element: card
+                });
+            });
+            
+            // Initialize Fuse.js for fuzzy search
+            if (typeof Fuse !== 'undefined') {
+                fuse = new Fuse(jobsData, {
+                    keys: [
+                        { name: 'title', weight: 0.4 },
+                        { name: 'employer', weight: 0.35 },
+                        { name: 'location', weight: 0.15 },
+                        { name: 'category', weight: 0.1 }
+                    ],
+                    threshold: 0.4,
+                    ignoreLocation: true,
+                    minMatchCharLength: 2
+                });
+            }
+            
+            function performSearch(query) {
+                query = query.trim().toLowerCase();
+                
+                if (!query) {
+                    // Show all jobs (but respect employer filter)
+                    jobCards.forEach(card => {
+                        card.classList.remove('search-hidden');
+                        const isEmployerHidden = card.classList.contains('employer-hidden');
+                        card.style.display = isEmployerHidden ? 'none' : '';
+                    });
+                    if (searchResultsInfo) searchResultsInfo.textContent = '';
+                    if (noSearchResults) noSearchResults.classList.remove('visible');
+                    if (pagination) pagination.style.display = '';
+                    if (searchClear) searchClear.classList.remove('visible');
+                    
+                    // Re-apply employer filter count if active
+                    const hiddenEmployers = JSON.parse(localStorage.getItem('humboldtjobs-hidden-employers') || '[]');
+                    if (hiddenEmployers.length > 0) {
+                        const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
+                    }
+                    return;
+                }
+                
+                if (searchClear) searchClear.classList.add('visible');
+                
+                let matchingIds = new Set();
+                
+                if (fuse) {
+                    // Use Fuse.js for fuzzy search
+                    const results = fuse.search(query);
+                    results.forEach(result => matchingIds.add(result.item.id));
+                } else {
+                    // Fallback to simple search
+                    jobsData.forEach(job => {
+                        if (job.title.includes(query) || 
+                            job.employer.includes(query) || 
+                            job.location.includes(query) ||
+                            job.category.includes(query)) {
+                            matchingIds.add(job.id);
+                        }
+                    });
+                }
+                
+                // Show/hide jobs
+                let visibleCount = 0;
+                jobCards.forEach(card => {
+                    const isEmployerHidden = card.classList.contains('employer-hidden');
+                    if (matchingIds.has(card.dataset.jobId)) {
+                        card.classList.remove('search-hidden');
+                        if (!isEmployerHidden) {
+                            card.style.display = '';
+                            visibleCount++;
+                        }
+                    } else {
+                        card.classList.add('search-hidden');
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Update UI
+                if (visibleCount === 0) {
+                    if (noSearchResults) noSearchResults.classList.add('visible');
+                    if (searchResultsInfo) searchResultsInfo.textContent = '';
+                } else {
+                    if (noSearchResults) noSearchResults.classList.remove('visible');
+                    if (searchResultsInfo) {
+                        searchResultsInfo.textContent = `Found ${visibleCount} job${visibleCount !== 1 ? 's' : ''} matching "${query}"`;
+                    }
+                }
+                
+                // Hide pagination during search
+                if (pagination) pagination.style.display = query ? 'none' : '';
+            }
+            
+            // Debounce function for performance
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+            
+            searchInput.addEventListener('input', debounce(function(e) {
+                performSearch(e.target.value);
+            }, 150));
+            
+            if (searchClear) {
+                searchClear.addEventListener('click', function() {
+                    searchInput.value = '';
+                    performSearch('');
+                    searchInput.focus();
+                });
+            }
+            
+            // Handle keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Focus search on "/" key
+                if (e.key === '/' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                // Clear search on Escape
+                if (e.key === 'Escape' && document.activeElement === searchInput) {
+                    searchInput.value = '';
+                    performSearch('');
+                    searchInput.blur();
                 }
             });
         })();

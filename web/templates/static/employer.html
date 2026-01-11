@@ -102,11 +102,9 @@
                         {% endif %}
                     </div>
                     
-                    {% if job.salary_text %}
-                    <div class="job-salary">
-                        💰 {{ job.salary_text }}
+                    <div class="job-salary {% if not job.salary_text %}salary-undisclosed{% endif %}">
+                        💰 {{ job.salary_text if job.salary_text else 'Undisclosed' }}
                     </div>
-                    {% endif %}
                     
                     {% if job.description %}
                     <p class="job-description">{{ job.description[:200] }}{% if job.description|length > 200 %}...{% endif %}</p>

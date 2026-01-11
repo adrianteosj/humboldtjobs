@@ -427,3 +427,162 @@ def normalize_location(location: Optional[str]) -> str:
     """
     normalizer = LocationNormalizer()
     return normalizer.normalize(location)
+
+
+# Job Classification System (sub-categories within main categories)
+# These allow users to filter within a category (e.g., Education -> Teaching vs Support Staff)
+
+CLASSIFICATION_RULES = {
+    'Education': {
+        'Teaching': [
+            'teacher', 'instructor', 'professor', 'faculty', 'lecturer',
+            'teaching', 'tutor', 'coach', 'substitute', 'certificated',
+            'english', 'math', 'science', 'history', 'art', 'music', 'pe ',
+            'special education', 'sped', 'credential',
+        ],
+        'Support Staff': [
+            'custodian', 'janitor', 'cook', 'food service', 'bus driver',
+            'driver', 'aide', 'assistant', 'paraprofessional', 'para ',
+            'secretary', 'clerk', 'office', 'receptionist', 'attendance',
+            'maintenance', 'groundskeeper', 'custodial', 'cafeteria',
+            'nutrition', 'transportation', 'classified',
+        ],
+        'Administration': [
+            'principal', 'superintendent', 'director', 'coordinator',
+            'administrator', 'manager', 'dean', 'vice principal',
+            'assistant superintendent', 'cabinet', 'executive', 'chief',
+        ],
+    },
+    'Healthcare': {
+        'Clinical': [
+            'nurse', 'rn', 'lpn', 'cna', 'physician', 'doctor', 'md',
+            'therapist', 'clinical', 'medical assistant', 'ma ',
+            'phlebotomist', 'lab', 'radiology', 'x-ray', 'technician',
+            'dental', 'dentist', 'hygienist', 'pharmacist', 'pharmacy',
+            'patient care', 'caregiver', 'behavioral health', 'counselor',
+            'psychologist', 'psychiatrist', 'social worker', 'lcsw', 'mft',
+        ],
+        'Administrative': [
+            'billing', 'coder', 'medical records', 'registration',
+            'receptionist', 'front desk', 'scheduler', 'authorization',
+            'insurance', 'revenue', 'collections', 'hr ', 'human resources',
+            'payroll', 'accounting', 'finance', 'administrative',
+        ],
+        'Support': [
+            'housekeeper', 'environmental', 'food service', 'dietary',
+            'maintenance', 'facilities', 'security', 'transport',
+            'warehouse', 'supply', 'it ', 'information technology',
+        ],
+    },
+    'Government': {
+        'Public Safety': [
+            'police', 'officer', 'sheriff', 'deputy', 'fire', 'firefighter',
+            'emt', 'paramedic', 'dispatcher', '911', 'corrections',
+            'probation', 'animal control', 'code enforcement',
+        ],
+        'Administrative': [
+            'clerk', 'secretary', 'administrative', 'assistant',
+            'receptionist', 'office', 'coordinator', 'specialist',
+            'analyst', 'accountant', 'hr ', 'human resources',
+        ],
+        'Technical': [
+            'engineer', 'planner', 'surveyor', 'gis', 'it ', 'programmer',
+            'developer', 'technician', 'inspector', 'environmental',
+        ],
+        'Maintenance': [
+            'maintenance', 'mechanic', 'equipment', 'operator',
+            'groundskeeper', 'custodian', 'facilities', 'utility',
+        ],
+    },
+    'National Retail': {
+        'Store Operations': [
+            'cashier', 'sales', 'associate', 'team member', 'customer service',
+            'stocker', 'merchandiser', 'retail', 'floor', 'department',
+        ],
+        'Management': [
+            'manager', 'supervisor', 'lead', 'assistant manager', 'team lead',
+            'shift lead', 'department manager', 'store manager',
+        ],
+        'Warehouse': [
+            'warehouse', 'forklift', 'shipping', 'receiving', 'inventory',
+            'loader', 'unloader', 'distribution', 'logistics',
+        ],
+    },
+    'Local Retail': {
+        'Store Operations': [
+            'cashier', 'sales', 'associate', 'team member', 'customer service',
+            'stocker', 'merchandiser', 'retail', 'floor', 'department',
+            'deli', 'bakery', 'produce', 'meat', 'grocery',
+        ],
+        'Management': [
+            'manager', 'supervisor', 'lead', 'assistant manager', 'team lead',
+        ],
+    },
+}
+
+
+class JobClassifier:
+    """
+    Classifies jobs into sub-categories within their main category.
+    E.g., Education jobs -> Teaching, Support Staff, or Administration
+    """
+    
+    def __init__(self):
+        self.rules = CLASSIFICATION_RULES
+        # Pre-compile patterns for efficiency
+        self._compiled = {}
+        for category, subcats in self.rules.items():
+            self._compiled[category] = {}
+            for subcat, keywords in subcats.items():
+                pattern = '|'.join(re.escape(kw) for kw in keywords)
+                self._compiled[category][subcat] = re.compile(pattern, re.IGNORECASE)
+    
+    def classify(self, title: str, category: str) -> Optional[str]:
+        """
+        Classify a job title into a sub-category.
+        
+        Args:
+            title: Job title
+            category: Main category (e.g., "Education")
+            
+        Returns:
+            Sub-category string (e.g., "Teaching") or None if no match
+        """
+        if category not in self._compiled:
+            return None
+        
+        title_lower = title.lower()
+        
+        # Check each sub-category's patterns
+        for subcat, pattern in self._compiled[category].items():
+            if pattern.search(title_lower):
+                return subcat
+        
+        return None
+    
+    def get_subcategories(self, category: str) -> list:
+        """
+        Get list of available sub-categories for a main category.
+        
+        Args:
+            category: Main category name
+            
+        Returns:
+            List of sub-category names
+        """
+        return list(self.rules.get(category, {}).keys())
+
+
+def classify_job(title: str, category: str) -> Optional[str]:
+    """
+    Convenience function for one-off job classification.
+    
+    Args:
+        title: Job title
+        category: Main category
+        
+    Returns:
+        Sub-category string or None
+    """
+    classifier = JobClassifier()
+    return classifier.classify(title, category)

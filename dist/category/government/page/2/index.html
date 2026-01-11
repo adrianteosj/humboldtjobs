@@ -365,6 +365,13 @@
             display: inline-block;
         }
 
+        .job-salary.salary-undisclosed {
+            color: var(--text-muted);
+            background: var(--bg-tertiary);
+            font-weight: 500;
+            font-style: italic;
+        }
+
         .job-footer {
             display: flex;
             justify-content: space-between;
@@ -639,7 +646,214 @@
         .footer-heart {
             color: #ef4444;
         }
+
+        /* Search bar */
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 3rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1.1rem;
+            display: none;
+        }
+
+        .search-clear:hover {
+            color: var(--text-primary);
+        }
+
+        .search-clear.visible {
+            display: block;
+        }
+
+        .search-results-info {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .job-card.search-hidden {
+            display: none;
+        }
+
+        .no-search-results {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .no-search-results.visible {
+            display: block;
+        }
+
+        /* Employer filter checkboxes */
+        .employer-filter-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.25rem;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s;
+        }
+
+        .employer-filter-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .employer-filter-checkbox {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-green);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .employer-filter-label {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .employer-filter-label:hover {
+            color: var(--text-primary);
+        }
+
+        .employer-filter-item.unchecked .employer-filter-label {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .employer-filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .employer-filter-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .employer-filter-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s;
+        }
+
+        .employer-filter-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-green);
+        }
+
+        /* Sub-category tabs */
+        .subcategory-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+        }
+
+        .subcategory-tab {
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+
+        .subcategory-tab:hover {
+            border-color: var(--accent-green);
+            color: var(--text-primary);
+        }
+
+        .subcategory-tab.active {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .subcategory-tab .tab-count {
+            margin-left: 0.5rem;
+            padding: 0.125rem 0.5rem;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 999px;
+            font-size: 0.75rem;
+        }
+
+        .subcategory-tab.active .tab-count {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .job-card.classification-hidden {
+            display: none;
+        }
     </style>
+    
+    <!-- Fuse.js for fuzzy search -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
 </head>
 <body>
     <header>
@@ -863,81 +1077,140 @@
                 </ul>
             </div>
 
-            <div class="filter-section">
-                <h3>Top Employers</h3>
-                <ul class="filter-list">
+            <div class="filter-section" id="employer-filter-section">
+                <div class="employer-filter-header">
+                    <h3>Top Employers</h3>
+                    <div class="employer-filter-actions">
+                        <button class="employer-filter-btn" id="employer-select-all" title="Show all">All</button>
+                        <button class="employer-filter-btn" id="employer-select-none" title="Hide all">None</button>
+                    </div>
+                </div>
+                <div class="employer-filter-list">
                     
-                    <li>
-                        <a href="/employer/cal-poly-humboldt/" class="">
-                            Cal Poly Humboldt
+                    <div class="employer-filter-item" data-employer="cal poly humboldt">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-1" 
+                               data-employer="cal poly humboldt"
+                               checked>
+                        <label class="employer-filter-label" for="emp-1">
+                            <span>Cal Poly Humboldt</span>
                             <span class="filter-count">114</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/open-door-community-health/" class="">
-                            Open Door Community Healt...
+                    <div class="employer-filter-item" data-employer="open door community health">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-2" 
+                               data-employer="open door community health"
+                               checked>
+                        <label class="employer-filter-label" for="emp-2">
+                            <span>Open Door Community Healt...</span>
                             <span class="filter-count">83</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/college-of-the-redwoods/" class="">
-                            College of the Redwoods
+                    <div class="employer-filter-item" data-employer="college of the redwoods">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-3" 
+                               data-employer="college of the redwoods"
+                               checked>
+                        <label class="employer-filter-label" for="emp-3">
+                            <span>College of the Redwoods</span>
                             <span class="filter-count">52</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/providence-st-joseph-hospital/" class="">
-                            Providence St. Joseph Hos...
+                    <div class="employer-filter-item" data-employer="providence st. joseph hospital">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-4" 
+                               data-employer="providence st. joseph hospital"
+                               checked>
+                        <label class="employer-filter-label" for="emp-4">
+                            <span>Providence St. Joseph Hos...</span>
                             <span class="filter-count">51</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/county-of-humboldt/" class="">
-                            County of Humboldt
+                    <div class="employer-filter-item" data-employer="county of humboldt">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-5" 
+                               data-employer="county of humboldt"
+                               checked>
+                        <label class="employer-filter-label" for="emp-5">
+                            <span>County of Humboldt</span>
                             <span class="filter-count">30</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/kimaw-medical-center/" class="">
-                            K&#39;ima:w Medical Center
+                    <div class="employer-filter-item" data-employer="k&#39;ima:w medical center">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-6" 
+                               data-employer="k&#39;ima:w medical center"
+                               checked>
+                        <label class="employer-filter-label" for="emp-6">
+                            <span>K&#39;ima:w Medical Center</span>
                             <span class="filter-count">27</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/eureka-city-schools/" class="">
-                            Eureka City Schools
+                    <div class="employer-filter-item" data-employer="eureka city schools">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-7" 
+                               data-employer="eureka city schools"
+                               checked>
+                        <label class="employer-filter-label" for="emp-7">
+                            <span>Eureka City Schools</span>
                             <span class="filter-count">24</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/klamath/" class="">
-                            Klamath
+                    <div class="employer-filter-item" data-employer="klamath">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-8" 
+                               data-employer="klamath"
+                               checked>
+                        <label class="employer-filter-label" for="emp-8">
+                            <span>Klamath</span>
                             <span class="filter-count">20</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/southern-humboldt-joint-unified-school-district/" class="">
-                            Southern Humboldt Joint U...
+                    <div class="employer-filter-item" data-employer="southern humboldt joint unified school district">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-9" 
+                               data-employer="southern humboldt joint unified school district"
+                               checked>
+                        <label class="employer-filter-label" for="emp-9">
+                            <span>Southern Humboldt Joint U...</span>
                             <span class="filter-count">18</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                    <li>
-                        <a href="/employer/humboldt-senior-resource-center/" class="">
-                            Humboldt Senior Resource ...
+                    <div class="employer-filter-item" data-employer="humboldt senior resource center">
+                        <input type="checkbox" 
+                               class="employer-filter-checkbox" 
+                               id="emp-10" 
+                               data-employer="humboldt senior resource center"
+                               checked>
+                        <label class="employer-filter-label" for="emp-10">
+                            <span>Humboldt Senior Resource ...</span>
                             <span class="filter-count">17</span>
-                        </a>
-                    </li>
+                        </label>
+                    </div>
                     
-                </ul>
+                </div>
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                    <a href="/employers/" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;">View all employers →</a>
+                </div>
             </div>
         </aside>
 
@@ -948,10 +1221,51 @@
                 <p>43 open positions from local employers</p>
             </div>
 
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           id="job-search" 
+                           class="search-input" 
+                           placeholder="Search jobs by title, employer, or location..."
+                           autocomplete="off">
+                    <button class="search-clear" id="search-clear" aria-label="Clear search">✕</button>
+                </div>
+                <div class="search-results-info" id="search-results-info"></div>
+            </div>
+
+            <!-- Sub-category Tabs (shown when viewing a category with classifications) -->
+            
+            <div class="subcategory-tabs" id="subcategory-tabs">
+                <button class="subcategory-tab active" data-classification="all">
+                    All<span class="tab-count">43</span>
+                </button>
+                
+                <button class="subcategory-tab" data-classification="public safety">
+                    Public Safety<span class="tab-count">13</span>
+                </button>
+                
+                <button class="subcategory-tab" data-classification="administrative">
+                    Administrative<span class="tab-count">8</span>
+                </button>
+                
+                <button class="subcategory-tab" data-classification="technical">
+                    Technical<span class="tab-count">2</span>
+                </button>
+                
+            </div>
+            
+
+            <div class="no-search-results" id="no-search-results">
+                <h3>No matching jobs found</h3>
+                <p>Try different keywords or <a href="/" style="color: var(--accent-green);">browse all jobs</a></p>
+            </div>
+
             
             <div class="job-list">
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="23" data-employer="county of humboldt" data-title="public health nurse - nurse family partnership" data-location="eureka, ca" data-category="government" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/4971094/public-health-nurse-nurse-family-partnership" target="_blank" rel="noopener">Public Health Nurse - Nurse Family Partnership</a>
@@ -969,11 +1283,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $87,817.60 - $112,694.40 Annually
                     </div>
-                    
                     
                     
                     
@@ -995,7 +1307,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="22" data-employer="county of humboldt" data-title="mental health worker i/ii" data-location="eureka, ca" data-category="government" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5188452/mental-health-worker-i-ii" target="_blank" rel="noopener">Mental Health Worker I/II</a>
@@ -1013,11 +1325,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $17.12 - $23.09 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1042,7 +1352,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="21" data-employer="county of humboldt" data-title="heavy equipment technician i/ii" data-location="eureka, ca" data-category="government" data-classification="technical">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5166336/heavy-equipment-technician-i-ii" target="_blank" rel="noopener">Heavy Equipment Technician I/II</a>
@@ -1060,11 +1370,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $24.64 - $34.93 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1086,7 +1394,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="20" data-employer="county of humboldt" data-title="health education specialist i/ii - substance abuse programs" data-location="eureka, ca" data-category="government" data-classification="administrative">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5181924/health-education-specialist-i-ii-substance-abuse-programs" target="_blank" rel="noopener">Health Education Specialist I/II - Substance Abuse Programs</a>
@@ -1104,11 +1412,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $46,612.80 - $70,512.00 Annually
                     </div>
-                    
                     
                     
                     
@@ -1133,7 +1439,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="19" data-employer="county of humboldt" data-title="emergency communications dispatcher" data-location="eureka, ca" data-category="government" data-classification="public safety">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/4994235/emergency-communications-dispatcher" target="_blank" rel="noopener">Emergency Communications Dispatcher</a>
@@ -1151,11 +1457,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $23.91 - $30.68 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1177,7 +1481,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="18" data-employer="county of humboldt" data-title="deputy sheriff recruit" data-location="eureka, ca" data-category="government" data-classification="public safety">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/4995953/deputy-sheriff-recruit" target="_blank" rel="noopener">Deputy Sheriff Recruit</a>
@@ -1195,11 +1499,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $25.51 - $32.74 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1221,7 +1523,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="17" data-employer="county of humboldt" data-title="deputy sheriff ii" data-location="eureka, ca" data-category="government" data-classification="public safety">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/4995477/deputy-sheriff-ii" target="_blank" rel="noopener">Deputy Sheriff II</a>
@@ -1239,11 +1541,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $31.15 - $39.97 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1265,7 +1565,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="16" data-employer="county of humboldt" data-title="deputy sheriff i" data-location="eureka, ca" data-category="government" data-classification="public safety">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/4995893/deputy-sheriff-i" target="_blank" rel="noopener">Deputy Sheriff I</a>
@@ -1283,11 +1583,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $28.19 - $36.17 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1309,7 +1607,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="15" data-employer="county of humboldt" data-title="deputy public defender i - iv" data-location="eureka, ca" data-category="government" data-classification="public safety">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/4931238/deputy-public-defender-i-iv" target="_blank" rel="noopener">Deputy Public Defender I - IV</a>
@@ -1327,11 +1625,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $74,484.80 - $156,624.00 Annually
                     </div>
-                    
                     
                     
                     
@@ -1353,7 +1649,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="14" data-employer="county of humboldt" data-title="correctional deputy ii" data-location="eureka, ca" data-category="government" data-classification="public safety">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5018720/correctional-deputy-ii" target="_blank" rel="noopener">Correctional Deputy II</a>
@@ -1371,11 +1667,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $25.51 - $32.74 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1397,7 +1691,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="13" data-employer="county of humboldt" data-title="correctional deputy i" data-location="eureka, ca" data-category="government" data-classification="public safety">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5018712/correctional-deputy-i" target="_blank" rel="noopener">Correctional Deputy I</a>
@@ -1415,11 +1709,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $23.09 - $29.63 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1441,7 +1733,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="12" data-employer="county of humboldt" data-title="child support specialist i/ii (humboldt or trinity)" data-location="eureka, ca" data-category="government" data-classification="administrative">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5185147/child-support-specialist-i-ii-humboldt-or-trinity" target="_blank" rel="noopener">Child Support Specialist I/II (Humboldt or Trinity)</a>
@@ -1459,11 +1751,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $19.10 - $26.95 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1488,7 +1778,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="11" data-employer="county of humboldt" data-title="behavioral health medical director (m&amp;c)" data-location="eureka, ca" data-category="government" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/4351210/behavioral-health-medical-director-mc" target="_blank" rel="noopener">Behavioral Health Medical Director (M&amp;C)</a>
@@ -1506,11 +1796,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $279,323.20 - $358,446.40 Annually
                     </div>
-                    
                     
                     
                     
@@ -1532,7 +1820,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="10" data-employer="county of humboldt" data-title="behavioral health clinician i/ii - adults, children&#39;s and quality improvement" data-location="eureka, ca" data-category="government" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5128615/behavioral-health-clinician-i-ii-adults-childrens-and-quality-improvement" target="_blank" rel="noopener">Behavioral Health Clinician I/II - Adults, Children&#39;s and Quality Improvement</a>
@@ -1550,11 +1838,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $29.05 - $43.29 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1576,7 +1862,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="9" data-employer="county of humboldt" data-title="assistant director of psychiatric nursing" data-location="eureka, ca" data-category="government" data-classification="administrative">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5118465/assistant-director-of-psychiatric-nursing" target="_blank" rel="noopener">Assistant Director of Psychiatric Nursing</a>
@@ -1594,11 +1880,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $49.77 - $63.87 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1620,7 +1904,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="8" data-employer="county of humboldt" data-title="appraiser i" data-location="eureka, ca" data-category="government" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5159288/appraiser-i" target="_blank" rel="noopener">Appraiser I</a>
@@ -1638,11 +1922,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $22.08 - $28.33 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1667,7 +1949,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="7" data-employer="county of humboldt" data-title="airport operations manager - department of aviation" data-location="eureka, ca" data-category="government" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5173924/airport-operations-manager-department-of-aviation" target="_blank" rel="noopener">Airport Operations Manager - Department of Aviation</a>
@@ -1685,11 +1967,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $38.79 - $49.77 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1714,7 +1994,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="6" data-employer="county of humboldt" data-title="administrative services manager - department of aviation" data-location="eureka, ca" data-category="government" data-classification="administrative">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5173870/administrative-services-manager-department-of-aviation" target="_blank" rel="noopener">Administrative Services Manager - Department of Aviation</a>
@@ -1732,11 +2012,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $38.79 - $49.77 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1761,7 +2039,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="5" data-employer="county of humboldt" data-title="*part-time* child care worker" data-location="eureka, ca" data-category="government" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5172560/part-time-child-care-worker" target="_blank" rel="noopener">*Part-Time* Child Care Worker</a>
@@ -1779,11 +2057,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $16.90 - $21.21 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1808,7 +2084,7 @@
                     </div>
                 </article>
                 
-                <article class="job-card">
+                <article class="job-card" data-job-id="4" data-employer="county of humboldt" data-title="*extra help* library assistant i: kim yerton memorial library (hoopa)" data-location="eureka, ca" data-category="government" data-classification="administrative">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://www.governmentjobs.com/careers/humboldtcountyca/jobs/5170857/extra-help-library-assistant-i-kim-yerton-memorial-library-hoopa" target="_blank" rel="noopener">*Extra Help* Library Assistant I: Kim Yerton Memorial Library (Hoopa)</a>
@@ -1826,11 +2102,9 @@
                         
                     </div>
                     
-                    
-                    <div class="job-salary">
+                    <div class="job-salary ">
                         💰 $16.95 - $21.75 Hourly
                     </div>
-                    
                     
                     
                     
@@ -1971,6 +2245,353 @@
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
                 if (getStoredTheme() === 'system') {
                     applyTheme('system');
+                }
+            });
+        })();
+        
+        // Sub-category Filter Functionality
+        (function() {
+            const subcategoryTabs = document.querySelectorAll('.subcategory-tab');
+            const jobCards = document.querySelectorAll('.job-card');
+            
+            if (subcategoryTabs.length === 0) return;
+            
+            let activeClassification = 'all';
+            
+            function applyClassificationFilter() {
+                jobCards.forEach(card => {
+                    const cardClassification = card.dataset.classification || '';
+                    
+                    if (activeClassification === 'all' || cardClassification === activeClassification) {
+                        card.classList.remove('classification-hidden');
+                    } else {
+                        card.classList.add('classification-hidden');
+                    }
+                    
+                    // Update visibility considering all filters
+                    const isSearchHidden = card.classList.contains('search-hidden');
+                    const isEmployerHidden = card.classList.contains('employer-hidden');
+                    const isClassificationHidden = card.classList.contains('classification-hidden');
+                    
+                    if (isSearchHidden || isEmployerHidden || isClassificationHidden) {
+                        card.style.display = 'none';
+                    } else {
+                        card.style.display = '';
+                    }
+                });
+                
+                // Update active tab styling
+                subcategoryTabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.classification === activeClassification);
+                });
+                
+                // Update search results info
+                const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
+                const searchResultsInfo = document.getElementById('search-results-info');
+                const searchInput = document.getElementById('job-search');
+                const searchQuery = searchInput ? searchInput.value.trim() : '';
+                
+                if (activeClassification !== 'all' && !searchQuery) {
+                    if (searchResultsInfo) {
+                        const tabName = document.querySelector(`.subcategory-tab[data-classification="${activeClassification}"]`);
+                        const label = tabName ? tabName.textContent.replace(/\d+/, '').trim() : activeClassification;
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} ${label} jobs`;
+                    }
+                } else if (!searchQuery && activeClassification === 'all') {
+                    // Check if employer filter is active
+                    const hiddenEmployers = JSON.parse(localStorage.getItem('humboldtjobs-hidden-employers') || '[]');
+                    if (hiddenEmployers.length > 0 && searchResultsInfo) {
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
+                    } else if (searchResultsInfo) {
+                        searchResultsInfo.textContent = '';
+                    }
+                }
+            }
+            
+            subcategoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    activeClassification = tab.dataset.classification;
+                    applyClassificationFilter();
+                });
+            });
+            
+            // Expose for other scripts to re-apply after their filters
+            window.applyClassificationFilter = applyClassificationFilter;
+        })();
+        
+        // Employer Filter Functionality
+        (function() {
+            const employerCheckboxes = document.querySelectorAll('.employer-filter-checkbox');
+            const selectAllBtn = document.getElementById('employer-select-all');
+            const selectNoneBtn = document.getElementById('employer-select-none');
+            const jobCards = document.querySelectorAll('.job-card');
+            
+            if (employerCheckboxes.length === 0) return; // Only run on pages with employer filters
+            
+            const STORAGE_KEY = 'humboldtjobs-hidden-employers';
+            
+            // Load hidden employers from localStorage
+            function getHiddenEmployers() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+            
+            // Save hidden employers to localStorage
+            function saveHiddenEmployers(employers) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(employers));
+                } catch (e) {
+                    console.warn('Could not save employer preferences');
+                }
+            }
+            
+            // Apply filter to job cards
+            function applyEmployerFilter() {
+                const hiddenEmployers = new Set();
+                employerCheckboxes.forEach(checkbox => {
+                    const employer = checkbox.dataset.employer;
+                    const item = checkbox.closest('.employer-filter-item');
+                    if (!checkbox.checked) {
+                        hiddenEmployers.add(employer);
+                        if (item) item.classList.add('unchecked');
+                    } else {
+                        if (item) item.classList.remove('unchecked');
+                    }
+                });
+                
+                // Filter job cards (but respect search filter too)
+                jobCards.forEach(card => {
+                    const cardEmployer = card.dataset.employer;
+                    const isSearchHidden = card.classList.contains('search-hidden');
+                    
+                    if (hiddenEmployers.has(cardEmployer)) {
+                        card.classList.add('employer-hidden');
+                    } else {
+                        card.classList.remove('employer-hidden');
+                    }
+                    
+                    // Show card only if it passes both filters
+                    if (card.classList.contains('employer-hidden') || isSearchHidden) {
+                        card.style.display = 'none';
+                    } else {
+                        card.style.display = '';
+                    }
+                });
+                
+                // Save preferences
+                saveHiddenEmployers(Array.from(hiddenEmployers));
+                
+                // Update visible count
+                updateVisibleCount();
+            }
+            
+            function updateVisibleCount() {
+                const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
+                const searchResultsInfo = document.getElementById('search-results-info');
+                const searchInput = document.getElementById('job-search');
+                
+                // Only show count when filtering is active
+                const hiddenEmployers = getHiddenEmployers();
+                const searchQuery = searchInput ? searchInput.value.trim() : '';
+                
+                if (hiddenEmployers.length > 0 && !searchQuery) {
+                    if (searchResultsInfo) {
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
+                    }
+                }
+            }
+            
+            // Initialize checkboxes from stored preferences
+            function initializeFromStorage() {
+                const hiddenEmployers = new Set(getHiddenEmployers());
+                employerCheckboxes.forEach(checkbox => {
+                    const employer = checkbox.dataset.employer;
+                    checkbox.checked = !hiddenEmployers.has(employer);
+                });
+                applyEmployerFilter();
+            }
+            
+            // Event listeners
+            employerCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', applyEmployerFilter);
+            });
+            
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', () => {
+                    employerCheckboxes.forEach(cb => cb.checked = true);
+                    applyEmployerFilter();
+                });
+            }
+            
+            if (selectNoneBtn) {
+                selectNoneBtn.addEventListener('click', () => {
+                    employerCheckboxes.forEach(cb => cb.checked = false);
+                    applyEmployerFilter();
+                });
+            }
+            
+            // Initialize
+            initializeFromStorage();
+        })();
+        
+        // Job Search Functionality
+        (function() {
+            const searchInput = document.getElementById('job-search');
+            const searchClear = document.getElementById('search-clear');
+            const searchResultsInfo = document.getElementById('search-results-info');
+            const noSearchResults = document.getElementById('no-search-results');
+            
+            if (!searchInput) return; // Only run on pages with search
+            
+            const jobCards = document.querySelectorAll('.job-card');
+            const jobList = document.querySelector('.job-list');
+            const pagination = document.querySelector('.pagination');
+            let fuse = null;
+            let jobsData = [];
+            
+            // Build jobs data from DOM for instant search
+            jobCards.forEach(card => {
+                jobsData.push({
+                    id: card.dataset.jobId,
+                    title: card.dataset.title || '',
+                    employer: card.dataset.employer || '',
+                    location: card.dataset.location || '',
+                    category: card.dataset.category || '',
+                    element: card
+                });
+            });
+            
+            // Initialize Fuse.js for fuzzy search
+            if (typeof Fuse !== 'undefined') {
+                fuse = new Fuse(jobsData, {
+                    keys: [
+                        { name: 'title', weight: 0.4 },
+                        { name: 'employer', weight: 0.35 },
+                        { name: 'location', weight: 0.15 },
+                        { name: 'category', weight: 0.1 }
+                    ],
+                    threshold: 0.4,
+                    ignoreLocation: true,
+                    minMatchCharLength: 2
+                });
+            }
+            
+            function performSearch(query) {
+                query = query.trim().toLowerCase();
+                
+                if (!query) {
+                    // Show all jobs (but respect employer filter)
+                    jobCards.forEach(card => {
+                        card.classList.remove('search-hidden');
+                        const isEmployerHidden = card.classList.contains('employer-hidden');
+                        card.style.display = isEmployerHidden ? 'none' : '';
+                    });
+                    if (searchResultsInfo) searchResultsInfo.textContent = '';
+                    if (noSearchResults) noSearchResults.classList.remove('visible');
+                    if (pagination) pagination.style.display = '';
+                    if (searchClear) searchClear.classList.remove('visible');
+                    
+                    // Re-apply employer filter count if active
+                    const hiddenEmployers = JSON.parse(localStorage.getItem('humboldtjobs-hidden-employers') || '[]');
+                    if (hiddenEmployers.length > 0) {
+                        const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
+                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
+                    }
+                    return;
+                }
+                
+                if (searchClear) searchClear.classList.add('visible');
+                
+                let matchingIds = new Set();
+                
+                if (fuse) {
+                    // Use Fuse.js for fuzzy search
+                    const results = fuse.search(query);
+                    results.forEach(result => matchingIds.add(result.item.id));
+                } else {
+                    // Fallback to simple search
+                    jobsData.forEach(job => {
+                        if (job.title.includes(query) || 
+                            job.employer.includes(query) || 
+                            job.location.includes(query) ||
+                            job.category.includes(query)) {
+                            matchingIds.add(job.id);
+                        }
+                    });
+                }
+                
+                // Show/hide jobs
+                let visibleCount = 0;
+                jobCards.forEach(card => {
+                    const isEmployerHidden = card.classList.contains('employer-hidden');
+                    if (matchingIds.has(card.dataset.jobId)) {
+                        card.classList.remove('search-hidden');
+                        if (!isEmployerHidden) {
+                            card.style.display = '';
+                            visibleCount++;
+                        }
+                    } else {
+                        card.classList.add('search-hidden');
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Update UI
+                if (visibleCount === 0) {
+                    if (noSearchResults) noSearchResults.classList.add('visible');
+                    if (searchResultsInfo) searchResultsInfo.textContent = '';
+                } else {
+                    if (noSearchResults) noSearchResults.classList.remove('visible');
+                    if (searchResultsInfo) {
+                        searchResultsInfo.textContent = `Found ${visibleCount} job${visibleCount !== 1 ? 's' : ''} matching "${query}"`;
+                    }
+                }
+                
+                // Hide pagination during search
+                if (pagination) pagination.style.display = query ? 'none' : '';
+            }
+            
+            // Debounce function for performance
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+            
+            searchInput.addEventListener('input', debounce(function(e) {
+                performSearch(e.target.value);
+            }, 150));
+            
+            if (searchClear) {
+                searchClear.addEventListener('click', function() {
+                    searchInput.value = '';
+                    performSearch('');
+                    searchInput.focus();
+                });
+            }
+            
+            // Handle keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Focus search on "/" key
+                if (e.key === '/' && document.activeElement !== searchInput) {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                // Clear search on Escape
+                if (e.key === 'Escape' && document.activeElement === searchInput) {
+                    searchInput.value = '';
+                    performSearch('');
+                    searchInput.blur();
                 }
             });
         })();

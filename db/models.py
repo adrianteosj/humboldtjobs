@@ -21,6 +21,7 @@ class Job(Base):
     title = Column(String(500), nullable=False)
     employer = Column(String(255), nullable=False)
     category = Column(String(100), nullable=False)  # Standardized category
+    classification = Column(String(100))  # Sub-category (Teaching, Support Staff, etc.)
     original_category = Column(String(255))  # Preserved from source
     
     location = Column(String(255))
