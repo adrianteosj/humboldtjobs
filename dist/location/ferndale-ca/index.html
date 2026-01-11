@@ -2804,105 +2804,148 @@
             });
         })();
         
-        // Employer Filter Functionality
+        // Employer Filter Functionality - Uses jobs.json for full filtering
         (function() {
             const employerCheckboxes = document.querySelectorAll('.employer-filter-checkbox');
             const selectAllBtn = document.getElementById('employer-select-all');
             const selectNoneBtn = document.getElementById('employer-select-none');
-            const jobCards = document.querySelectorAll('.job-card');
+            const jobList = document.querySelector('.job-list');
+            const pagination = document.querySelector('.pagination');
+            const searchResultsInfo = document.getElementById('search-results-info');
+            const noSearchResults = document.getElementById('no-search-results');
+            const subcategoryTabs = document.querySelector('.subcategory-tabs');
             
-            if (employerCheckboxes.length === 0) return; // Only run on pages with employer filters
+            if (employerCheckboxes.length === 0 || !jobList) return;
             
-            const STORAGE_KEY = 'humboldtjobs-hidden-employers';
+            let allJobs = null;
+            let originalContent = jobList.innerHTML;
+            let isFilterActive = false;
             
-            // Load hidden employers from localStorage
-            function getHiddenEmployers() {
+            // Load jobs data
+            async function loadJobsData() {
+                if (allJobs) return allJobs;
                 try {
-                    const stored = localStorage.getItem(STORAGE_KEY);
-                    return stored ? JSON.parse(stored) : [];
+                    const response = await fetch('/static/jobs.json');
+                    allJobs = await response.json();
+                    return allJobs;
                 } catch (e) {
+                    console.error('Failed to load jobs data:', e);
                     return [];
                 }
             }
             
-            // Save hidden employers to localStorage
-            function saveHiddenEmployers(employers) {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(employers));
-                } catch (e) {
-                    console.warn('Could not save employer preferences');
+            // Create job card HTML
+            function createJobCard(job) {
+                const salaryHtml = job.salary 
+                    ? `<div class="job-salary">💰 ${job.salary}</div>`
+                    : `<div class="job-salary salary-undisclosed">💰 Undisclosed</div>`;
+                
+                return `
+                    <article class="job-card">
+                        <div class="job-card-header">
+                            <h2 class="job-title">
+                                <a href="${job.url}" target="_blank" rel="noopener">${job.title}</a>
+                            </h2>
+                            <span class="job-category">${job.category}</span>
+                        </div>
+                        <div class="job-meta">
+                            <span>🏢 ${job.employer}</span>
+                            ${job.location ? `<span>📍 ${job.location}</span>` : ''}
+                        </div>
+                        ${salaryHtml}
+                        <div class="job-footer">
+                            <span class="job-date">Recently added</span>
+                            <a href="${job.url}" target="_blank" rel="noopener" class="apply-btn">
+                                View & Apply →
+                            </a>
+                        </div>
+                    </article>
+                `;
+            }
+            
+            // Get selected employers
+            function getSelectedEmployers() {
+                const selected = new Set();
+                employerCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selected.add(cb.dataset.employer);
+                    }
+                });
+                return selected;
+            }
+            
+            // Check if all employers are selected
+            function allSelected() {
+                return Array.from(employerCheckboxes).every(cb => cb.checked);
+            }
+            
+            // Apply employer filter
+            async function applyEmployerFilter() {
+                const selectedEmployers = getSelectedEmployers();
+                
+                // Update checkbox styling
+                employerCheckboxes.forEach(cb => {
+                    const item = cb.closest('.employer-filter-item');
+                    if (item) {
+                        item.classList.toggle('unchecked', !cb.checked);
+                    }
+                });
+                
+                // If all selected, restore original content
+                if (allSelected()) {
+                    if (isFilterActive) {
+                        jobList.innerHTML = originalContent;
+                        isFilterActive = false;
+                    }
+                    if (searchResultsInfo) searchResultsInfo.textContent = '';
+                    if (noSearchResults) noSearchResults.classList.remove('visible');
+                    if (pagination) pagination.style.display = '';
+                    if (subcategoryTabs) subcategoryTabs.style.display = '';
+                    return;
                 }
-            }
-            
-            // Apply filter to job cards
-            function applyEmployerFilter() {
-                const hiddenEmployers = new Set();
-                employerCheckboxes.forEach(checkbox => {
-                    const employer = checkbox.dataset.employer;
-                    const item = checkbox.closest('.employer-filter-item');
-                    if (!checkbox.checked) {
-                        hiddenEmployers.add(employer);
-                        if (item) item.classList.add('unchecked');
-                    } else {
-                        if (item) item.classList.remove('unchecked');
-                    }
-                });
                 
-                // Filter job cards (but respect search filter too)
-                jobCards.forEach(card => {
-                    const cardEmployer = card.dataset.employer;
-                    const isSearchHidden = card.classList.contains('search-hidden');
-                    
-                    if (hiddenEmployers.has(cardEmployer)) {
-                        card.classList.add('employer-hidden');
-                    } else {
-                        card.classList.remove('employer-hidden');
-                    }
-                    
-                    // Show card only if it passes both filters
-                    if (card.classList.contains('employer-hidden') || isSearchHidden) {
-                        card.style.display = 'none';
-                    } else {
-                        card.style.display = '';
-                    }
-                });
+                // Load all jobs and filter
+                await loadJobsData();
                 
-                // Save preferences
-                saveHiddenEmployers(Array.from(hiddenEmployers));
+                if (!allJobs) return;
                 
-                // Update visible count
-                updateVisibleCount();
-            }
-            
-            function updateVisibleCount() {
-                const visibleCards = document.querySelectorAll('.job-card:not([style*="display: none"])');
-                const searchResultsInfo = document.getElementById('search-results-info');
-                const searchInput = document.getElementById('job-search');
+                const filteredJobs = allJobs.filter(job => 
+                    selectedEmployers.has(job.employer.toLowerCase())
+                );
                 
-                // Only show count when filtering is active
-                const hiddenEmployers = getHiddenEmployers();
-                const searchQuery = searchInput ? searchInput.value.trim() : '';
+                isFilterActive = true;
                 
-                if (hiddenEmployers.length > 0 && !searchQuery) {
+                // Hide pagination and subcategory tabs
+                if (pagination) pagination.style.display = 'none';
+                if (subcategoryTabs) subcategoryTabs.style.display = 'none';
+                
+                const hiddenCount = employerCheckboxes.length - selectedEmployers.size;
+                
+                if (filteredJobs.length === 0) {
+                    jobList.innerHTML = '';
+                    if (noSearchResults) noSearchResults.classList.add('visible');
                     if (searchResultsInfo) {
-                        searchResultsInfo.textContent = `Showing ${visibleCards.length} jobs (${hiddenEmployers.length} employer${hiddenEmployers.length !== 1 ? 's' : ''} hidden)`;
+                        searchResultsInfo.textContent = `No jobs from selected employers (${hiddenCount} employer${hiddenCount !== 1 ? 's' : ''} hidden)`;
+                    }
+                } else {
+                    if (noSearchResults) noSearchResults.classList.remove('visible');
+                    
+                    // Show up to 50 results
+                    const displayJobs = filteredJobs.slice(0, 50);
+                    jobList.innerHTML = displayJobs.map(createJobCard).join('');
+                    
+                    if (searchResultsInfo) {
+                        const countText = filteredJobs.length > 50 
+                            ? `Showing 50 of ${filteredJobs.length}` 
+                            : `Showing ${filteredJobs.length}`;
+                        searchResultsInfo.textContent = `${countText} jobs from selected employers`;
                     }
                 }
-            }
-            
-            // Initialize checkboxes from stored preferences
-            function initializeFromStorage() {
-                const hiddenEmployers = new Set(getHiddenEmployers());
-                employerCheckboxes.forEach(checkbox => {
-                    const employer = checkbox.dataset.employer;
-                    checkbox.checked = !hiddenEmployers.has(employer);
-                });
-                applyEmployerFilter();
             }
             
             // Event listeners
-            employerCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', applyEmployerFilter);
+            employerCheckboxes.forEach(cb => {
+                cb.addEventListener('change', applyEmployerFilter);
             });
             
             if (selectAllBtn) {
@@ -2918,9 +2961,6 @@
                     applyEmployerFilter();
                 });
             }
-            
-            // Initialize
-            initializeFromStorage();
         })();
         
         // Job Search Functionality - Searches ALL jobs via jobs.json
