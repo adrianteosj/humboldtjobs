@@ -2861,9 +2861,38 @@
                 
                 if (!allJobs) return;
                 
-                const filteredJobs = allJobs.filter(job => 
-                    selectedEmployers.has(job.employer.toLowerCase())
-                );
+                // Get current page context from URL
+                const path = window.location.pathname;
+                let contextCategory = null;
+                let contextLocation = null;
+                
+                const categoryMatch = path.match(/\/category\/([^\/]+)/);
+                const locationMatch = path.match(/\/location\/([^\/]+)/);
+                
+                if (categoryMatch) contextCategory = categoryMatch[1].toLowerCase().replace(/-/g, ' ');
+                if (locationMatch) contextLocation = locationMatch[1].toLowerCase().replace(/-/g, ' ');
+                
+                // Filter by page context first, then by employer
+                const filteredJobs = allJobs.filter(job => {
+                    // Check employer filter
+                    if (!selectedEmployers.has(job.employer.toLowerCase())) return false;
+                    
+                    // Check category context
+                    if (contextCategory) {
+                        const jobCatSlug = job.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        const contextCatSlug = contextCategory.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        if (jobCatSlug !== contextCatSlug) return false;
+                    }
+                    
+                    // Check location context
+                    if (contextLocation) {
+                        const jobLocSlug = (job.location || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        const contextLocSlug = contextLocation.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        if (!jobLocSlug.includes(contextLocSlug) && !contextLocSlug.includes(jobLocSlug)) return false;
+                    }
+                    
+                    return true;
+                });
                 
                 isFilterActive = true;
                 
@@ -3006,10 +3035,68 @@
                 `;
             }
             
+            // Get current page context from URL
+            function getPageContext() {
+                const path = window.location.pathname;
+                const context = { category: null, location: null, employer: null };
+                
+                // Parse URL to get current filter context
+                const categoryMatch = path.match(/\/category\/([^\/]+)/);
+                const locationMatch = path.match(/\/location\/([^\/]+)/);
+                const employerMatch = path.match(/\/employer\/([^\/]+)/);
+                
+                if (categoryMatch) {
+                    // Convert slug back to category name (approximate)
+                    context.category = categoryMatch[1].replace(/-/g, ' ');
+                }
+                if (locationMatch) {
+                    context.location = locationMatch[1].replace(/-/g, ' ');
+                }
+                if (employerMatch) {
+                    context.employer = employerMatch[1].replace(/-/g, ' ');
+                }
+                
+                return context;
+            }
+            
+            // Filter jobs by page context
+            function filterByPageContext(jobs, context) {
+                return jobs.filter(job => {
+                    // Category filter
+                    if (context.category) {
+                        const jobCatSlug = job.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        const contextCatSlug = context.category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        if (jobCatSlug !== contextCatSlug) return false;
+                    }
+                    
+                    // Location filter
+                    if (context.location) {
+                        const jobLocSlug = (job.location || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        const contextLocSlug = context.location.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        if (!jobLocSlug.includes(contextLocSlug) && !contextLocSlug.includes(jobLocSlug)) return false;
+                    }
+                    
+                    // Employer filter
+                    if (context.employer) {
+                        const jobEmpSlug = job.employer.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        const contextEmpSlug = context.employer.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        if (jobEmpSlug !== contextEmpSlug) return false;
+                    }
+                    
+                    return true;
+                });
+            }
+            
             // Apply wage filter
             async function applyWageFilter() {
                 const jobs = await loadJobsData();
                 if (!jobs.length) return;
+                
+                // Get current page context
+                const pageContext = getPageContext();
+                
+                // Pre-filter by page context (category/location/employer)
+                const contextFilteredJobs = filterByPageContext(jobs, pageContext);
                 
                 // Get selected wage ranges
                 const selectedRanges = [];
@@ -3054,8 +3141,8 @@
                 
                 isFilterActive = true;
                 
-                // Filter jobs by wage
-                const filteredJobs = jobs.filter(job => {
+                // Filter jobs by wage (from context-filtered jobs)
+                const filteredJobs = contextFilteredJobs.filter(job => {
                     const hourlyRate = parseHourlyRate(job.salary);
                     
                     // Handle undisclosed
