@@ -20,9 +20,15 @@
   <!-- Accent bar at top -->
   <rect x="0" y="0" width="1200" height="6" fill="url(#accentGradient)"/>
   
-  <!-- Logo icon -->
-  <rect x="80" y="220" width="80" height="80" rx="16" fill="url(#accentGradient)"/>
-  <text x="120" y="275" font-family="Arial, sans-serif" font-size="48" fill="white" text-anchor="middle">🌲</text>
+  <!-- Logo icon - Redwood tree from favicon -->
+  <g transform="translate(80, 220)">
+    <rect width="80" height="80" rx="16" fill="#8fbc8f"/>
+    <g transform="translate(8, 4) scale(1)">
+      <polygon points="32,8 42,24 38,24 46,38 40,38 48,52 16,52 24,38 18,38 26,24 22,24" fill="#2d5a3d"/>
+      <polygon points="32,10 38,20 35,20 41,31 37,31 43,44 25,44 28,35 24,35 29,24 26,24" fill="#3d7a52" opacity="0.7"/>
+      <rect x="28" y="52" width="8" height="6" fill="#4a3728"/>
+    </g>
+  </g>
   
   <!-- Main title -->
   <text x="180" y="260" font-family="Georgia, serif" font-size="72" font-weight="600" fill="#f7f9fc">
@@ -47,19 +53,22 @@
   <text x="620" y="450" font-family="Arial, sans-serif" font-size="36" font-weight="700" fill="#10b981" text-anchor="middle">11</text>
   <text x="620" y="480" font-family="Arial, sans-serif" font-size="16" fill="#6b7280" text-anchor="middle">Categories</text>
   
-  <!-- Decorative trees on right -->
-  <g transform="translate(950, 180)">
-    <text font-size="120" fill="rgba(16, 185, 129, 0.15)">🌲</text>
+  <!-- Decorative trees on right - SVG redwood trees -->
+  <g transform="translate(920, 150) scale(2.5)">
+    <polygon points="32,8 42,24 38,24 46,38 40,38 48,52 16,52 24,38 18,38 26,24 22,24" fill="rgba(16, 185, 129, 0.15)"/>
+    <rect x="28" y="52" width="8" height="6" fill="rgba(16, 185, 129, 0.1)"/>
   </g>
-  <g transform="translate(1020, 280)">
-    <text font-size="100" fill="rgba(16, 185, 129, 0.1)">🌲</text>
+  <g transform="translate(1000, 280) scale(2)">
+    <polygon points="32,8 42,24 38,24 46,38 40,38 48,52 16,52 24,38 18,38 26,24 22,24" fill="rgba(16, 185, 129, 0.1)"/>
+    <rect x="28" y="52" width="8" height="6" fill="rgba(16, 185, 129, 0.08)"/>
   </g>
-  <g transform="translate(880, 320)">
-    <text font-size="80" fill="rgba(16, 185, 129, 0.08)">🌲</text>
+  <g transform="translate(850, 350) scale(1.5)">
+    <polygon points="32,8 42,24 38,24 46,38 40,38 48,52 16,52 24,38 18,38 26,24 22,24" fill="rgba(16, 185, 129, 0.08)"/>
+    <rect x="28" y="52" width="8" height="6" fill="rgba(16, 185, 129, 0.06)"/>
   </g>
   
   <!-- URL at bottom -->
   <text x="600" y="590" font-family="Arial, sans-serif" font-size="20" fill="#6b7280" text-anchor="middle">
-    humboldtjobs.netlify.app
+    jobsinhumboldt.com
   </text>
 </svg>
