@@ -5,6 +5,7 @@ Scrapes job listings from the California State University careers portal
 Uses Playwright for JavaScript rendering since CSU Careers loads jobs dynamically.
 """
 import re
+import time
 from datetime import datetime
 from typing import List, Optional
 from playwright.sync_api import sync_playwright, Page
@@ -46,6 +47,15 @@ class CSUScraper(BaseScraper):
             try:
                 all_jobs = self._scrape_all_pages(page)
                 self.logger.info(f"  Found {len(all_jobs)} jobs from {self.employer}")
+                
+                # Fetch salary for each job
+                self.logger.info(f"  Fetching salary details for {len(all_jobs)} jobs...")
+                for job in all_jobs:
+                    salary = self._fetch_job_salary(page, job.url)
+                    if salary:
+                        job.salary_text = salary
+                        self.logger.debug(f"    Found salary for {job.title}: {salary}")
+                    time.sleep(0.3)
             except Exception as e:
                 self.logger.error(f"  Error scraping CSU Careers: {e}")
             
@@ -53,6 +63,59 @@ class CSUScraper(BaseScraper):
         
         self.logger.info(f"Total CSU jobs scraped: {len(all_jobs)}")
         return all_jobs
+    
+    def _fetch_job_salary(self, page: Page, url: str) -> Optional[str]:
+        """
+        Fetch salary from individual job page.
+        
+        Args:
+            page: Playwright page object
+            url: Job URL
+            
+        Returns:
+            Salary text or None
+        """
+        try:
+            page.goto(url, wait_until='networkidle', timeout=15000)
+            
+            # Wait for job content to load
+            try:
+                page.wait_for_selector('.job-listing', timeout=5000)
+            except:
+                pass
+            
+            text = page.inner_text('body')
+            
+            # Look for "Hourly Salary Range: $X.XX-$Y.YY" pattern (exact Cal Poly format)
+            salary_match = re.search(
+                r'(?:Hourly\s+)?Salary\s*Range[:\s]*\$[\d,.]+\s*[-–]\s*\$[\d,.]+',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            # Look for monthly salary like "$4,583 - $5,833 per month"
+            salary_match = re.search(
+                r'\$[\d,]+\s*[-–]\s*\$[\d,]+\s*(?:per\s*month|monthly)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            # Look for annual salary
+            salary_match = re.search(
+                r'\$[\d,]+\s*[-–]\s*\$[\d,]+\s*(?:per\s*year|annual|annually)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            return None
+        except Exception:
+            return None
     
     def _scrape_all_pages(self, page: Page) -> List[JobData]:
         """

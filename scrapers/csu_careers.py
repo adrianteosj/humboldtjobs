@@ -4,6 +4,7 @@ https://csucareers.calstate.edu/en-us/filter/?location=humboldt
 """
 import requests
 import re
+import time
 from datetime import datetime
 from typing import List, Optional, Tuple
 from bs4 import BeautifulSoup
@@ -42,6 +43,16 @@ class CSUCareersScraper(BaseScraper):
         try:
             # First, get the main filtered page
             jobs = self._scrape_filtered_page()
+            
+            # Fetch salary for each job from detail pages
+            self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+            for job in jobs:
+                salary = self._fetch_job_salary(job.url)
+                if salary:
+                    job.salary_text = salary
+                    self.logger.info(f"    Found salary for {job.title}: {salary}")
+                time.sleep(0.3)
+            
             all_jobs.extend(jobs)
             self.logger.info(f"  Found {len(jobs)} jobs")
             
@@ -50,6 +61,47 @@ class CSUCareersScraper(BaseScraper):
         
         self.logger.info(f"Total CSU Careers jobs scraped: {len(all_jobs)}")
         return all_jobs
+    
+    def _fetch_job_salary(self, url: str) -> Optional[str]:
+        """Fetch salary from individual job page"""
+        try:
+            response = self.session.get(url, timeout=15)
+            if response.status_code != 200:
+                return None
+            
+            soup = BeautifulSoup(response.text, 'lxml')
+            text = soup.get_text()
+            
+            # Look for "Hourly Salary Range: $X.XX-$Y.YY" pattern
+            salary_match = re.search(
+                r'(?:Hourly\s+)?Salary\s*Range[:\s]*\$[\d,.]+\s*[-–]\s*\$[\d,.]+(?:\s*(?:per\s*hour|hourly|annually|per\s*year))?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            # Look for salary patterns like "$4,583 - $5,833 per month"
+            salary_match = re.search(
+                r'\$[\d,]+\s*[-–]\s*\$[\d,]+\s*(?:per\s*(?:hour|month|year)|hourly|monthly|annually)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            # Look for annual salary like "$51,171 - $103,148"
+            salary_match = re.search(
+                r'(?:salary|compensation|pay)[:\s]*\$[\d,]+\s*[-–]\s*\$[\d,]+',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            return None
+        except Exception:
+            return None
     
     def _scrape_filtered_page(self) -> List[JobData]:
         """

@@ -4,6 +4,7 @@ Includes hospitals, FQHCs, tribal health, and community health organizations.
 """
 import requests
 import re
+import time
 from datetime import datetime
 from typing import List, Optional
 from bs4 import BeautifulSoup
@@ -104,6 +105,15 @@ class ProvidenceScraper(BaseScraper):
             
             self.delay()
         
+        # Fetch salary for each job using the same Playwright page
+        self.logger.info(f"  Fetching salary details for {len(jobs)} {location} jobs...")
+        for job in jobs:
+            salary = self._fetch_job_salary_page(page, job.url)
+            if salary:
+                job.salary_text = salary
+                self.logger.info(f"    Found salary for {job.title}: {salary}")
+            time.sleep(0.3)
+        
         return jobs
     
     def _parse_html(self, html: str, location: str) -> List[JobData]:
@@ -185,6 +195,36 @@ class ProvidenceScraper(BaseScraper):
             location=job_location,
             job_type=job_type,
         )
+    
+    def _fetch_job_salary_page(self, page, url: str) -> Optional[str]:
+        """Fetch salary from individual Providence job page using Playwright"""
+        try:
+            page.goto(url, wait_until='networkidle', timeout=15000)
+            page.wait_for_timeout(2000)
+            
+            text = page.inner_text('body')
+            
+            # Look for "Compensation is between $X to $Y per year" pattern
+            salary_match = re.search(
+                r'Compensation\s*(?:is\s*)?(?:between\s*)?\$[\d,]+(?:\.\d+)?\s*(?:to|[-–])\s*\$[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour)|annually|hourly)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            # Look for salary range pattern
+            salary_match = re.search(
+                r'\$[\d,]+(?:\.\d+)?\s*[-–]\s*\$[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour|month)|annually|hourly|monthly)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            return None
+        except Exception:
+            return None
 
 
 class MadRiverHospitalScraper(BaseScraper):
@@ -444,8 +484,51 @@ class KimawMedicalScraper(BaseScraper):
             return []
         
         jobs = self._parse_html(response.text)
+        
+        # Fetch salary for each job from detail pages
+        self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+        for job in jobs:
+            if job.url and job.url != self.careers_url:
+                salary = self._fetch_job_salary(job.url)
+                if salary:
+                    job.salary_text = salary
+                    self.logger.info(f"    Found salary for {job.title}: {salary}")
+                time.sleep(0.5)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from K'ima:w Medical Center")
         return jobs
+    
+    def _fetch_job_salary(self, url: str) -> Optional[str]:
+        """Fetch salary from individual job page"""
+        try:
+            response = self.session.get(url, timeout=10)
+            if response.status_code != 200:
+                return None
+            
+            soup = BeautifulSoup(response.text, 'lxml')
+            text = soup.get_text()
+            
+            # Look for "Salary Level: Grade X ($X.XX-$Y.YY)" pattern
+            salary_match = re.search(
+                r'Salary\s*Level[:\s]*(?:Grade\s*\d+\s*)?\(?\$[\d,.]+\s*[-–]\s*\$[\d,.]+\)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            # Fallback: just look for salary range
+            salary_match = re.search(
+                r'\$[\d,.]+\s*[-–]\s*\$[\d,.]+\s*(?:hourly|per hour|/hr)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                return salary_match.group(0)
+            
+            return None
+        except Exception:
+            return None
     
     def _parse_html(self, html: str) -> List[JobData]:
         """Parse K'ima:w job listings from their table structure"""
@@ -505,6 +588,46 @@ class KimawMedicalScraper(BaseScraper):
         return jobs
 
 
+def fetch_paycom_job_salary(page, job_url: str) -> Optional[str]:
+    """
+    Fetch salary information from a Paycom job detail page.
+    
+    Args:
+        page: Playwright page object
+        job_url: URL of the individual job posting
+        
+    Returns:
+        Salary text string or None
+    """
+    try:
+        page.goto(job_url, wait_until='domcontentloaded', timeout=15000)
+        page.wait_for_timeout(2000)
+        
+        html = page.content()
+        soup = BeautifulSoup(html, 'lxml')
+        
+        # Look for salary patterns in the page
+        # Pattern 1: "Salary Range: $X.XX - $Y.YY Hourly"
+        salary_match = re.search(
+            r'Salary\s*Range[:\s]*\$[\d,.]+\s*[-–]\s*\$[\d,.]+\s*(?:Hourly|Per Hour|Annually|Per Year)?',
+            soup.get_text(),
+            re.IGNORECASE
+        )
+        if salary_match:
+            return salary_match.group(0).replace('Salary Range:', '').replace('Salary Range', '').strip()
+        
+        # Pattern 2: Just look for salary amounts
+        salary_elem = soup.find(text=re.compile(r'\$\d+\.\d+\s*[-–]\s*\$\d+\.\d+'))
+        if salary_elem:
+            match = re.search(r'\$[\d,.]+\s*[-–]\s*\$[\d,.]+\s*(?:Hourly|Per Hour)?', salary_elem)
+            if match:
+                return match.group(0)
+        
+        return None
+    except Exception:
+        return None
+
+
 class HospiceOfHumboldtScraper(BaseScraper):
     """Scraper for Hospice of Humboldt (Paycom ATS)"""
     
@@ -530,9 +653,19 @@ class HospiceOfHumboldtScraper(BaseScraper):
                 page.wait_for_timeout(5000)  # Wait for dynamic content to load
                 
                 html = page.content()
+                
+                # Parse job listings
+                jobs = self._parse_html(html)
+                
+                # Fetch salary for each job
+                self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+                for job in jobs:
+                    salary = fetch_paycom_job_salary(page, job.url)
+                    if salary:
+                        job.salary_text = salary
+                    time.sleep(0.5)
+                
                 browser.close()
-            
-            jobs = self._parse_html(html)
         except Exception as e:
             self.logger.error(f"Failed to fetch Hospice careers page: {e}")
         
@@ -632,6 +765,7 @@ class HumboldtSeniorResourceScraper(BaseScraper):
         """Scrape Humboldt Senior Resource Center jobs from Paycom portal"""
         self.logger.info("Scraping Humboldt Senior Resource Center (Paycom)...")
         jobs = []
+        job_data_list = []  # Collect job data first, then fetch salaries
         seen_urls = set()
         
         try:
@@ -644,10 +778,10 @@ class HumboldtSeniorResourceScraper(BaseScraper):
                 # Wait for job listings to load
                 page.wait_for_timeout(5000)
                 
-                # Process multiple pages
+                # PHASE 1: Collect all job metadata from all pages first
                 page_num = 1
                 while True:
-                    self.logger.info(f"  Processing page {page_num}...")
+                    self.logger.info(f"  Collecting jobs from page {page_num}...")
                     
                     # Get all job cards on current page
                     job_cards = page.query_selector_all('a[href*="/jobs/"]')
@@ -655,7 +789,6 @@ class HumboldtSeniorResourceScraper(BaseScraper):
                     if not job_cards:
                         break
                     
-                    jobs_on_page = 0
                     for card in job_cards:
                         try:
                             href = card.get_attribute('href')
@@ -695,7 +828,6 @@ class HumboldtSeniorResourceScraper(BaseScraper):
                             location = "Eureka, CA"  # Default
                             for line in lines:
                                 if ' - ' in line and ('CA' in line or 'Eureka' in line or 'Fortuna' in line or 'Arcata' in line):
-                                    # Extract city from location line like "HSRC Fortuna - Fortuna, CA 95540"
                                     if 'Fortuna' in line:
                                         location = "Fortuna, CA"
                                     elif 'Arcata' in line:
@@ -720,45 +852,56 @@ class HumboldtSeniorResourceScraper(BaseScraper):
                                 continue
                             seen_urls.add(href)
                             
-                            job = JobData(
-                                source_id=f"hsrc_{hash(href) % 100000}",
-                                source_name="hsrc",
-                                title=title,
-                                url=href,
-                                employer="Humboldt Senior Resource Center",
-                                category="Healthcare",
-                                location=location,
-                                job_type=job_type,
-                                description=description,
-                            )
-                            if self.validate_job(job):
-                                jobs.append(job)
-                                jobs_on_page += 1
+                            # Store job data for later processing
+                            job_data_list.append({
+                                'href': href,
+                                'title': title,
+                                'job_type': job_type,
+                                'location': location,
+                                'description': description,
+                            })
                         except Exception as e:
                             self.logger.warning(f"Error parsing HSRC job card: {e}")
                             continue
                     
-                    # Check if there's a next page - look for page number buttons
+                    # Check if there's a next page
                     try:
-                        # Scroll down to ensure pagination is visible
                         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                         page.wait_for_timeout(500)
                         
-                        # Check if we can find a "2" page button (indicating there's page 2)
                         page_2_button = page.locator('button:has-text("2")').first
                         
-                        # If we're on page 1 and page 2 exists, click it
                         if page_num == 1 and page_2_button.is_visible():
                             page_2_button.click()
-                            page.wait_for_timeout(3000)  # Wait for page to load
+                            page.wait_for_timeout(3000)
                             page_num += 1
                         else:
-                            # No more pages
                             break
-                            
-                    except Exception as e:
-                        self.logger.info(f"  Pagination ended: {e}")
+                    except:
                         break
+                
+                # PHASE 2: Fetch salary for each job
+                self.logger.info(f"  Fetching salary for {len(job_data_list)} jobs...")
+                for job_data in job_data_list:
+                    salary_text = fetch_paycom_job_salary(page, job_data['href'])
+                    
+                    job = JobData(
+                        source_id=f"hsrc_{hash(job_data['href']) % 100000}",
+                        source_name="hsrc",
+                        title=job_data['title'],
+                        url=job_data['href'],
+                        employer="Humboldt Senior Resource Center",
+                        category="Healthcare",
+                        location=job_data['location'],
+                        job_type=job_data['job_type'],
+                        description=job_data['description'],
+                        salary_text=salary_text,
+                    )
+                    if self.validate_job(job):
+                        jobs.append(job)
+                        if salary_text:
+                            self.logger.info(f"    Found salary for {job_data['title']}: {salary_text}")
+                    time.sleep(0.5)
                 
                 browser.close()
                 

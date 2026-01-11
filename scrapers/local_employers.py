@@ -100,6 +100,34 @@ class ADPScraper(BaseScraper):
                     # Append title as fragment for uniqueness while still linking to main page
                     unique_url = f"{self.adp_url}#job={title_slug}"
                     
+                    # Try to get salary by clicking on the job
+                    salary_text = None
+                    try:
+                        # Click on job title to open detail view
+                        job_link = page.locator(f'text="{title}"').first
+                        if job_link.is_visible(timeout=2000):
+                            job_link.click()
+                            page.wait_for_timeout(2000)
+                            
+                            # Look for salary in the detail view
+                            detail_text = page.locator('body').inner_text()
+                            salary_match = re.search(
+                                r'Salary\s*Range[:\s]*\$[\d,.]+\s*(?:To|[-–])\s*\$[\d,.]+\s*(?:Hourly|Per Hour)?',
+                                detail_text,
+                                re.IGNORECASE
+                            )
+                            if salary_match:
+                                salary_text = salary_match.group(0).replace('Salary Range:', '').replace('Salary Range', '').strip()
+                                self.logger.info(f"    Found salary for {title}: {salary_text}")
+                            
+                            # Go back to listing
+                            back_btn = page.locator('text="Back"').first
+                            if back_btn.is_visible(timeout=1000):
+                                back_btn.click()
+                                page.wait_for_timeout(1500)
+                    except Exception as e:
+                        self.logger.debug(f"Could not fetch salary for {title}: {e}")
+                    
                     job = JobData(
                         source_id=source_id,
                         source_name=f"adp_{self.source_key}",
@@ -110,6 +138,7 @@ class ADPScraper(BaseScraper):
                         location=location,
                         job_type=job_type,
                         posted_date=posted_date,
+                        salary_text=salary_text,
                     )
                     
                     if self.validate_job(job):
