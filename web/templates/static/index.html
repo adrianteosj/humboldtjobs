@@ -144,6 +144,7 @@
                     <p class="wage-filter-note">Annual salaries converted to hourly</p>
                 </div>
             </div>
+
         </aside>
 
         <!-- Main Content -->
@@ -163,6 +164,30 @@
                            placeholder="Search jobs by title, employer, or location..."
                            autocomplete="off">
                     <button class="search-clear" id="search-clear" aria-label="Clear search">✕</button>
+                </div>
+                <button class="advanced-search-toggle" id="advanced-search-toggle" type="button">
+                    <span class="toggle-icon">▶</span> Advanced Search
+                </button>
+                <div class="advanced-search-panel" id="advanced-search-panel">
+                    <div class="advanced-search-field">
+                        <label for="adv-exact-phrase">Exact phrase</label>
+                        <input type="text" id="adv-exact-phrase" placeholder="e.g., registered nurse" class="adv-input">
+                        <span class="field-hint">Results must contain this exact phrase</span>
+                    </div>
+                    <div class="advanced-search-field">
+                        <label for="adv-any-words">Any of these words</label>
+                        <input type="text" id="adv-any-words" placeholder="e.g., nurse doctor physician" class="adv-input">
+                        <span class="field-hint">Results containing any of these words</span>
+                    </div>
+                    <div class="advanced-search-field">
+                        <label for="adv-exclude-words">Exclude words</label>
+                        <input type="text" id="adv-exclude-words" placeholder="e.g., part-time hoopa" class="adv-input">
+                        <span class="field-hint">Results must NOT contain these words</span>
+                    </div>
+                    <div class="advanced-search-actions">
+                        <button type="button" class="adv-apply-btn" id="adv-apply-btn">Apply Filters</button>
+                        <button type="button" class="adv-clear-btn" id="adv-clear-btn">Clear All</button>
+                    </div>
                 </div>
                 <div class="search-results-info" id="search-results-info"></div>
             </div>

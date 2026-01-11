@@ -442,7 +442,7 @@ CLASSIFICATION_RULES = {
         ],
         'Support Staff': [
             'custodian', 'janitor', 'cook', 'food service', 'bus driver',
-            'driver', 'aide', 'assistant', 'paraprofessional', 'para ',
+            'driver', 'aide', 'paraprofessional', 'para ',
             'secretary', 'clerk', 'office', 'receptionist', 'attendance',
             'maintenance', 'groundskeeper', 'custodial', 'cafeteria',
             'nutrition', 'transportation', 'classified',
@@ -451,6 +451,11 @@ CLASSIFICATION_RULES = {
             'principal', 'superintendent', 'director', 'coordinator',
             'administrator', 'manager', 'dean', 'vice principal',
             'assistant superintendent', 'cabinet', 'executive', 'chief',
+        ],
+        'Student Employment': [
+            'student assistant', 'instructional student assistant',
+            'teaching associate', 'graduate assistant', 'student worker',
+            'work-study', 'work study', 'student aide', 'student tutor',
         ],
     },
     'Healthcare': {
@@ -553,8 +558,21 @@ class JobClassifier:
         
         title_lower = title.lower()
         
-        # Check each sub-category's patterns
+        # Priority order for sub-categories (check these first)
+        # Student Employment should be checked before Teaching because
+        # "Instructional Student Assistant" contains "instructor"
+        priority_order = ['Student Employment', 'Administration', 'Management']
+        
+        # Check priority sub-categories first
+        for subcat in priority_order:
+            if subcat in self._compiled[category]:
+                if self._compiled[category][subcat].search(title_lower):
+                    return subcat
+        
+        # Check remaining sub-categories
         for subcat, pattern in self._compiled[category].items():
+            if subcat in priority_order:
+                continue  # Already checked
             if pattern.search(title_lower):
                 return subcat
         

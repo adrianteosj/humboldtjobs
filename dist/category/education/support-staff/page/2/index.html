@@ -18,6 +18,23 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link rel="apple-touch-icon" href="/static/favicon.svg">
     <link rel="canonical" href="https://humboldtjobs.netlify.app/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://humboldtjobs.netlify.app/">
+    <meta property="og:title" content="Find Jobs in Humboldt County">
+    <meta property="og:description" content="Browse local job openings from employers in Humboldt County, CA. Education, healthcare, government, and more.">
+    <meta property="og:image" content="https://humboldtjobs.netlify.app/static/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Humboldt Jobs">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Find Jobs in Humboldt County">
+    <meta name="twitter:description" content="Browse local job openings from employers in Humboldt County, CA.">
+    <meta name="twitter:image" content="https://humboldtjobs.netlify.app/static/og-image.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <style>
         /* Dark theme (default) */
@@ -756,6 +773,145 @@
             margin-top: 0.75rem;
             font-size: 0.875rem;
             color: var(--text-muted);
+        }
+
+        .search-hint {
+            margin: 0.5rem 0 0 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            opacity: 0.8;
+        }
+
+        .search-hint code {
+            background: var(--bg-tertiary);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        /* Advanced Search */
+        .advanced-search-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 0.75rem;
+            padding: 0.4rem 0;
+            background: none;
+            border: none;
+            color: var(--accent-green);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .advanced-search-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        .advanced-search-toggle .toggle-icon {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+
+        .advanced-search-toggle.open .toggle-icon {
+            transform: rotate(90deg);
+        }
+
+        .advanced-search-panel {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+        }
+
+        .advanced-search-panel.open {
+            display: block;
+        }
+
+        .advanced-search-field {
+            margin-bottom: 1rem;
+        }
+
+        .advanced-search-field:last-of-type {
+            margin-bottom: 1rem;
+        }
+
+        .advanced-search-field label {
+            display: block;
+            margin-bottom: 0.35rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .advanced-search-field .adv-input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .advanced-search-field .adv-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        .advanced-search-field .adv-input::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .advanced-search-field .field-hint {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .advanced-search-actions {
+            display: flex;
+            gap: 0.75rem;
+            padding-top: 0.5rem;
+        }
+
+        .adv-apply-btn {
+            padding: 0.5rem 1rem;
+            background: var(--accent-green);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: var(--bg-primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .adv-apply-btn:hover {
+            background: #0ea272;
+        }
+
+        .adv-clear-btn {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .adv-clear-btn:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--accent-green);
         }
 
         .job-card.search-hidden {
@@ -2358,13 +2514,14 @@
                     <p class="wage-filter-note">Annual salaries converted to hourly</p>
                 </div>
             </div>
+
         </aside>
 
         <!-- Main Content -->
         <main>
             <div class="page-header">
                 <h1>Support Staff - Education Jobs</h1>
-                <p>38 open positions from local employers</p>
+                <p>30 open positions from local employers</p>
             </div>
 
             <!-- Search Bar -->
@@ -2378,6 +2535,30 @@
                            autocomplete="off">
                     <button class="search-clear" id="search-clear" aria-label="Clear search">✕</button>
                 </div>
+                <button class="advanced-search-toggle" id="advanced-search-toggle" type="button">
+                    <span class="toggle-icon">▶</span> Advanced Search
+                </button>
+                <div class="advanced-search-panel" id="advanced-search-panel">
+                    <div class="advanced-search-field">
+                        <label for="adv-exact-phrase">Exact phrase</label>
+                        <input type="text" id="adv-exact-phrase" placeholder="e.g., registered nurse" class="adv-input">
+                        <span class="field-hint">Results must contain this exact phrase</span>
+                    </div>
+                    <div class="advanced-search-field">
+                        <label for="adv-any-words">Any of these words</label>
+                        <input type="text" id="adv-any-words" placeholder="e.g., nurse doctor physician" class="adv-input">
+                        <span class="field-hint">Results containing any of these words</span>
+                    </div>
+                    <div class="advanced-search-field">
+                        <label for="adv-exclude-words">Exclude words</label>
+                        <input type="text" id="adv-exclude-words" placeholder="e.g., part-time hoopa" class="adv-input">
+                        <span class="field-hint">Results must NOT contain these words</span>
+                    </div>
+                    <div class="advanced-search-actions">
+                        <button type="button" class="adv-apply-btn" id="adv-apply-btn">Apply Filters</button>
+                        <button type="button" class="adv-clear-btn" id="adv-clear-btn">Clear All</button>
+                    </div>
+                </div>
                 <div class="search-results-info" id="search-results-info"></div>
             </div>
 
@@ -2389,15 +2570,19 @@
                 </a>
                 
                 <a href="/category/education/teaching/" class="subcategory-tab ">
-                    Teaching<span class="tab-count">168</span>
+                    Teaching<span class="tab-count">130</span>
+                </a>
+                
+                <a href="/category/education/student-employment/" class="subcategory-tab ">
+                    Student Employment<span class="tab-count">45</span>
                 </a>
                 
                 <a href="/category/education/support-staff/" class="subcategory-tab active">
-                    Support Staff<span class="tab-count">38</span>
+                    Support Staff<span class="tab-count">30</span>
                 </a>
                 
                 <a href="/category/education/administration/" class="subcategory-tab ">
-                    Administration<span class="tab-count">3</span>
+                    Administration<span class="tab-count">4</span>
                 </a>
                 
             </div>
@@ -2445,45 +2630,6 @@
                             </span>
                         </div>
                         <a href="https://edjoin.org/Home/JobPosting/2170078" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="165" data-employer="eureka city schools" data-title="assistant principal - zane middle school, 205 work days" data-location="humboldt county, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://edjoin.org/Home/JobPosting/2170250" target="_blank" rel="noopener">Assistant Principal - Zane Middle School, 205 work days</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Eureka City Schools</span>
-                        
-                        <span>📍 Humboldt County, CA</span>
-                        
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $98,195 -  $127,715  Annually
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Edjoin
-                            </span>
-                        </div>
-                        <a href="https://edjoin.org/Home/JobPosting/2170250" target="_blank" rel="noopener" class="apply-btn">
                             View & Apply →
                         </a>
                     </div>
@@ -2679,307 +2825,6 @@
                             </span>
                         </div>
                         <a href="https://edjoin.org/Home/JobPosting/2172098" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="113" data-employer="cal poly humboldt" data-title="learning center - instructional student assistant (academic year 2025-26)" data-location="arcata, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://csucareers.calstate.edu/en-us/job/546492/learning-center-instructional-student-assistant-academic-year-202526" target="_blank" rel="noopener">Learning Center - Instructional Student Assistant (Academic Year 2025-26)</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Cal Poly Humboldt</span>
-                        
-                        <span>📍 Arcata, CA</span>
-                        
-                        
-                        <span>⏰ Temporary</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $17.86/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">***OPEN TO CURRENT CAL POLY HUMBOLDT STUDENTS ONLY*** Temporary intermittent-hourly Instructional Student Assistant pool for the Learning Center. Availability of positions are contingent upon departme...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date has-date">
-                                
-                                    <span class="date-label">Closes:</span> Mar 22, 2026
-                                
-                            </span>
-                            <span class="job-source">
-                                via Csu Humboldt
-                            </span>
-                        </div>
-                        <a href="https://csucareers.calstate.edu/en-us/job/546492/learning-center-instructional-student-assistant-academic-year-202526" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="98" data-employer="cal poly humboldt" data-title="instructional student assistant pool in school of education (academic year 25/26)" data-location="arcata, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://csucareers.calstate.edu/en-us/job/546084/instructional-student-assistant-pool-in-school-of-education-academic-year-2526" target="_blank" rel="noopener">Instructional Student Assistant Pool in School of Education (Academic Year 25/26)</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Cal Poly Humboldt</span>
-                        
-                        <span>📍 Arcata, CA</span>
-                        
-                        
-                        <span>⏰ Temporary</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $17.86/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">***OPEN TO CURRENT CAL POLY HUMBOLDT STUDENTS ONLY*** Temporary intermittent hourly Instructional Student Assistant (ISA) pool for School of Education. The purpose of this recruitment is to establish ...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date has-date">
-                                
-                                    <span class="date-label">Closes:</span> Mar 22, 2026
-                                
-                            </span>
-                            <span class="job-source">
-                                via Csu Humboldt
-                            </span>
-                        </div>
-                        <a href="https://csucareers.calstate.edu/en-us/job/546084/instructional-student-assistant-pool-in-school-of-education-academic-year-2526" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="97" data-employer="cal poly humboldt" data-title="instructional student assistant pool in school of applied health (academic year 25/26)" data-location="arcata, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://csucareers.calstate.edu/en-us/job/545894/instructional-student-assistant-pool-in-school-of-applied-health-academic-year-2526" target="_blank" rel="noopener">Instructional Student Assistant Pool in School of Applied Health (Academic Year 25/26)</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Cal Poly Humboldt</span>
-                        
-                        <span>📍 Arcata, CA</span>
-                        
-                        
-                        <span>⏰ Temporary</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $17.86/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">***OPEN TO CURRENT CAL POLY HUMBOLDT STUDENTS ONLY*** Temporary intermittent hourly Instructional Student Assistant (ISA)pool for the School of Applied Health. The purpose of this recruitment is to es...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date has-date">
-                                
-                                    <span class="date-label">Closes:</span> Mar 22, 2026
-                                
-                            </span>
-                            <span class="job-source">
-                                via Csu Humboldt
-                            </span>
-                        </div>
-                        <a href="https://csucareers.calstate.edu/en-us/job/545894/instructional-student-assistant-pool-in-school-of-applied-health-academic-year-2526" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="76" data-employer="cal poly humboldt" data-title="instructional student assistant pool in school of engineering (academic year 25/26)" data-location="arcata, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://csucareers.calstate.edu/en-us/job/544676/instructional-student-assistant-pool-in-school-of-engineering-academic-year-2526" target="_blank" rel="noopener">Instructional Student Assistant Pool in School of Engineering (Academic Year 25/26)</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Cal Poly Humboldt</span>
-                        
-                        <span>📍 Arcata, CA</span>
-                        
-                        
-                        <span>⏰ Temporary</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $17.86/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">***OPEN TO CURRENT CAL POLY HUMBOLDT STUDENTS ONLY*** Temporary intermittent hourly Instructional Student Assistant (ISA) pool for School of Engineering. The purpose of this recruitment is to establis...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date has-date">
-                                
-                                    <span class="date-label">Closes:</span> Mar 22, 2026
-                                
-                            </span>
-                            <span class="job-source">
-                                via Csu Humboldt
-                            </span>
-                        </div>
-                        <a href="https://csucareers.calstate.edu/en-us/job/544676/instructional-student-assistant-pool-in-school-of-engineering-academic-year-2526" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="71" data-employer="cal poly humboldt" data-title="graduate assistant pool in school of applied health (academic year 25/26)" data-location="arcata, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://csucareers.calstate.edu/en-us/job/548538/graduate-assistant-pool-in-school-of-applied-health-academic-year-2526" target="_blank" rel="noopener">Graduate Assistant Pool in School of Applied Health (Academic Year 25/26)</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Cal Poly Humboldt</span>
-                        
-                        <span>📍 Arcata, CA</span>
-                        
-                        
-                        <span>⏰ Temporary</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    <p class="job-description">***OPEN TO CURRENT CAL POLY HUMBOLDT STUDENTS ONLY*** Temporary Graduate Assistant (GA) pool for School of Applied Health. The purpose of this recruitment is to establish a pool of qualified candidate...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date has-date">
-                                
-                                    <span class="date-label">Closes:</span> Mar 22, 2026
-                                
-                            </span>
-                            <span class="job-source">
-                                via Csu Humboldt
-                            </span>
-                        </div>
-                        <a href="https://csucareers.calstate.edu/en-us/job/548538/graduate-assistant-pool-in-school-of-applied-health-academic-year-2526" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="70" data-employer="cal poly humboldt" data-title="instructional student assistant pool in school of business (academic year 25/26)" data-location="arcata, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://csucareers.calstate.edu/en-us/job/548472/instructional-student-assistant-pool-in-school-of-business-academic-year-2526" target="_blank" rel="noopener">Instructional Student Assistant Pool in School of Business (Academic Year 25/26)</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Cal Poly Humboldt</span>
-                        
-                        <span>📍 Arcata, CA</span>
-                        
-                        
-                        <span>⏰ Temporary</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    <p class="job-description">***OPEN TO CURRENT CAL POLY HUMBOLDT STUDENTS ONLY*** Temporary intermittent hourly Instructional Student Assistant (ISA) pool for School of Business. The purpose of this recruitment is to establish a...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date has-date">
-                                
-                                    <span class="date-label">Closes:</span> Mar 22, 2026
-                                
-                            </span>
-                            <span class="job-source">
-                                via Csu Humboldt
-                            </span>
-                        </div>
-                        <a href="https://csucareers.calstate.edu/en-us/job/548472/instructional-student-assistant-pool-in-school-of-business-academic-year-2526" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="69" data-employer="cal poly humboldt" data-title="instructional student assistant pool in critical race, gender and sexuality studies (academic year 25/26)" data-location="arcata, ca" data-category="education" data-classification="support staff">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://csucareers.calstate.edu/en-us/job/548678/instructional-student-assistant-pool-in-critical-race-gender-and-sexuality-studies-academic-year-2526" target="_blank" rel="noopener">Instructional Student Assistant Pool in Critical Race, Gender and Sexuality Studies (Academic Year 25/26)</a>
-                        </h2>
-                        <span class="job-category">Education</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Cal Poly Humboldt</span>
-                        
-                        <span>📍 Arcata, CA</span>
-                        
-                        
-                        <span>⏰ Temporary</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $17.86/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">***OPEN TO CURRENT CAL POLY HUMBOLDT STUDENTS ONLY*** Temporary intermittent hourly Instructional Student Assistant (ISA) pool for Critical Race, Gender and Sexuality Studies. The purpose of this recr...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date has-date">
-                                
-                                    <span class="date-label">Closes:</span> Mar 22, 2026
-                                
-                            </span>
-                            <span class="job-source">
-                                via Csu Humboldt
-                            </span>
-                        </div>
-                        <a href="https://csucareers.calstate.edu/en-us/job/548678/instructional-student-assistant-pool-in-critical-race-gender-and-sexuality-studies-academic-year-2526" target="_blank" rel="noopener" class="apply-btn">
                             View & Apply →
                         </a>
                     </div>
@@ -3193,6 +3038,30 @@
                        class="search-input" 
                        placeholder="Search jobs..."
                        autocomplete="off">
+            </div>
+        </div>
+        <button class="advanced-search-toggle" id="mobile-advanced-search-toggle" type="button">
+            <span class="toggle-icon">▶</span> Advanced Search
+        </button>
+        <div class="advanced-search-panel" id="mobile-advanced-search-panel">
+            <div class="advanced-search-field">
+                <label for="mobile-adv-exact-phrase">Exact phrase</label>
+                <input type="text" id="mobile-adv-exact-phrase" placeholder="e.g., registered nurse" class="adv-input">
+                <span class="field-hint">Results must contain this exact phrase</span>
+            </div>
+            <div class="advanced-search-field">
+                <label for="mobile-adv-any-words">Any of these words</label>
+                <input type="text" id="mobile-adv-any-words" placeholder="e.g., nurse doctor physician" class="adv-input">
+                <span class="field-hint">Results containing any of these words</span>
+            </div>
+            <div class="advanced-search-field">
+                <label for="mobile-adv-exclude-words">Exclude words</label>
+                <input type="text" id="mobile-adv-exclude-words" placeholder="e.g., part-time hoopa" class="adv-input">
+                <span class="field-hint">Results must NOT contain these words</span>
+            </div>
+            <div class="advanced-search-actions">
+                <button type="button" class="adv-apply-btn" id="mobile-adv-apply-btn">Apply Filters</button>
+                <button type="button" class="adv-clear-btn" id="mobile-adv-clear-btn">Clear All</button>
             </div>
         </div>
         <div class="mobile-search-results" id="mobile-search-results">
@@ -3810,6 +3679,25 @@
             }
         })();
         
+        // Advanced Search Panel Toggle
+        (function() {
+            const toggle = document.getElementById('advanced-search-toggle');
+            const panel = document.getElementById('advanced-search-panel');
+            
+            if (!toggle || !panel) return;
+            
+            toggle.addEventListener('click', () => {
+                const isOpen = panel.classList.contains('open');
+                if (isOpen) {
+                    panel.classList.remove('open');
+                    toggle.classList.remove('open');
+                } else {
+                    panel.classList.add('open');
+                    toggle.classList.add('open');
+                }
+            });
+        })();
+
         // Job Search Functionality - Searches ALL jobs via jobs.json
         (function() {
             const searchInput = document.getElementById('job-search');
@@ -3820,12 +3708,96 @@
             const pagination = document.querySelector('.pagination');
             const subcategoryTabs = document.querySelector('.subcategory-tabs');
             
+            // Advanced search elements
+            const advExactPhrase = document.getElementById('adv-exact-phrase');
+            const advAnyWords = document.getElementById('adv-any-words');
+            const advExcludeWords = document.getElementById('adv-exclude-words');
+            const advApplyBtn = document.getElementById('adv-apply-btn');
+            const advClearBtn = document.getElementById('adv-clear-btn');
+            
             if (!searchInput || !jobList) return;
             
             let allJobs = null;
             let fuse = null;
             let originalContent = jobList.innerHTML;
             let isSearchActive = false;
+            
+            // Build search query from advanced options
+            function buildAdvancedQuery() {
+                const parts = [];
+                
+                // Main search input
+                const mainQuery = searchInput.value.trim();
+                if (mainQuery) {
+                    parts.push(mainQuery);
+                }
+                
+                // Exact phrase (wrap in quotes)
+                if (advExactPhrase && advExactPhrase.value.trim()) {
+                    parts.push(`"${advExactPhrase.value.trim()}"`);
+                }
+                
+                // Any of these words (join with OR)
+                if (advAnyWords && advAnyWords.value.trim()) {
+                    const words = advAnyWords.value.trim().split(/\s+/).filter(w => w);
+                    if (words.length > 1) {
+                        parts.push(words.join(' OR '));
+                    } else if (words.length === 1) {
+                        parts.push(words[0]);
+                    }
+                }
+                
+                // Exclude words (prefix with -)
+                if (advExcludeWords && advExcludeWords.value.trim()) {
+                    const excludeWords = advExcludeWords.value.trim().split(/\s+/).filter(w => w);
+                    excludeWords.forEach(word => {
+                        // Don't add - if already prefixed
+                        if (!word.startsWith('-')) {
+                            parts.push(`-${word}`);
+                        } else {
+                            parts.push(word);
+                        }
+                    });
+                }
+                
+                return parts.join(' ');
+            }
+            
+            // Apply advanced search
+            function applyAdvancedSearch() {
+                const query = buildAdvancedQuery();
+                performSearch(query);
+            }
+            
+            // Clear advanced search fields
+            function clearAdvancedSearch() {
+                if (advExactPhrase) advExactPhrase.value = '';
+                if (advAnyWords) advAnyWords.value = '';
+                if (advExcludeWords) advExcludeWords.value = '';
+                searchInput.value = '';
+                performSearch('');
+            }
+            
+            // Bind advanced search buttons
+            if (advApplyBtn) {
+                advApplyBtn.addEventListener('click', applyAdvancedSearch);
+            }
+            
+            if (advClearBtn) {
+                advClearBtn.addEventListener('click', clearAdvancedSearch);
+            }
+            
+            // Also trigger search on Enter in advanced fields
+            [advExactPhrase, advAnyWords, advExcludeWords].forEach(input => {
+                if (input) {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            applyAdvancedSearch();
+                        }
+                    });
+                }
+            });
             
             // Load jobs.json for full search capability
             async function loadJobsData() {
@@ -3884,6 +3856,59 @@
                 `;
             }
             
+            // Parse search query for operators: "exact phrase", -exclude, OR
+            function parseSearchQuery(query) {
+                const result = {
+                    includeTerms: [],
+                    excludeTerms: [],
+                    exactPhrases: [],
+                    orGroups: []
+                };
+                
+                // Extract exact phrases (quoted strings)
+                const phraseRegex = /"([^"]+)"/g;
+                let match;
+                while ((match = phraseRegex.exec(query)) !== null) {
+                    result.exactPhrases.push(match[1]);
+                }
+                // Remove quoted phrases from query
+                query = query.replace(phraseRegex, ' ');
+                
+                // Split by OR (case insensitive)
+                const orParts = query.split(/\s+OR\s+/i);
+                
+                if (orParts.length > 1) {
+                    // Handle OR groups
+                    orParts.forEach(part => {
+                        const terms = part.trim().split(/\s+/).filter(t => t && !t.startsWith('-'));
+                        if (terms.length > 0) {
+                            result.orGroups.push(terms);
+                        }
+                    });
+                    // Also extract exclusions from all parts
+                    orParts.forEach(part => {
+                        const terms = part.trim().split(/\s+/);
+                        terms.forEach(t => {
+                            if (t.startsWith('-') && t.length > 1) {
+                                result.excludeTerms.push(t.slice(1));
+                            }
+                        });
+                    });
+                } else {
+                    // No OR, process normally
+                    const terms = query.trim().split(/\s+/);
+                    terms.forEach(term => {
+                        if (term.startsWith('-') && term.length > 1) {
+                            result.excludeTerms.push(term.slice(1));
+                        } else if (term) {
+                            result.includeTerms.push(term);
+                        }
+                    });
+                }
+                
+                return result;
+            }
+            
             async function performSearch(query) {
                 query = query.trim();
                 
@@ -3906,19 +3931,54 @@
                 // Load jobs data if not already loaded
                 await loadJobsData();
                 
+                // Parse search query for operators
+                const parsed = parseSearchQuery(query);
+                
                 let results = [];
                 
-                if (fuse) {
-                    results = fuse.search(query).map(r => r.item);
-                } else if (allJobs) {
-                    // Fallback to simple search
-                    const q = query.toLowerCase();
-                    results = allJobs.filter(job => 
-                        job.title.toLowerCase().includes(q) || 
-                        job.employer.toLowerCase().includes(q) || 
-                        (job.location && job.location.toLowerCase().includes(q)) ||
-                        job.category.toLowerCase().includes(q)
-                    );
+                // Start with all jobs if we have OR terms or exclusions only
+                if ((parsed.orGroups.length > 0 || (parsed.includeTerms.length === 0 && parsed.exactPhrases.length === 0 && parsed.excludeTerms.length > 0)) && allJobs) {
+                    results = [...allJobs];
+                } else if (parsed.includeTerms.length > 0 || parsed.exactPhrases.length > 0) {
+                    // Use Fuse.js for fuzzy matching on include terms
+                    const searchTerms = [...parsed.includeTerms, ...parsed.exactPhrases].join(' ');
+                    if (fuse && searchTerms) {
+                        results = fuse.search(searchTerms).map(r => r.item);
+                    } else if (allJobs && searchTerms) {
+                        const q = searchTerms.toLowerCase();
+                        results = allJobs.filter(job => 
+                            job.title.toLowerCase().includes(q) || 
+                            job.employer.toLowerCase().includes(q) || 
+                            (job.location && job.location.toLowerCase().includes(q)) ||
+                            job.category.toLowerCase().includes(q)
+                        );
+                    }
+                }
+                
+                // Apply exact phrase filter (must contain exact phrase)
+                if (parsed.exactPhrases.length > 0) {
+                    results = results.filter(job => {
+                        const jobText = `${job.title} ${job.employer} ${job.location || ''} ${job.category}`.toLowerCase();
+                        return parsed.exactPhrases.every(phrase => jobText.includes(phrase.toLowerCase()));
+                    });
+                }
+                
+                // Apply OR filter (must match at least one term from each OR group)
+                if (parsed.orGroups.length > 0) {
+                    results = results.filter(job => {
+                        const jobText = `${job.title} ${job.employer} ${job.location || ''} ${job.category}`.toLowerCase();
+                        return parsed.orGroups.every(group => 
+                            group.some(term => jobText.includes(term.toLowerCase()))
+                        );
+                    });
+                }
+                
+                // Apply exclusion filter
+                if (parsed.excludeTerms.length > 0 && results.length > 0) {
+                    results = results.filter(job => {
+                        const jobText = `${job.title} ${job.employer} ${job.location || ''} ${job.category}`.toLowerCase();
+                        return !parsed.excludeTerms.some(term => jobText.includes(term.toLowerCase()));
+                    });
                 }
                 
                 isSearchActive = true;
@@ -3985,6 +4045,25 @@
             searchInput.addEventListener('focus', loadJobsData);
         })();
         
+        // Mobile Advanced Search Panel Toggle
+        (function() {
+            const toggle = document.getElementById('mobile-advanced-search-toggle');
+            const panel = document.getElementById('mobile-advanced-search-panel');
+            
+            if (!toggle || !panel) return;
+            
+            toggle.addEventListener('click', () => {
+                const isOpen = panel.classList.contains('open');
+                if (isOpen) {
+                    panel.classList.remove('open');
+                    toggle.classList.remove('open');
+                } else {
+                    panel.classList.add('open');
+                    toggle.classList.add('open');
+                }
+            });
+        })();
+
         // Mobile Search Overlay
         (function() {
             const mobileSearchBtn = document.getElementById('mobile-search-btn');
@@ -3993,6 +4072,13 @@
             const mobileSearchInput = document.getElementById('mobile-job-search');
             const mobileSearchJobList = document.getElementById('mobile-search-job-list');
             const mobileNoSearchResults = document.getElementById('mobile-no-search-results');
+            
+            // Mobile advanced search elements
+            const mobileAdvExactPhrase = document.getElementById('mobile-adv-exact-phrase');
+            const mobileAdvAnyWords = document.getElementById('mobile-adv-any-words');
+            const mobileAdvExcludeWords = document.getElementById('mobile-adv-exclude-words');
+            const mobileAdvApplyBtn = document.getElementById('mobile-adv-apply-btn');
+            const mobileAdvClearBtn = document.getElementById('mobile-adv-clear-btn');
             
             if (!mobileSearchBtn || !mobileSearchOverlay) return;
             
@@ -4025,6 +4111,83 @@
                     return [];
                 }
             }
+            
+            // Build search query from advanced options
+            function buildMobileAdvancedQuery() {
+                const parts = [];
+                
+                // Main search input
+                const mainQuery = mobileSearchInput.value.trim();
+                if (mainQuery) {
+                    parts.push(mainQuery);
+                }
+                
+                // Exact phrase (wrap in quotes)
+                if (mobileAdvExactPhrase && mobileAdvExactPhrase.value.trim()) {
+                    parts.push(`"${mobileAdvExactPhrase.value.trim()}"`);
+                }
+                
+                // Any of these words (join with OR)
+                if (mobileAdvAnyWords && mobileAdvAnyWords.value.trim()) {
+                    const words = mobileAdvAnyWords.value.trim().split(/\s+/).filter(w => w);
+                    if (words.length > 1) {
+                        parts.push(words.join(' OR '));
+                    } else if (words.length === 1) {
+                        parts.push(words[0]);
+                    }
+                }
+                
+                // Exclude words (prefix with -)
+                if (mobileAdvExcludeWords && mobileAdvExcludeWords.value.trim()) {
+                    const excludeWords = mobileAdvExcludeWords.value.trim().split(/\s+/).filter(w => w);
+                    excludeWords.forEach(word => {
+                        if (!word.startsWith('-')) {
+                            parts.push(`-${word}`);
+                        } else {
+                            parts.push(word);
+                        }
+                    });
+                }
+                
+                return parts.join(' ');
+            }
+            
+            // Apply mobile advanced search
+            function applyMobileAdvancedSearch() {
+                const query = buildMobileAdvancedQuery();
+                performMobileSearch(query);
+            }
+            
+            // Clear mobile advanced search
+            function clearMobileAdvancedSearch() {
+                if (mobileAdvExactPhrase) mobileAdvExactPhrase.value = '';
+                if (mobileAdvAnyWords) mobileAdvAnyWords.value = '';
+                if (mobileAdvExcludeWords) mobileAdvExcludeWords.value = '';
+                mobileSearchInput.value = '';
+                mobileSearchJobList.innerHTML = '';
+                mobileNoSearchResults.classList.remove('visible');
+            }
+            
+            // Bind mobile advanced search buttons
+            if (mobileAdvApplyBtn) {
+                mobileAdvApplyBtn.addEventListener('click', applyMobileAdvancedSearch);
+            }
+            
+            if (mobileAdvClearBtn) {
+                mobileAdvClearBtn.addEventListener('click', clearMobileAdvancedSearch);
+            }
+            
+            // Also trigger search on Enter in mobile advanced fields
+            [mobileAdvExactPhrase, mobileAdvAnyWords, mobileAdvExcludeWords].forEach(input => {
+                if (input) {
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            applyMobileAdvancedSearch();
+                        }
+                    });
+                }
+            });
             
             // Create job card
             function createJobCard(job) {
@@ -4068,6 +4231,64 @@
                 mobileSearchInput.value = '';
                 mobileSearchJobList.innerHTML = '';
                 mobileNoSearchResults.classList.remove('visible');
+                // Clear advanced search fields
+                if (mobileAdvExactPhrase) mobileAdvExactPhrase.value = '';
+                if (mobileAdvAnyWords) mobileAdvAnyWords.value = '';
+                if (mobileAdvExcludeWords) mobileAdvExcludeWords.value = '';
+                // Close advanced search panel
+                const panel = document.getElementById('mobile-advanced-search-panel');
+                const toggle = document.getElementById('mobile-advanced-search-toggle');
+                if (panel) panel.classList.remove('open');
+                if (toggle) toggle.classList.remove('open');
+            }
+            
+            // Parse search query for operators (shared with desktop)
+            function parseMobileSearchQuery(query) {
+                const result = {
+                    includeTerms: [],
+                    excludeTerms: [],
+                    exactPhrases: [],
+                    orGroups: []
+                };
+                
+                // Extract exact phrases (quoted strings)
+                const phraseRegex = /"([^"]+)"/g;
+                let match;
+                while ((match = phraseRegex.exec(query)) !== null) {
+                    result.exactPhrases.push(match[1]);
+                }
+                query = query.replace(phraseRegex, ' ');
+                
+                // Split by OR (case insensitive)
+                const orParts = query.split(/\s+OR\s+/i);
+                
+                if (orParts.length > 1) {
+                    orParts.forEach(part => {
+                        const terms = part.trim().split(/\s+/).filter(t => t && !t.startsWith('-'));
+                        if (terms.length > 0) {
+                            result.orGroups.push(terms);
+                        }
+                    });
+                    orParts.forEach(part => {
+                        const terms = part.trim().split(/\s+/);
+                        terms.forEach(t => {
+                            if (t.startsWith('-') && t.length > 1) {
+                                result.excludeTerms.push(t.slice(1));
+                            }
+                        });
+                    });
+                } else {
+                    const terms = query.trim().split(/\s+/);
+                    terms.forEach(term => {
+                        if (term.startsWith('-') && term.length > 1) {
+                            result.excludeTerms.push(term.slice(1));
+                        } else if (term) {
+                            result.includeTerms.push(term);
+                        }
+                    });
+                }
+                
+                return result;
             }
             
             // Search function
@@ -4080,19 +4301,57 @@
                     return;
                 }
                 
+                // Parse search query for operators
+                const parsed = parseMobileSearchQuery(query);
+                
                 let results = [];
                 
-                if (fuse) {
-                    results = fuse.search(query, { limit: 50 }).map(r => r.item);
-                } else if (allJobs) {
-                    const q = query.toLowerCase();
-                    results = allJobs.filter(job => 
-                        job.title.toLowerCase().includes(q) || 
-                        job.employer.toLowerCase().includes(q) || 
-                        (job.location && job.location.toLowerCase().includes(q)) ||
-                        job.category.toLowerCase().includes(q)
-                    ).slice(0, 50);
+                // Start with all jobs if we have OR terms or exclusions only
+                if ((parsed.orGroups.length > 0 || (parsed.includeTerms.length === 0 && parsed.exactPhrases.length === 0 && parsed.excludeTerms.length > 0)) && allJobs) {
+                    results = [...allJobs];
+                } else if (parsed.includeTerms.length > 0 || parsed.exactPhrases.length > 0) {
+                    const searchTerms = [...parsed.includeTerms, ...parsed.exactPhrases].join(' ');
+                    if (fuse && searchTerms) {
+                        results = fuse.search(searchTerms, { limit: 100 }).map(r => r.item);
+                    } else if (allJobs && searchTerms) {
+                        const q = searchTerms.toLowerCase();
+                        results = allJobs.filter(job => 
+                            job.title.toLowerCase().includes(q) || 
+                            job.employer.toLowerCase().includes(q) || 
+                            (job.location && job.location.toLowerCase().includes(q)) ||
+                            job.category.toLowerCase().includes(q)
+                        );
+                    }
                 }
+                
+                // Apply exact phrase filter
+                if (parsed.exactPhrases.length > 0) {
+                    results = results.filter(job => {
+                        const jobText = `${job.title} ${job.employer} ${job.location || ''} ${job.category}`.toLowerCase();
+                        return parsed.exactPhrases.every(phrase => jobText.includes(phrase.toLowerCase()));
+                    });
+                }
+                
+                // Apply OR filter
+                if (parsed.orGroups.length > 0) {
+                    results = results.filter(job => {
+                        const jobText = `${job.title} ${job.employer} ${job.location || ''} ${job.category}`.toLowerCase();
+                        return parsed.orGroups.every(group => 
+                            group.some(term => jobText.includes(term.toLowerCase()))
+                        );
+                    });
+                }
+                
+                // Apply exclusion filter
+                if (parsed.excludeTerms.length > 0 && results.length > 0) {
+                    results = results.filter(job => {
+                        const jobText = `${job.title} ${job.employer} ${job.location || ''} ${job.category}`.toLowerCase();
+                        return !parsed.excludeTerms.some(term => jobText.includes(term.toLowerCase()));
+                    });
+                }
+                
+                // Limit results for mobile
+                results = results.slice(0, 50);
                 
                 if (results.length === 0) {
                     mobileSearchJobList.innerHTML = '';
