@@ -1045,7 +1045,7 @@
             </div>
             
             
-            <div class="filter-section" data-filter="categories">
+            <div class="filter-section collapsed" data-filter="categories">
                 <div class="filter-section-header">
                     <h3>Categories</h3>
                     <span class="filter-toggle">▼</span>
@@ -1140,7 +1140,7 @@
                 </div>
             </div>
 
-            <div class="filter-section" data-filter="locations">
+            <div class="filter-section collapsed" data-filter="locations">
                 <div class="filter-section-header">
                     <h3>Locations</h3>
                     <span class="filter-toggle">▼</span>
@@ -1228,7 +1228,7 @@
                 </div>
             </div>
 
-            <div class="filter-section" id="employer-filter-section" data-filter="employers">
+            <div class="filter-section collapsed" id="employer-filter-section" data-filter="employers">
                 <div class="filter-section-header">
                     <h3>Employers</h3>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -1801,7 +1801,7 @@
                 </div>
             </div>
 
-            <div class="filter-section" id="wage-filter-section" data-filter="wage">
+            <div class="filter-section collapsed" id="wage-filter-section" data-filter="wage">
                 <div class="filter-section-header">
                     <h3>Wage Range</h3>
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -2775,32 +2775,32 @@
             
             // Collapsible filter sections
             const filterSections = document.querySelectorAll('.filter-section[data-filter]');
-            const COLLAPSED_KEY = 'humboldtjobs-collapsed-filters';
+            const EXPANDED_KEY = 'humboldtjobs-expanded-filters';
             
-            // Load collapsed state from localStorage
-            function getCollapsedFilters() {
+            // Load expanded state from localStorage (default is collapsed)
+            function getExpandedFilters() {
                 try {
-                    return JSON.parse(localStorage.getItem(COLLAPSED_KEY)) || [];
+                    return JSON.parse(localStorage.getItem(EXPANDED_KEY)) || [];
                 } catch {
                     return [];
                 }
             }
             
-            // Save collapsed state to localStorage
-            function saveCollapsedFilters(collapsed) {
-                localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsed));
+            // Save expanded state to localStorage
+            function saveExpandedFilters(expanded) {
+                localStorage.setItem(EXPANDED_KEY, JSON.stringify(expanded));
             }
             
-            // Initialize collapsed state
-            const collapsedFilters = getCollapsedFilters();
+            // Initialize expanded state (sections start collapsed in HTML)
+            const expandedFilters = getExpandedFilters();
             
             filterSections.forEach(section => {
                 const filterName = section.dataset.filter;
                 const header = section.querySelector('.filter-section-header');
                 
-                // Restore collapsed state
-                if (collapsedFilters.includes(filterName)) {
-                    section.classList.add('collapsed');
+                // Restore expanded state (remove collapsed class if user previously expanded)
+                if (expandedFilters.includes(filterName)) {
+                    section.classList.remove('collapsed');
                 }
                 
                 // Toggle on header click
@@ -2811,18 +2811,18 @@
                         
                         section.classList.toggle('collapsed');
                         
-                        // Update localStorage
-                        const currentCollapsed = getCollapsedFilters();
-                        const isNowCollapsed = section.classList.contains('collapsed');
+                        // Update localStorage (track expanded sections)
+                        const currentExpanded = getExpandedFilters();
+                        const isNowExpanded = !section.classList.contains('collapsed');
                         
-                        if (isNowCollapsed && !currentCollapsed.includes(filterName)) {
-                            currentCollapsed.push(filterName);
-                        } else if (!isNowCollapsed) {
-                            const index = currentCollapsed.indexOf(filterName);
-                            if (index > -1) currentCollapsed.splice(index, 1);
+                        if (isNowExpanded && !currentExpanded.includes(filterName)) {
+                            currentExpanded.push(filterName);
+                        } else if (!isNowExpanded) {
+                            const index = currentExpanded.indexOf(filterName);
+                            if (index > -1) currentExpanded.splice(index, 1);
                         }
                         
-                        saveCollapsedFilters(currentCollapsed);
+                        saveExpandedFilters(currentExpanded);
                     });
                 }
             });
