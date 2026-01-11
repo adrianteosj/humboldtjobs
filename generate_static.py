@@ -71,7 +71,7 @@ def get_common_data(session):
     employers = (
         session.query(Employer)
         .filter(Employer.job_count > 0)
-        .order_by(Employer.job_count.desc())
+        .order_by(Employer.name.asc())
         .all()
     )
     

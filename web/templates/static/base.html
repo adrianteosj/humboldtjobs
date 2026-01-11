@@ -730,6 +730,30 @@
         }
 
         /* Employer filter checkboxes */
+        .employer-filter-list {
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .employer-filter-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .employer-filter-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .employer-filter-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .employer-filter-list::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
         .employer-filter-item {
             display: flex;
             align-items: center;
