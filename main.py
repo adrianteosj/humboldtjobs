@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from db.database import init_db, get_session
-from db.models import Job, Employer
+from db.models import Job, Employer, ScrapeLog
 from scrapers import (
     NEOGOVScraper, CSUScraper, EdJoinScraper, ArcataScraper,
     WiyotScraper, RioDellScraper, RedwoodsScraper,
@@ -68,10 +68,11 @@ def save_jobs(jobs: List[JobData], session, normalizer: CategoryNormalizer) -> t
         normalizer: CategoryNormalizer instance
         
     Returns:
-        Tuple of (inserted_count, updated_count)
+        Tuple of (inserted_count, updated_count, new_job_urls)
     """
     inserted = 0
     updated = 0
+    new_job_urls = []  # Track URLs of newly inserted jobs
     
     for job_data in jobs:
         # Normalize category
@@ -120,10 +121,11 @@ def save_jobs(jobs: List[JobData], session, normalizer: CategoryNormalizer) -> t
                 closing_date=job_data.closing_date,
             )
             session.add(job)
+            new_job_urls.append(job_data.url)
             inserted += 1
     
     session.commit()
-    return inserted, updated
+    return inserted, updated, new_job_urls
 
 
 def update_employer_counts(session):
@@ -167,6 +169,9 @@ def run_scrapers(sources: Optional[List[str]] = None):
     Args:
         sources: List of source names to run, or None for all
     """
+    import time
+    start_time = time.time()
+    
     # Initialize database
     init_db()
     session = get_session()
@@ -261,6 +266,7 @@ def run_scrapers(sources: Optional[List[str]] = None):
     all_jobs = []
     total_inserted = 0
     total_updated = 0
+    source_errors = {}  # Track errors per source
     
     print("\n" + "=" * 60)
     print("  HUMBOLDT COUNTY JOBS AGGREGATOR")
@@ -278,6 +284,8 @@ def run_scrapers(sources: Optional[List[str]] = None):
             print(f"    Found: {len(jobs)} jobs")
             
         except Exception as e:
+            error_msg = str(e)[:200]  # Truncate long errors
+            source_errors[name] = error_msg
             logger.error(f"Error running {name} scraper: {e}")
             print(f"    Error: {e}")
     
@@ -288,10 +296,26 @@ def run_scrapers(sources: Optional[List[str]] = None):
     
     # Save to database
     print("\n  Saving to database...")
-    total_inserted, total_updated = save_jobs(unique_jobs, session, normalizer)
+    total_inserted, total_updated, new_job_urls = save_jobs(unique_jobs, session, normalizer)
     
     # Update employer counts
     update_employer_counts(session)
+    
+    # Deactivate stale jobs (not updated in 7+ days)
+    from datetime import timedelta
+    stale_cutoff = datetime.utcnow() - timedelta(days=7)
+    stale_jobs = session.query(Job).filter(
+        Job.is_active == True,
+        Job.updated_at < stale_cutoff
+    ).all()
+    
+    jobs_deactivated = 0
+    if stale_jobs:
+        print(f"\n  Deactivating {len(stale_jobs)} stale jobs (not seen in 7+ days)...")
+        for job in stale_jobs:
+            job.is_active = False
+            jobs_deactivated += 1
+        session.commit()
     
     # Summary
     print("\n" + "=" * 60)
@@ -301,13 +325,56 @@ def run_scrapers(sources: Optional[List[str]] = None):
     print(f"    Unique jobs:         {len(unique_jobs)}")
     print(f"    New jobs inserted:   {total_inserted}")
     print(f"    Jobs updated:        {total_updated}")
+    if jobs_deactivated > 0:
+        print(f"    Jobs deactivated:    {jobs_deactivated} (stale)")
     
     # Show database stats
     active_count = session.query(Job).filter(Job.is_active == True).count()
     employer_count = session.query(Employer).count()
     print(f"    Active jobs in DB:   {active_count}")
     print(f"    Employers tracked:   {employer_count}")
+    
+    # Show source errors if any
+    if source_errors:
+        print(f"\n  ⚠️  Sources with errors: {len(source_errors)}")
+        for src, err in source_errors.items():
+            print(f"       - {src}: {err[:60]}...")
+    
+    # Log this scrape run with new job URLs and errors
+    import json
+    duration = int(time.time() - start_time)
+    scrape_log = ScrapeLog(
+        jobs_inserted=total_inserted,
+        jobs_updated=total_updated,
+        jobs_total=active_count,
+        jobs_deactivated=jobs_deactivated,
+        duration_seconds=duration,
+        new_job_urls=json.dumps(new_job_urls) if new_job_urls else None,
+        source_errors=json.dumps(source_errors) if source_errors else None
+    )
+    session.add(scrape_log)
+    session.commit()
+    
+    print(f"\n    Scrape duration:     {duration}s")
     print("=" * 60 + "\n")
+    
+    # Show comparison to previous scrape
+    previous_scrape = (
+        session.query(ScrapeLog)
+        .filter(ScrapeLog.id != scrape_log.id)
+        .order_by(ScrapeLog.scraped_at.desc())
+        .first()
+    )
+    if previous_scrape:
+        print(f"  📊 Compared to last scrape ({previous_scrape.scraped_at.strftime('%b %d, %Y')}):")
+        jobs_diff = active_count - previous_scrape.jobs_total
+        if jobs_diff > 0:
+            print(f"     +{jobs_diff} net new jobs")
+        elif jobs_diff < 0:
+            print(f"     {jobs_diff} jobs (some removed/expired)")
+        else:
+            print(f"     No change in total jobs")
+        print()
     
     session.close()
 

@@ -87,3 +87,36 @@ class Employer(Base):
             'category': self.category,
             'job_count': self.job_count,
         }
+
+
+class ScrapeLog(Base):
+    """Log of each scrape run for tracking new jobs"""
+    __tablename__ = 'scrape_logs'
+    
+    id = Column(Integer, primary_key=True)
+    scraped_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    jobs_inserted = Column(Integer, default=0)  # New jobs added
+    jobs_updated = Column(Integer, default=0)   # Existing jobs refreshed
+    jobs_total = Column(Integer, default=0)     # Total active jobs after scrape
+    jobs_deactivated = Column(Integer, default=0)  # Jobs marked inactive (stale)
+    duration_seconds = Column(Integer)          # How long the scrape took
+    new_job_urls = Column(Text)                 # JSON list of URLs for new jobs
+    source_errors = Column(Text)                # JSON dict of source -> error message
+    
+    __table_args__ = (
+        Index('idx_scrape_date', 'scraped_at'),
+    )
+    
+    def __repr__(self):
+        return f"<ScrapeLog(id={self.id}, date={self.scraped_at}, new={self.jobs_inserted})>"
+    
+    def to_dict(self):
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'scraped_at': self.scraped_at.isoformat() if self.scraped_at else None,
+            'jobs_inserted': self.jobs_inserted,
+            'jobs_updated': self.jobs_updated,
+            'jobs_total': self.jobs_total,
+            'duration_seconds': self.duration_seconds,
+        }

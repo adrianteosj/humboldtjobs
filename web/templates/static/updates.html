@@ -1,0 +1,253 @@
+{% extends "static/base.html" %}
+
+{% block title %}Update History - Humboldt Jobs{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="updates-page">
+        <div class="page-header">
+            <h1>📊 Update History</h1>
+            <p>Track when jobs are refreshed and new listings are added</p>
+        </div>
+
+        <div class="updates-summary">
+            <div class="summary-card">
+                <span class="summary-icon">📋</span>
+                <div class="summary-content">
+                    <span class="summary-value">{{ total_jobs }}</span>
+                    <span class="summary-label">Active Jobs</span>
+                </div>
+            </div>
+            <div class="summary-card">
+                <span class="summary-icon">🏢</span>
+                <div class="summary-content">
+                    <span class="summary-value">{{ total_employers }}</span>
+                    <span class="summary-label">Employers</span>
+                </div>
+            </div>
+            <div class="summary-card">
+                <span class="summary-icon">🔄</span>
+                <div class="summary-content">
+                    <span class="summary-value">{{ scrape_logs | length }}</span>
+                    <span class="summary-label">Total Updates</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="updates-list">
+            <h2>Recent Updates</h2>
+            {% for log in scrape_logs %}
+            <div class="update-item {% if loop.first %}latest{% endif %}">
+                <div class="update-date">
+                    <span class="date-day">{{ log.scraped_at.strftime('%b %d') }}</span>
+                    <span class="date-year">{{ log.scraped_at.strftime('%Y') }}</span>
+                    <span class="date-time">{{ log.scraped_at.strftime('%I:%M %p') }}</span>
+                </div>
+                <div class="update-details">
+                    <div class="update-stats">
+                        {% if log.jobs_inserted > 0 %}
+                        <a href="/new/" class="stat-badge new">
+                            <span class="stat-icon">🆕</span>
+                            <span class="stat-value">{{ log.jobs_inserted }}</span>
+                            <span class="stat-label">new job{% if log.jobs_inserted != 1 %}s{% endif %} added</span>
+                        </a>
+                        {% endif %}
+                        <span class="stat-badge total">
+                            <span class="stat-icon">📊</span>
+                            <span class="stat-value">{{ log.jobs_total }}</span>
+                            <span class="stat-label">total active</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No update history available yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="back-link">
+            <a href="/">← Back to all jobs</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .updates-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .updates-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+    }
+
+    .summary-icon {
+        font-size: 2rem;
+    }
+
+    .summary-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .summary-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .updates-list h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .update-item {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.25rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .update-item:hover {
+        border-color: var(--accent-green);
+    }
+
+    .update-item.latest {
+        border-color: var(--accent-green);
+        background: rgba(16, 185, 129, 0.05);
+    }
+
+    .update-date {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 70px;
+        padding-right: 1.5rem;
+        border-right: 1px solid var(--border-color);
+    }
+
+    .date-day {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .date-year {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .date-time {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    .update-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .update-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .stat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+
+    .stat-badge.new {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--accent-green);
+    }
+
+    a.stat-badge.new:hover {
+        background: rgba(16, 185, 129, 0.25);
+    }
+
+    .stat-badge.total {
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+    }
+
+    .stat-icon {
+        font-size: 0.9rem;
+    }
+
+    .stat-value {
+        font-weight: 600;
+    }
+
+    .stat-label {
+        color: inherit;
+        opacity: 0.8;
+    }
+
+    .back-link {
+        margin-top: 2rem;
+        text-align: center;
+    }
+
+    .back-link a {
+        color: var(--accent-green);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+        .update-item {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .update-date {
+            flex-direction: row;
+            gap: 0.5rem;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+            padding-right: 0;
+            padding-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}

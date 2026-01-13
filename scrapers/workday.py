@@ -42,12 +42,9 @@ class WorkdayScraper(BaseScraper):
         self.base_url = f"https://{tenant}.wd{dc}.myworkdayjobs.com"
         self.api_path = f"/wday/cxs/{tenant}/{site_code}"
         
+        # Use minimal headers - Workday API can be picky about custom headers
         self.session = requests.Session()
-        self.session.headers.update({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'User-Agent': USER_AGENT
-        })
+        # Don't set custom headers - let requests use defaults
     
     def scrape(self) -> List[JobData]:
         """Scrape all jobs from Workday API"""
@@ -55,7 +52,7 @@ class WorkdayScraper(BaseScraper):
         
         all_jobs = []
         offset = 0
-        limit = 20  # Workday default page size
+        limit = 20  # Workday API max page size is 20
         
         while True:
             try:
@@ -93,7 +90,9 @@ class WorkdayScraper(BaseScraper):
         return job_data_list
     
     def _fetch_jobs_page(self, offset: int, limit: int) -> tuple:
-        """Fetch a page of jobs from Workday API"""
+        """Fetch a page of jobs from Workday API with retry logic"""
+        import time
+        
         url = f"{self.base_url}{self.api_path}/jobs"
         
         payload = {
@@ -103,14 +102,25 @@ class WorkdayScraper(BaseScraper):
             "searchText": ""
         }
         
-        response = self.session.post(url, json=payload)
-        response.raise_for_status()
+        # Retry logic for rate limiting
+        max_retries = 3
+        for attempt in range(max_retries):
+            response = self.session.post(url, json=payload)
+            
+            if response.status_code == 200:
+                data = response.json()
+                jobs = data.get('jobPostings', [])
+                total = data.get('total', 0)
+                return jobs, total
+            elif response.status_code == 400 and attempt < max_retries - 1:
+                # Likely rate limiting - wait and retry
+                wait_time = 5 * (attempt + 1)
+                self.logger.warning(f"Got 400 error, retrying in {wait_time}s... (attempt {attempt + 1}/{max_retries})")
+                time.sleep(wait_time)
+            else:
+                response.raise_for_status()
         
-        data = response.json()
-        jobs = data.get('jobPostings', [])
-        total = data.get('total', 0)
-        
-        return jobs, total
+        return [], 0
     
     def _fetch_job_details(self, external_path: str) -> Optional[Dict]:
         """Fetch individual job details to get salary and description"""

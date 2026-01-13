@@ -909,15 +909,30 @@ class HumboldtSeniorResourceScraper(BaseScraper):
                         page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                         page.wait_for_timeout(500)
                         
-                        page_2_button = page.locator('button:has-text("2")').first
+                        # Look for next page button dynamically
+                        next_page_num = page_num + 1
+                        next_page_button = page.locator(f'button:has-text("{next_page_num}")').first
                         
-                        if page_num == 1 and page_2_button.is_visible():
-                            page_2_button.click()
+                        # Also try finding ">" or "Next" buttons as fallback
+                        if not next_page_button.is_visible():
+                            next_page_button = page.locator('button:has-text(">")').first
+                        if not next_page_button.is_visible():
+                            next_page_button = page.locator('button:has-text("Next")').first
+                        
+                        if next_page_button.is_visible():
+                            next_page_button.click()
                             page.wait_for_timeout(3000)
                             page_num += 1
+                            
+                            # Safety limit to avoid infinite loops
+                            if page_num > 10:
+                                self.logger.info("  Reached page limit (10)")
+                                break
                         else:
+                            self.logger.info(f"  No more pages found after page {page_num}")
                             break
-                    except:
+                    except Exception as e:
+                        self.logger.warning(f"  Pagination error: {e}")
                         break
                 
                 # PHASE 2: Fetch salary for each job

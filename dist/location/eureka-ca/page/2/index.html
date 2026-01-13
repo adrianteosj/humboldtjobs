@@ -335,6 +335,29 @@
             color: var(--text-secondary);
         }
 
+        .new-jobs-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            margin-top: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--accent-green);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .new-jobs-badge:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: var(--accent-green);
+            transform: translateY(-1px);
+        }
+
         /* Job cards */
         .job-list {
             display: flex;
@@ -706,6 +729,275 @@
 
         .footer-heart {
             color: #ef4444;
+        }
+
+        /* Hamburger Menu Button */
+        .hamburger-btn {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            gap: 5px;
+            padding: 10px 8px;
+            transition: all 0.2s;
+        }
+
+        .hamburger-btn:hover {
+            border-color: var(--accent-green);
+            background: var(--bg-secondary);
+        }
+
+        .hamburger-btn .bar {
+            width: 18px;
+            height: 2px;
+            background: var(--text-primary);
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-btn.active .bar:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger-btn.active .bar:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-btn.active .bar:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Slide-out Menu */
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .menu-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            max-width: 90vw;
+            height: 100vh;
+            background: var(--bg-secondary);
+            z-index: 200;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .slide-menu.active {
+            right: 0;
+        }
+
+        .menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            z-index: 10;
+        }
+
+        .menu-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .menu-close {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .menu-close:hover {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .menu-content {
+            padding: 1rem;
+        }
+
+        .menu-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .menu-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            padding: 0 0.5rem;
+        }
+
+        .menu-search-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .menu-search-wrapper .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .menu-search-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .menu-search-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        .menu-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .menu-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .menu-nav-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .menu-theme-options {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0 0.5rem;
+        }
+
+        .menu-theme-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.75rem 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .menu-theme-btn:hover {
+            border-color: var(--accent-green);
+            color: var(--text-primary);
+        }
+
+        .menu-theme-btn.active {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .menu-theme-btn .theme-icon {
+            font-size: 1.25rem;
+        }
+
+        .menu-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .menu-filter-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            transition: all 0.15s;
+        }
+
+        .menu-filter-link:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .menu-filter-link.active {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .menu-filter-count {
+            font-size: 0.7rem;
+            padding: 0.125rem 0.5rem;
+            background: var(--bg-primary);
+            border-radius: 999px;
+            color: var(--text-muted);
+        }
+
+        .menu-filter-link.active .menu-filter-count {
+            background: rgba(0,0,0,0.2);
+            color: var(--bg-primary);
         }
 
         /* Search bar */
@@ -1407,8 +1699,14 @@
                 display: none;
             }
 
-            .mobile-filter-btn {
+            /* Show hamburger menu instead of FAB */
+            .hamburger-btn {
                 display: flex;
+            }
+
+            /* Hide desktop nav items */
+            .nav-link, .newsletter-btn, .theme-toggle, .mobile-search-btn {
+                display: none;
             }
 
             .container {
@@ -1433,11 +1731,11 @@
                 font-size: 1rem;
             }
 
-            .nav-link, .newsletter-btn {
+            .nav-link, .newsletter-btn, .theme-toggle, .mobile-search-btn {
                 display: none;
             }
 
-            .mobile-search-btn {
+            .hamburger-btn {
                 display: flex;
             }
 
@@ -1628,12 +1926,6 @@
                 font-size: 0.95rem;
             }
 
-            .mobile-filter-btn {
-                bottom: 16px;
-                right: 16px;
-                width: 52px;
-                height: 52px;
-            }
         }
 
         /* Touch-friendly improvements */
@@ -1648,8 +1940,7 @@
                 min-height: 48px;
             }
 
-            .theme-btn,
-            .mobile-search-btn {
+            .hamburger-btn {
                 min-width: 44px;
                 min-height: 44px;
             }
@@ -1695,6 +1986,12 @@
                         </div>
                     </div>
                 </div>
+                <!-- Hamburger Menu Button (mobile/tablet) -->
+                <button class="hamburger-btn" id="hamburger-btn" aria-label="Open menu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
             </div>
         </div>
     </header>
@@ -1707,7 +2004,7 @@
             
             <div class="last-updated">
                 <span class="update-icon">🔄</span>
-                <span>Last updated: Jan 10, 2026 at 08:17 PM</span>
+                <span>Last updated: Jan 13, 2026 at 10:29 AM</span>
             </div>
             
             
@@ -1721,42 +2018,49 @@
                         <li>
                             <a href="/" class="">
                                 All Jobs
-                                <span class="filter-count">519</span>
+                                <span class="filter-count">537</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/category/education/" class="">
                                 Education
-                                <span class="filter-count">231</span>
+                                <span class="filter-count">233</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/category/healthcare/" class="">
                                 Healthcare
-                                <span class="filter-count">160</span>
+                                <span class="filter-count">168</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/category/government/" class="">
                                 Government
-                                <span class="filter-count">43</span>
+                                <span class="filter-count">42</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/category/national-retail/" class="">
                                 National Retail
-                                <span class="filter-count">38</span>
+                                <span class="filter-count">41</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/category/tribal-organizations/" class="">
                                 Tribal Organizations
-                                <span class="filter-count">14</span>
+                                <span class="filter-count">15</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/local-retail/" class="">
+                                Local Retail
+                                <span class="filter-count">9</span>
                             </a>
                         </li>
                         
@@ -1764,13 +2068,6 @@
                             <a href="/category/hospitality-entertainment/" class="">
                                 Hospitality &amp; Entertainment
                                 <span class="filter-count">9</span>
-                            </a>
-                        </li>
-                        
-                        <li>
-                            <a href="/category/local-retail/" class="">
-                                Local Retail
-                                <span class="filter-count">8</span>
                             </a>
                         </li>
                         
@@ -1791,6 +2088,13 @@
                         <li>
                             <a href="/category/nonprofit-social-services/" class="">
                                 Nonprofit &amp; Social Services
+                                <span class="filter-count">4</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/category/food-agriculture/" class="">
+                                Food &amp; Agriculture
                                 <span class="filter-count">3</span>
                             </a>
                         </li>
@@ -1816,28 +2120,28 @@
                         <li>
                             <a href="/" class="">
                                 All Locations
-                                <span class="filter-count">519</span>
+                                <span class="filter-count">537</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/location/eureka-ca/" class="active">
                                 Eureka, CA
-                                <span class="filter-count">207</span>
+                                <span class="filter-count">236</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/location/arcata-ca/" class="">
                                 Arcata, CA
-                                <span class="filter-count">137</span>
+                                <span class="filter-count">138</span>
                             </a>
                         </li>
                         
                         <li>
-                            <a href="/location/humboldt-county-ca/" class="">
-                                Humboldt County, CA
-                                <span class="filter-count">67</span>
+                            <a href="/location/hoopa-ca/" class="">
+                                Hoopa, CA
+                                <span class="filter-count">37</span>
                             </a>
                         </li>
                         
@@ -1849,22 +2153,22 @@
                         </li>
                         
                         <li>
-                            <a href="/location/hoopa-ca/" class="">
-                                Hoopa, CA
-                                <span class="filter-count">24</span>
-                            </a>
-                        </li>
-                        
-                        <li>
-                            <a href="/location/blue-lake-ca/" class="">
-                                Blue Lake, CA
-                                <span class="filter-count">12</span>
+                            <a href="/location/miranda-ca/" class="">
+                                Miranda, CA
+                                <span class="filter-count">27</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/location/mckinleyville-ca/" class="">
                                 McKinleyville, CA
+                                <span class="filter-count">11</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/humboldt-county-ca/" class="">
+                                Humboldt County, CA
                                 <span class="filter-count">10</span>
                             </a>
                         </li>
@@ -1877,16 +2181,16 @@
                         </li>
                         
                         <li>
-                            <a href="/location/klamath-ca/" class="">
-                                Klamath, CA
-                                <span class="filter-count">8</span>
+                            <a href="/location/blue-lake-ca/" class="">
+                                Blue Lake, CA
+                                <span class="filter-count">9</span>
                             </a>
                         </li>
                         
                         <li>
-                            <a href="/location/ferndale-ca/" class="">
-                                Ferndale, CA
-                                <span class="filter-count">4</span>
+                            <a href="/location/klamath-ca/" class="">
+                                Klamath, CA
+                                <span class="filter-count">8</span>
                             </a>
                         </li>
                         
@@ -1908,13 +2212,25 @@
                 <div class="filter-section-content">
                     <div class="employer-filter-list">
                         
-                        <div class="employer-filter-item" data-employer="blue lake casino hotel">
+                        <div class="employer-filter-item" data-employer="ace hardware">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
                                    id="emp-1" 
-                                   data-employer="blue lake casino hotel"
+                                   data-employer="ace hardware"
                                    checked>
                             <label class="employer-filter-label" for="emp-1">
+                                <span>Ace Hardware</span>
+                                <span class="filter-count">1</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="blue lake casino hotel">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-2" 
+                                   data-employer="blue lake casino hotel"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-2">
                                 <span>Blue Lake Casino Hotel</span>
                                 <span class="filter-count">9</span>
                             </label>
@@ -1923,10 +2239,10 @@
                         <div class="employer-filter-item" data-employer="cal poly humboldt">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-2" 
+                                   id="emp-3" 
                                    data-employer="cal poly humboldt"
                                    checked>
-                            <label class="employer-filter-label" for="emp-2">
+                            <label class="employer-filter-label" for="emp-3">
                                 <span>Cal Poly Humboldt</span>
                                 <span class="filter-count">114</span>
                             </label>
@@ -1935,22 +2251,22 @@
                         <div class="employer-filter-item" data-employer="changing tides family services">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-3" 
+                                   id="emp-4" 
                                    data-employer="changing tides family services"
                                    checked>
-                            <label class="employer-filter-label" for="emp-3">
+                            <label class="employer-filter-label" for="emp-4">
                                 <span>Changing Tides Family Ser...</span>
-                                <span class="filter-count">2</span>
+                                <span class="filter-count">3</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="city of arcata">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-4" 
+                                   id="emp-5" 
                                    data-employer="city of arcata"
                                    checked>
-                            <label class="employer-filter-label" for="emp-4">
+                            <label class="employer-filter-label" for="emp-5">
                                 <span>City of Arcata</span>
                                 <span class="filter-count">3</span>
                             </label>
@@ -1959,22 +2275,22 @@
                         <div class="employer-filter-item" data-employer="city of blue lake">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-5" 
+                                   id="emp-6" 
                                    data-employer="city of blue lake"
                                    checked>
-                            <label class="employer-filter-label" for="emp-5">
+                            <label class="employer-filter-label" for="emp-6">
                                 <span>City of Blue Lake</span>
-                                <span class="filter-count">3</span>
+                                <span class="filter-count">4</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="city of eureka">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-6" 
+                                   id="emp-7" 
                                    data-employer="city of eureka"
                                    checked>
-                            <label class="employer-filter-label" for="emp-6">
+                            <label class="employer-filter-label" for="emp-7">
                                 <span>City of Eureka</span>
                                 <span class="filter-count">2</span>
                             </label>
@@ -1983,10 +2299,10 @@
                         <div class="employer-filter-item" data-employer="city of ferndale">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-7" 
+                                   id="emp-8" 
                                    data-employer="city of ferndale"
                                    checked>
-                            <label class="employer-filter-label" for="emp-7">
+                            <label class="employer-filter-label" for="emp-8">
                                 <span>City of Ferndale</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -1995,10 +2311,10 @@
                         <div class="employer-filter-item" data-employer="city of fortuna">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-8" 
+                                   id="emp-9" 
                                    data-employer="city of fortuna"
                                    checked>
-                            <label class="employer-filter-label" for="emp-8">
+                            <label class="employer-filter-label" for="emp-9">
                                 <span>City of Fortuna</span>
                                 <span class="filter-count">2</span>
                             </label>
@@ -2007,10 +2323,10 @@
                         <div class="employer-filter-item" data-employer="city of rio dell">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-9" 
+                                   id="emp-10" 
                                    data-employer="city of rio dell"
                                    checked>
-                            <label class="employer-filter-label" for="emp-9">
+                            <label class="employer-filter-label" for="emp-10">
                                 <span>City of Rio Dell</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2019,10 +2335,10 @@
                         <div class="employer-filter-item" data-employer="coast central credit union">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-10" 
+                                   id="emp-11" 
                                    data-employer="coast central credit union"
                                    checked>
-                            <label class="employer-filter-label" for="emp-10">
+                            <label class="employer-filter-label" for="emp-11">
                                 <span>Coast Central Credit Unio...</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2031,10 +2347,10 @@
                         <div class="employer-filter-item" data-employer="college of the redwoods">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-11" 
+                                   id="emp-12" 
                                    data-employer="college of the redwoods"
                                    checked>
-                            <label class="employer-filter-label" for="emp-11">
+                            <label class="employer-filter-label" for="emp-12">
                                 <span>College of the Redwoods</span>
                                 <span class="filter-count">52</span>
                             </label>
@@ -2043,10 +2359,10 @@
                         <div class="employer-filter-item" data-employer="columbia bank">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-12" 
+                                   id="emp-13" 
                                    data-employer="columbia bank"
                                    checked>
-                            <label class="employer-filter-label" for="emp-12">
+                            <label class="employer-filter-label" for="emp-13">
                                 <span>Columbia Bank</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2055,10 +2371,10 @@
                         <div class="employer-filter-item" data-employer="compass community credit union">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-13" 
+                                   id="emp-14" 
                                    data-employer="compass community credit union"
                                    checked>
-                            <label class="employer-filter-label" for="emp-13">
+                            <label class="employer-filter-label" for="emp-14">
                                 <span>Compass Community Credit ...</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2067,10 +2383,10 @@
                         <div class="employer-filter-item" data-employer="costco">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-14" 
+                                   id="emp-15" 
                                    data-employer="costco"
                                    checked>
-                            <label class="employer-filter-label" for="emp-14">
+                            <label class="employer-filter-label" for="emp-15">
                                 <span>Costco</span>
                                 <span class="filter-count">10</span>
                             </label>
@@ -2079,22 +2395,22 @@
                         <div class="employer-filter-item" data-employer="county of humboldt">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-15" 
+                                   id="emp-16" 
                                    data-employer="county of humboldt"
                                    checked>
-                            <label class="employer-filter-label" for="emp-15">
+                            <label class="employer-filter-label" for="emp-16">
                                 <span>County of Humboldt</span>
-                                <span class="filter-count">30</span>
+                                <span class="filter-count">31</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="danco group">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-16" 
+                                   id="emp-17" 
                                    data-employer="danco group"
                                    checked>
-                            <label class="employer-filter-label" for="emp-16">
+                            <label class="employer-filter-label" for="emp-17">
                                 <span>Danco Group</span>
                                 <span class="filter-count">6</span>
                             </label>
@@ -2103,10 +2419,10 @@
                         <div class="employer-filter-item" data-employer="dollar general">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-17" 
+                                   id="emp-18" 
                                    data-employer="dollar general"
                                    checked>
-                            <label class="employer-filter-label" for="emp-17">
+                            <label class="employer-filter-label" for="emp-18">
                                 <span>Dollar General</span>
                                 <span class="filter-count">10</span>
                             </label>
@@ -2115,34 +2431,34 @@
                         <div class="employer-filter-item" data-employer="eureka city schools">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-18" 
+                                   id="emp-19" 
                                    data-employer="eureka city schools"
                                    checked>
-                            <label class="employer-filter-label" for="emp-18">
+                            <label class="employer-filter-label" for="emp-19">
                                 <span>Eureka City Schools</span>
-                                <span class="filter-count">24</span>
+                                <span class="filter-count">17</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="eureka natural foods">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-19" 
+                                   id="emp-20" 
                                    data-employer="eureka natural foods"
                                    checked>
-                            <label class="employer-filter-label" for="emp-19">
+                            <label class="employer-filter-label" for="emp-20">
                                 <span>Eureka Natural Foods</span>
-                                <span class="filter-count">2</span>
+                                <span class="filter-count">3</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="food for people">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-20" 
+                                   id="emp-21" 
                                    data-employer="food for people"
                                    checked>
-                            <label class="employer-filter-label" for="emp-20">
+                            <label class="employer-filter-label" for="emp-21">
                                 <span>Food for People</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2151,10 +2467,10 @@
                         <div class="employer-filter-item" data-employer="green diamond resource company">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-21" 
+                                   id="emp-22" 
                                    data-employer="green diamond resource company"
                                    checked>
-                            <label class="employer-filter-label" for="emp-21">
+                            <label class="employer-filter-label" for="emp-22">
                                 <span>Green Diamond Resource Co...</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2163,10 +2479,10 @@
                         <div class="employer-filter-item" data-employer="hospice of humboldt">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-22" 
+                                   id="emp-23" 
                                    data-employer="hospice of humboldt"
                                    checked>
-                            <label class="employer-filter-label" for="emp-22">
+                            <label class="employer-filter-label" for="emp-23">
                                 <span>Hospice of Humboldt</span>
                                 <span class="filter-count">8</span>
                             </label>
@@ -2175,11 +2491,23 @@
                         <div class="employer-filter-item" data-employer="humboldt county office of education">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-23" 
+                                   id="emp-24" 
                                    data-employer="humboldt county office of education"
                                    checked>
-                            <label class="employer-filter-label" for="emp-23">
+                            <label class="employer-filter-label" for="emp-24">
                                 <span>Humboldt County Office of...</span>
+                                <span class="filter-count">3</span>
+                            </label>
+                        </div>
+                        
+                        <div class="employer-filter-item" data-employer="humboldt creamery">
+                            <input type="checkbox" 
+                                   class="employer-filter-checkbox" 
+                                   id="emp-25" 
+                                   data-employer="humboldt creamery"
+                                   checked>
+                            <label class="employer-filter-label" for="emp-25">
+                                <span>Humboldt Creamery</span>
                                 <span class="filter-count">3</span>
                             </label>
                         </div>
@@ -2187,22 +2515,22 @@
                         <div class="employer-filter-item" data-employer="humboldt senior resource center">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-24" 
+                                   id="emp-26" 
                                    data-employer="humboldt senior resource center"
                                    checked>
-                            <label class="employer-filter-label" for="emp-24">
+                            <label class="employer-filter-label" for="emp-26">
                                 <span>Humboldt Senior Resource ...</span>
-                                <span class="filter-count">16</span>
+                                <span class="filter-count">19</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="jones family tree service">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-25" 
+                                   id="emp-27" 
                                    data-employer="jones family tree service"
                                    checked>
-                            <label class="employer-filter-label" for="emp-25">
+                            <label class="employer-filter-label" for="emp-27">
                                 <span>Jones Family Tree Service</span>
                                 <span class="filter-count">3</span>
                             </label>
@@ -2211,10 +2539,10 @@
                         <div class="employer-filter-item" data-employer="k&#39;ima:w medical center">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-26" 
+                                   id="emp-28" 
                                    data-employer="k&#39;ima:w medical center"
                                    checked>
-                            <label class="employer-filter-label" for="emp-26">
+                            <label class="employer-filter-label" for="emp-28">
                                 <span>K&#39;ima:w Medical Center</span>
                                 <span class="filter-count">24</span>
                             </label>
@@ -2223,22 +2551,22 @@
                         <div class="employer-filter-item" data-employer="klamath-trinity joint unified">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-27" 
+                                   id="emp-29" 
                                    data-employer="klamath-trinity joint unified"
                                    checked>
-                            <label class="employer-filter-label" for="emp-27">
+                            <label class="employer-filter-label" for="emp-29">
                                 <span>Klamath-Trinity Joint Uni...</span>
-                                <span class="filter-count">16</span>
+                                <span class="filter-count">15</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="mad river community hospital">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-28" 
+                                   id="emp-30" 
                                    data-employer="mad river community hospital"
                                    checked>
-                            <label class="employer-filter-label" for="emp-28">
+                            <label class="employer-filter-label" for="emp-30">
                                 <span>Mad River Community Hospi...</span>
                                 <span class="filter-count">2</span>
                             </label>
@@ -2247,10 +2575,10 @@
                         <div class="employer-filter-item" data-employer="mckinleyville union school district">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-29" 
+                                   id="emp-31" 
                                    data-employer="mckinleyville union school district"
                                    checked>
-                            <label class="employer-filter-label" for="emp-29">
+                            <label class="employer-filter-label" for="emp-31">
                                 <span>McKinleyville Union Schoo...</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2259,10 +2587,10 @@
                         <div class="employer-filter-item" data-employer="north coast co-op">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-30" 
+                                   id="emp-32" 
                                    data-employer="north coast co-op"
                                    checked>
-                            <label class="employer-filter-label" for="emp-30">
+                            <label class="employer-filter-label" for="emp-32">
                                 <span>North Coast Co-op</span>
                                 <span class="filter-count">6</span>
                             </label>
@@ -2271,10 +2599,10 @@
                         <div class="employer-filter-item" data-employer="northern humboldt union high school district">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-31" 
+                                   id="emp-33" 
                                    data-employer="northern humboldt union high school district"
                                    checked>
-                            <label class="employer-filter-label" for="emp-31">
+                            <label class="employer-filter-label" for="emp-33">
                                 <span>Northern Humboldt Union H...</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2283,22 +2611,22 @@
                         <div class="employer-filter-item" data-employer="open door community health">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-32" 
+                                   id="emp-34" 
                                    data-employer="open door community health"
                                    checked>
-                            <label class="employer-filter-label" for="emp-32">
+                            <label class="employer-filter-label" for="emp-34">
                                 <span>Open Door Community Healt...</span>
-                                <span class="filter-count">42</span>
+                                <span class="filter-count">45</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="providence redwood memorial hospital">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-33" 
+                                   id="emp-35" 
                                    data-employer="providence redwood memorial hospital"
                                    checked>
-                            <label class="employer-filter-label" for="emp-33">
+                            <label class="employer-filter-label" for="emp-35">
                                 <span>Providence Redwood Memori...</span>
                                 <span class="filter-count">9</span>
                             </label>
@@ -2307,10 +2635,10 @@
                         <div class="employer-filter-item" data-employer="providence st. joseph hospital">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-34" 
+                                   id="emp-36" 
                                    data-employer="providence st. joseph hospital"
                                    checked>
-                            <label class="employer-filter-label" for="emp-34">
+                            <label class="employer-filter-label" for="emp-36">
                                 <span>Providence St. Joseph Hos...</span>
                                 <span class="filter-count">52</span>
                             </label>
@@ -2319,22 +2647,22 @@
                         <div class="employer-filter-item" data-employer="redwood community action agency">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-35" 
+                                   id="emp-37" 
                                    data-employer="redwood community action agency"
                                    checked>
-                            <label class="employer-filter-label" for="emp-35">
+                            <label class="employer-filter-label" for="emp-37">
                                 <span>Redwood Community Action ...</span>
-                                <span class="filter-count">4</span>
+                                <span class="filter-count">5</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="redwoods rural health center">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-36" 
+                                   id="emp-38" 
                                    data-employer="redwoods rural health center"
                                    checked>
-                            <label class="employer-filter-label" for="emp-36">
+                            <label class="employer-filter-label" for="emp-38">
                                 <span>Redwoods Rural Health Cen...</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2343,34 +2671,34 @@
                         <div class="employer-filter-item" data-employer="safeway">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-37" 
+                                   id="emp-39" 
                                    data-employer="safeway"
                                    checked>
-                            <label class="employer-filter-label" for="emp-37">
+                            <label class="employer-filter-label" for="emp-39">
                                 <span>Safeway</span>
-                                <span class="filter-count">4</span>
+                                <span class="filter-count">5</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="sohum health">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-38" 
+                                   id="emp-40" 
                                    data-employer="sohum health"
                                    checked>
-                            <label class="employer-filter-label" for="emp-38">
+                            <label class="employer-filter-label" for="emp-40">
                                 <span>SoHum Health</span>
-                                <span class="filter-count">1</span>
+                                <span class="filter-count">2</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="south bay union elementary school district - eureka">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-39" 
+                                   id="emp-41" 
                                    data-employer="south bay union elementary school district - eureka"
                                    checked>
-                            <label class="employer-filter-label" for="emp-39">
+                            <label class="employer-filter-label" for="emp-41">
                                 <span>South Bay Union Elementar...</span>
                                 <span class="filter-count">2</span>
                             </label>
@@ -2379,22 +2707,22 @@
                         <div class="employer-filter-item" data-employer="southern humboldt joint unified school district">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-40" 
+                                   id="emp-42" 
                                    data-employer="southern humboldt joint unified school district"
                                    checked>
-                            <label class="employer-filter-label" for="emp-40">
+                            <label class="employer-filter-label" for="emp-42">
                                 <span>Southern Humboldt Joint U...</span>
-                                <span class="filter-count">18</span>
+                                <span class="filter-count">28</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="tj maxx">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-41" 
+                                   id="emp-43" 
                                    data-employer="tj maxx"
                                    checked>
-                            <label class="employer-filter-label" for="emp-41">
+                            <label class="employer-filter-label" for="emp-43">
                                 <span>TJ Maxx</span>
                                 <span class="filter-count">2</span>
                             </label>
@@ -2403,10 +2731,10 @@
                         <div class="employer-filter-item" data-employer="united indian health services">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-42" 
+                                   id="emp-44" 
                                    data-employer="united indian health services"
                                    checked>
-                            <label class="employer-filter-label" for="emp-42">
+                            <label class="employer-filter-label" for="emp-44">
                                 <span>United Indian Health Serv...</span>
                                 <span class="filter-count">1</span>
                             </label>
@@ -2415,22 +2743,22 @@
                         <div class="employer-filter-item" data-employer="walgreens">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-43" 
+                                   id="emp-45" 
                                    data-employer="walgreens"
                                    checked>
-                            <label class="employer-filter-label" for="emp-43">
+                            <label class="employer-filter-label" for="emp-45">
                                 <span>Walgreens</span>
-                                <span class="filter-count">7</span>
+                                <span class="filter-count">10</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="walmart">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-44" 
+                                   id="emp-46" 
                                    data-employer="walmart"
                                    checked>
-                            <label class="employer-filter-label" for="emp-44">
+                            <label class="employer-filter-label" for="emp-46">
                                 <span>Walmart</span>
                                 <span class="filter-count">5</span>
                             </label>
@@ -2439,24 +2767,24 @@
                         <div class="employer-filter-item" data-employer="wiyot tribe">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-45" 
+                                   id="emp-47" 
                                    data-employer="wiyot tribe"
                                    checked>
-                            <label class="employer-filter-label" for="emp-45">
+                            <label class="employer-filter-label" for="emp-47">
                                 <span>Wiyot Tribe</span>
-                                <span class="filter-count">1</span>
+                                <span class="filter-count">2</span>
                             </label>
                         </div>
                         
                         <div class="employer-filter-item" data-employer="yurok tribe">
                             <input type="checkbox" 
                                    class="employer-filter-checkbox" 
-                                   id="emp-46" 
+                                   id="emp-48" 
                                    data-employer="yurok tribe"
                                    checked>
-                            <label class="employer-filter-label" for="emp-46">
+                            <label class="employer-filter-label" for="emp-48">
                                 <span>Yurok Tribe</span>
-                                <span class="filter-count">14</span>
+                                <span class="filter-count">15</span>
                             </label>
                         </div>
                         
@@ -2521,7 +2849,8 @@
         <main>
             <div class="page-header">
                 <h1>Jobs in Eureka, CA</h1>
-                <p>207 open positions from local employers</p>
+                <p>236 open positions from local employers</p>
+                
             </div>
 
             <!-- Search Bar -->
@@ -2572,6 +2901,572 @@
 
             
             <div class="job-list">
+                
+                <article class="job-card" data-job-id="586" data-employer="humboldt senior resource center" data-title="hdm driver (hsrc vehicle) - per diem (51626)" data-location="eureka, ca" data-category="healthcare" data-classification="">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/177561" target="_blank" rel="noopener">HDM Driver (HSRC Vehicle) - per diem (51626)</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Humboldt Senior Resource Center</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Per Diem</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $21.00 - $21.00 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">JOB SUMMARY:  Transport packaged meals as appropriate to homebound elderly within Eureka, Arcata, McKinleyville, and Fortuna areas while following foo...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hsrc
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/177561" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="585" data-employer="humboldt senior resource center" data-title="food service aide - per diem (51627)" data-location="eureka, ca" data-category="healthcare" data-classification="support">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/177568" target="_blank" rel="noopener">Food Service Aide - Per Diem (51627)</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Humboldt Senior Resource Center</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Per Diem</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $21.00 - $21.00 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">JOB SUMMARY: Responsible for food handling and packaging of home delivered meals, and clean-up of the mid-day meal at the dining site kitchen.   ...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hsrc
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/26A855BC71A6DA61564C6529E594B2E4/jobs/177568" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="577" data-employer="hospice of humboldt" data-title="hospice aide" data-location="eureka, ca" data-category="healthcare" data-classification="">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/369961" target="_blank" rel="noopener">Hospice Aide</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Hospice of Humboldt</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $22.83 - $27.91 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">** Applicants must have a current CNA to apply **
+
+Position Overview 
+
+The Hospice Aide provides personal care for patients in their place of residenc...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hospice
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/369961" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="576" data-employer="hospice of humboldt" data-title="hospice house rn  **night shift**" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/375258" target="_blank" rel="noopener">Hospice House RN  **Night Shift**</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Hospice of Humboldt</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Full-time</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $46.91 - $57.33 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">Position Overview
+
+Provide skilled nursing care to patients residing in the Ida Emmerson Hospice House, ensuring comfort, dignity, and quality of li...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hospice
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/375258" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="575" data-employer="hospice of humboldt" data-title="hospice house aide" data-location="eureka, ca" data-category="healthcare" data-classification="">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/377411" target="_blank" rel="noopener">Hospice House Aide</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Hospice of Humboldt</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Full-time</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $22.83 - $27.91 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">Position Overview 
+
+The Hospice House Aide provides compassionate care and support to patients and families in a home-like inpatient setting. This r...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hospice
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/377411" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="574" data-employer="hospice of humboldt" data-title="chaplain" data-location="eureka, ca" data-category="healthcare" data-classification="">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/390891" target="_blank" rel="noopener">Chaplain</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Hospice of Humboldt</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $27.91 - $34.11 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">Position Overview
+The Chaplain provides spiritual care and support to hospice patients and their families, addressing their emotional and spiritual n...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hospice
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/390891" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="573" data-employer="hospice of humboldt" data-title="social worker, palliative care" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/398098" target="_blank" rel="noopener">Social Worker, Palliative Care</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Hospice of Humboldt</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $30.95 - $37.83 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">Position Overview
+
+The Palliative Care Social Worker provides counseling and medical social work case management to the patient, their family, and c...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hospice
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/398098" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="572" data-employer="hospice of humboldt" data-title="nurse practitioner/physician assistant, palliative care" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/407692" target="_blank" rel="noopener">Nurse Practitioner/Physician Assistant, Palliative Care</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Hospice of Humboldt</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $59.52 - $72.75 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">Position Overview
+
+The Palliative Care NP/PA serves as an advanced practice provider within Hospice of Humboldt’s home-based palliative care program...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hospice
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/407692" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="571" data-employer="hospice of humboldt" data-title="care coordinator, palliative care" data-location="eureka, ca" data-category="healthcare" data-classification="">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/408624" target="_blank" rel="noopener">Care Coordinator, Palliative Care</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Hospice of Humboldt</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Full-time</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $23.92 - $29.24 Hourly
+                    </div>
+                    
+                    
+                    <p class="job-description">Overview
+
+The Care Coordinator provides clerical and administrative support to the Palliative Care program.  This position answers, screens and direct...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Hospice
+                            </span>
+                        </div>
+                        <a href="https://www.paycomonline.net/v4/ats/web.php/portal/C7DCD5CFA20B99C322370C9F9EEA00E2/jobs/408624" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="570" data-employer="open door community health" data-title="registered dietitian nutritionist" data-location="eureka, ca" data-category="healthcare" data-classification="">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Registered-Dietitian-Nutritionist_JR100039" target="_blank" rel="noopener">Registered Dietitian Nutritionist</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Open Door Community Health</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Full time</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $31.40 - $36.07/hr
+                    </div>
+                    
+                    
+                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessECHC Eureka Community Health Center, RCHC Redwood Community Health CenterSUMMARY: Within the Open Door Co...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Open Door
+                            </span>
+                        </div>
+                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Registered-Dietitian-Nutritionist_JR100039" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="561" data-employer="open door community health" data-title="physician (family/internal medicine)" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/ECHC-Eureka-Community-Health-Center/Physician--Family-Internal-Medicine-_JR100304" target="_blank" rel="noopener">Physician (Family/Internal Medicine)</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Open Door Community Health</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Full time</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $234,735.20 - $267,724.00/yr
+                    </div>
+                    
+                    
+                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessECHC Eureka Community Health CenterThe Physician assesses and evaluates the health care needs of patients...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Open Door
+                            </span>
+                        </div>
+                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/ECHC-Eureka-Community-Health-Center/Physician--Family-Internal-Medicine-_JR100304" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="560" data-employer="open door community health" data-title="advanced practice resident" data-location="eureka, ca" data-category="healthcare" data-classification="">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Advanced-Practice-Resident_JR100356" target="_blank" rel="noopener">Advanced Practice Resident</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Open Door Community Health</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Full time</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 Year 1: $98,420.40 | Year 2: $113,823.84
+                    </div>
+                    
+                    
+                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessECHC Eureka Community Health CenterPROGRAM OVERVIEW:•	Structured two-year program (12-month Residency + 1...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Open Door
+                            </span>
+                        </div>
+                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Advanced-Practice-Resident_JR100356" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
+                
+                <article class="job-card" data-job-id="559" data-employer="open door community health" data-title="lcsw/lmft dental" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
+                    <div class="job-card-header">
+                        <h2 class="job-title">
+                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/LSCW-LMFT-Dental_JR100378" target="_blank" rel="noopener">LCSW/LMFT Dental</a>
+                        </h2>
+                        <span class="job-category">Healthcare</span>
+                    </div>
+                    
+                    <div class="job-meta">
+                        <span>🏢 Open Door Community Health</span>
+                        
+                        <span>📍 Eureka, CA</span>
+                        
+                        
+                        <span>⏰ Full time</span>
+                        
+                    </div>
+                    
+                    <div class="job-salary ">
+                        💰 $89,36.00 - $102,627.20/yr
+                    </div>
+                    
+                    
+                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessBDC Burre Dental CenterCOMPENSATION: $89,36.00 to $102,627.20The Behavior Health Clinician provides a the...</p>
+                    
+                    
+                    <div class="job-footer">
+                        <div class="job-footer-left">
+                            <span class="job-date ">
+                                
+                                    Recently added
+                                
+                            </span>
+                            <span class="job-source">
+                                via Open Door
+                            </span>
+                        </div>
+                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/LSCW-LMFT-Dental_JR100378" target="_blank" rel="noopener" class="apply-btn">
+                            View & Apply →
+                        </a>
+                    </div>
+                </article>
                 
                 <article class="job-card" data-job-id="556" data-employer="open door community health" data-title="social work case manager" data-location="eureka, ca" data-category="healthcare" data-classification="">
                     <div class="job-card-header">
@@ -2874,541 +3769,6 @@
                     </div>
                 </article>
                 
-                <article class="job-card" data-job-id="540" data-employer="open door community health" data-title="advanced practice clinician resident" data-location="eureka, ca" data-category="healthcare" data-classification="">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Advaced-Practice-Clinician-Resident_JR100411" target="_blank" rel="noopener">Advanced Practice Clinician Resident</a>
-                        </h2>
-                        <span class="job-category">Healthcare</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Open Door Community Health</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Full time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 Year 1: $98,420.40 | Year 2: $113,823.84
-                    </div>
-                    
-                    
-                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessECHC Eureka Community Health CenterCOMPENSATION: 1st year $98,420.40; 2nd year $113,823.84PROGRAM OVERVIE...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Open Door
-                            </span>
-                        </div>
-                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Advaced-Practice-Clinician-Resident_JR100411" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="539" data-employer="open door community health" data-title="medical receptionist" data-location="eureka, ca" data-category="healthcare" data-classification="administrative">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Medical-Receptionist_JR100469" target="_blank" rel="noopener">Medical Receptionist</a>
-                        </h2>
-                        <span class="job-category">Healthcare</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Open Door Community Health</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Full time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $24.00 - $27.87/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessTVSC Telehealth and Visiting Specialist CenterFirst impressions mean so much. Receptionists greet patient...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Open Door
-                            </span>
-                        </div>
-                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Medical-Receptionist_JR100469" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="537" data-employer="open door community health" data-title="social work case manager - pediatrics" data-location="eureka, ca" data-category="healthcare" data-classification="">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Social-Work-Case-Manager---Pediatrics_JR100474" target="_blank" rel="noopener">Social Work Case Manager - Pediatrics</a>
-                        </h2>
-                        <span class="job-category">Healthcare</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Open Door Community Health</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Full time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $29.00 - $33.68/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessECHC Eureka Community Health CenterA Social Work Case Manager (SWCM) at Open Door Community Health Center...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Open Door
-                            </span>
-                        </div>
-                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Social-Work-Case-Manager---Pediatrics_JR100474" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="530" data-employer="open door community health" data-title="registered nurse" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Registered-Nurse_JR100482" target="_blank" rel="noopener">Registered Nurse</a>
-                        </h2>
-                        <span class="job-category">Healthcare</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Open Door Community Health</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Part time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 RN I: $42.00/hr | RN II: $47.00/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessECHC Eureka Community Health CenterThe Registered Nurse – Clinical- Level I (RN I) at Open Door Community...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Open Door
-                            </span>
-                        </div>
-                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Registered-Nurse_JR100482" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="529" data-employer="open door community health" data-title="medical assistant" data-location="eureka, ca" data-category="healthcare" data-classification="clinical">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Medical-Assistant_JR100479" target="_blank" rel="noopener">Medical Assistant</a>
-                        </h2>
-                        <span class="job-category">Healthcare</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Open Door Community Health</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Full time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 MA Trainee: $24.00 - $27.87/hr | MA I: $27.00 - $31.35/hr | MA II: $28.50 - $33.10/hr
-                    </div>
-                    
-                    
-                    <p class="job-description">Committed to Our Community in the Heart of the Redwoods. Removing Barriers to Healthcare AccessECHC Eureka Community Health CenterAssists in examination and treatment of patients under direction of pr...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Open Door
-                            </span>
-                        </div>
-                        <a href="https://opendoorhealth.wd503.myworkdayjobs.com/en-US/ODCHC/job/Eureka-CA/Medical-Assistant_JR100479" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="528" data-employer="food for people" data-title="calfresh outreach specialist" data-location="eureka, ca" data-category="nonprofit &amp; social services" data-classification="">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://www.foodforpeople.org/jobs" target="_blank" rel="noopener">CalFresh Outreach Specialist</a>
-                        </h2>
-                        <span class="job-category">Nonprofit &amp; Social Services</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Food for People</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Full-Time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary ">
-                        💰 $21.00 per hour
-                    </div>
-                    
-                    
-                    <p class="job-description">Food for People, the food bank for Humboldt County, is looking for an outgoing individual, who works well independently and as part of a team, to work alongside our various food distribution programs ...</p>
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Food For People
-                            </span>
-                        </div>
-                        <a href="https://www.foodforpeople.org/jobs" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="513" data-employer="changing tides family services" data-title="respite worker" data-location="eureka, ca" data-category="nonprofit &amp; social services" data-classification="">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://changingtidesfs.org/employment/#changing_tides_respite_worker" target="_blank" rel="noopener">Respite Worker</a>
-                        </h2>
-                        <span class="job-category">Nonprofit &amp; Social Services</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Changing Tides Family Services</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Part-Time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Changing Tides
-                            </span>
-                        </div>
-                        <a href="https://changingtidesfs.org/employment/#changing_tides_respite_worker" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="512" data-employer="changing tides family services" data-title="mental health rehabilitation specialist" data-location="eureka, ca" data-category="nonprofit &amp; social services" data-classification="">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://changingtidesfs.org/employment/#changing_tides_mental_health_rehabilitation_specialist" target="_blank" rel="noopener">Mental Health Rehabilitation Specialist</a>
-                        </h2>
-                        <span class="job-category">Nonprofit &amp; Social Services</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Changing Tides Family Services</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Part-Time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Changing Tides
-                            </span>
-                        </div>
-                        <a href="https://changingtidesfs.org/employment/#changing_tides_mental_health_rehabilitation_specialist" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="510" data-employer="walmart" data-title="pharmacy technician" data-location="eureka, ca" data-category="national retail" data-classification="">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#pharmacy-technician" target="_blank" rel="noopener">Pharmacy Technician</a>
-                        </h2>
-                        <span class="job-category">National Retail</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Walmart</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Walmart
-                            </span>
-                        </div>
-                        <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#pharmacy-technician" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="509" data-employer="walmart" data-title="backroom team associate" data-location="eureka, ca" data-category="national retail" data-classification="store operations">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#backroom-team-associate" target="_blank" rel="noopener">Backroom Team Associate</a>
-                        </h2>
-                        <span class="job-category">National Retail</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Walmart</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Walmart
-                            </span>
-                        </div>
-                        <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#backroom-team-associate" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="508" data-employer="walmart" data-title="janitorial associate" data-location="eureka, ca" data-category="national retail" data-classification="store operations">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#janitorial-associate" target="_blank" rel="noopener">Janitorial Associate</a>
-                        </h2>
-                        <span class="job-category">National Retail</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Walmart</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Walmart
-                            </span>
-                        </div>
-                        <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#janitorial-associate" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="507" data-employer="walmart" data-title="pharmacy sales associate" data-location="eureka, ca" data-category="national retail" data-classification="store operations">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#pharmacy-sales-associate" target="_blank" rel="noopener">Pharmacy Sales Associate</a>
-                        </h2>
-                        <span class="job-category">National Retail</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Walmart</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Walmart
-                            </span>
-                        </div>
-                        <a href="https://careers.walmart.com/us/en/results?searchQuery=95501#pharmacy-sales-associate" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
-                <article class="job-card" data-job-id="506" data-employer="walmart" data-title="pharmacy sales associate" data-location="eureka, ca" data-category="national retail" data-classification="store operations">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://careers.walmart.com/us/en/results?searchQuery=95501" target="_blank" rel="noopener">Pharmacy Sales Associate</a>
-                        </h2>
-                        <span class="job-category">National Retail</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Walmart</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Walmart
-                            </span>
-                        </div>
-                        <a href="https://careers.walmart.com/us/en/results?searchQuery=95501" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
             </div>
 
             <!-- Pagination -->
@@ -3446,18 +3806,20 @@
                     
                 
                     
+                
+                    
                     <span>...</span>
                     
                 
                     
                         
-                        <a href="/location/eureka-ca/page/10/">10</a>
+                        <a href="/location/eureka-ca/page/11/">11</a>
                         
                     
                 
                     
                         
-                        <a href="/location/eureka-ca/page/11/">11</a>
+                        <a href="/location/eureka-ca/page/12/">12</a>
                         
                     
                 
@@ -3520,38 +3882,77 @@
         </div>
     </div>
 
-    <!-- Mobile Filter Button (FAB) -->
-    <button class="mobile-filter-btn" id="mobile-filter-btn" aria-label="Open filters">
-        <span>⚙️</span>
-        <span class="filter-badge" id="filter-badge"></span>
-    </button>
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" id="menu-overlay"></div>
 
-    <!-- Bottom Sheet Backdrop -->
-    <div class="bottom-sheet-backdrop" id="bottom-sheet-backdrop"></div>
-
-    <!-- Bottom Sheet -->
-    <div class="bottom-sheet" id="bottom-sheet">
-        <div class="bottom-sheet-handle" id="bottom-sheet-handle"></div>
-        <div class="bottom-sheet-header">
-            <span class="bottom-sheet-title">Filters & Navigation</span>
-            <button class="bottom-sheet-close" id="bottom-sheet-close" aria-label="Close">✕</button>
+    <!-- Slide-out Menu -->
+    <div class="slide-menu" id="slide-menu">
+        <div class="menu-header">
+            <span class="menu-title">Menu</span>
+            <button class="menu-close" id="menu-close" aria-label="Close menu">✕</button>
         </div>
-        <div class="bottom-sheet-content" id="bottom-sheet-content">
-            <!-- Navigation links (hidden on desktop) -->
-            <div class="bottom-sheet-nav">
-                <a href="/employers/">
-                    🏢 Employer Career Pages
-                </a>
-                <a href="#newsletter" onclick="alert('Newsletter coming soon! Check back later.'); return false;">
-                    📬 Weekly Newsletter
-                </a>
+        <div class="menu-content">
+            <!-- Search Section -->
+            <div class="menu-section">
+                <div class="menu-section-title">Search</div>
+                <div class="menu-search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" 
+                           class="menu-search-input" 
+                           id="menu-search-input"
+                           placeholder="Search jobs..."
+                           autocomplete="off">
+                </div>
             </div>
-            <!-- Filter sections will be cloned here via JS -->
+
+            <!-- Filters Section (will be populated via JS) -->
+            <div class="menu-section" id="menu-filters-section">
+                <div class="menu-section-title">Filters</div>
+                <div class="menu-filters" id="menu-filters-content">
+                    <!-- Filter links will be cloned here via JS -->
+                </div>
+            </div>
+
+            <!-- Navigation Section -->
+            <div class="menu-section">
+                <div class="menu-section-title">Navigation</div>
+                <div class="menu-nav-links">
+                    <a href="/employers/" class="menu-nav-link">
+                        🏢 Employer Career Pages
+                    </a>
+                    <a href="/updates/" class="menu-nav-link">
+                        📊 Update History
+                    </a>
+                    <a href="#newsletter" class="menu-nav-link" onclick="alert('Newsletter coming soon! Check back later.'); return false;">
+                        📬 Weekly Newsletter
+                    </a>
+                </div>
+            </div>
+
+            <!-- Theme Section -->
+            <div class="menu-section">
+                <div class="menu-section-title">Appearance</div>
+                <div class="menu-theme-options">
+                    <button class="menu-theme-btn" data-theme="light">
+                        <span class="theme-icon">☀️</span>
+                        <span>Light</span>
+                    </button>
+                    <button class="menu-theme-btn" data-theme="dark">
+                        <span class="theme-icon">🌙</span>
+                        <span>Dark</span>
+                    </button>
+                    <button class="menu-theme-btn" data-theme="system">
+                        <span class="theme-icon">💻</span>
+                        <span>Auto</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <footer>
         <p>Humboldt Jobs Aggregator &copy; 2026 | Data sourced from local government, education, and community job boards | Made in Humboldt with <span class="footer-heart">❤️</span></p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem;"><a href="/updates/" style="color: var(--text-muted); text-decoration: none;">📊 Update History</a></p>
     </footer>
 
     <script>
@@ -3654,7 +4055,7 @@
             }
             
             function getStoredTheme() {
-                return localStorage.getItem('theme') || 'dark';
+                return localStorage.getItem('theme') || 'system';
             }
             
             function storeTheme(theme) {
@@ -4831,47 +5232,44 @@
             });
         })();
         
-        // Bottom Sheet for Filters
+        // Slide Menu
         (function() {
-            const filterBtn = document.getElementById('mobile-filter-btn');
-            const backdrop = document.getElementById('bottom-sheet-backdrop');
-            const sheet = document.getElementById('bottom-sheet');
-            const closeBtn = document.getElementById('bottom-sheet-close');
-            const sheetContent = document.getElementById('bottom-sheet-content');
-            const handle = document.getElementById('bottom-sheet-handle');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const menuOverlay = document.getElementById('menu-overlay');
+            const slideMenu = document.getElementById('slide-menu');
+            const menuClose = document.getElementById('menu-close');
+            const menuSearchInput = document.getElementById('menu-search-input');
+            const menuThemeBtns = document.querySelectorAll('.menu-theme-btn');
+            const menuFiltersContent = document.getElementById('menu-filters-content');
             const sidebar = document.querySelector('.sidebar');
             
-            if (!filterBtn || !sheet) return;
+            if (!hamburgerBtn || !slideMenu) return;
             
             let isOpen = false;
-            let startY = 0;
-            let currentY = 0;
-            let isDragging = false;
-            
-            // Clone sidebar filters to bottom sheet on first open
             let filtersCloned = false;
+            
+            // Clone sidebar filters to menu
             function cloneFilters() {
-                if (filtersCloned || !sidebar) return;
+                if (filtersCloned || !sidebar || !menuFiltersContent) return;
                 
                 const filterSections = sidebar.querySelectorAll('.filter-section');
-                const navLinks = sheetContent.querySelector('.bottom-sheet-nav');
                 
                 filterSections.forEach(section => {
                     const clone = section.cloneNode(true);
                     // Update IDs to avoid conflicts
                     clone.querySelectorAll('[id]').forEach(el => {
-                        el.id = 'mobile-' + el.id;
+                        el.id = 'menu-' + el.id;
                     });
                     clone.querySelectorAll('label[for]').forEach(el => {
-                        el.setAttribute('for', 'mobile-' + el.getAttribute('for'));
+                        el.setAttribute('for', 'menu-' + el.getAttribute('for'));
                     });
-                    // Expand sections in bottom sheet by default
+                    // Expand sections in menu by default
                     clone.classList.remove('collapsed');
-                    sheetContent.appendChild(clone);
+                    menuFiltersContent.appendChild(clone);
                 });
                 
-                // Set up filter toggle in bottom sheet
-                sheetContent.querySelectorAll('.filter-section[data-filter]').forEach(section => {
+                // Set up filter toggle in menu
+                menuFiltersContent.querySelectorAll('.filter-section[data-filter]').forEach(section => {
                     const header = section.querySelector('.filter-section-header');
                     if (header) {
                         header.addEventListener('click', (e) => {
@@ -4881,182 +5279,167 @@
                     }
                 });
                 
-                // Set up employer filter checkboxes in bottom sheet
-                const mobileEmployerCheckboxes = sheetContent.querySelectorAll('.employer-filter-checkbox');
-                const mobileSelectAll = sheetContent.querySelector('[id*="employer-select-all"]');
-                const mobileSelectNone = sheetContent.querySelector('[id*="employer-select-none"]');
+                // Set up employer filter checkboxes
+                const menuEmployerCheckboxes = menuFiltersContent.querySelectorAll('.employer-filter-checkbox');
+                const menuSelectAll = menuFiltersContent.querySelector('[id*="employer-select-all"]');
+                const menuSelectNone = menuFiltersContent.querySelector('[id*="employer-select-none"]');
                 
-                mobileEmployerCheckboxes.forEach(cb => {
+                menuEmployerCheckboxes.forEach(cb => {
                     cb.addEventListener('change', () => {
-                        // Sync with main page checkboxes
-                        const mainCb = document.querySelector(`.employer-filter-checkbox[data-employer="${cb.dataset.employer}"]`);
+                        const mainCb = document.querySelector(`.sidebar .employer-filter-checkbox[data-employer="${cb.dataset.employer}"]`);
                         if (mainCb) {
                             mainCb.checked = cb.checked;
                             mainCb.dispatchEvent(new Event('change'));
                         }
-                        updateFilterBadge();
                     });
                 });
                 
-                if (mobileSelectAll) {
-                    mobileSelectAll.addEventListener('click', () => {
-                        mobileEmployerCheckboxes.forEach(cb => cb.checked = true);
-                        // Trigger filter on main page
+                if (menuSelectAll) {
+                    menuSelectAll.addEventListener('click', () => {
+                        menuEmployerCheckboxes.forEach(cb => cb.checked = true);
                         const mainSelectAll = document.getElementById('employer-select-all');
                         if (mainSelectAll) mainSelectAll.click();
-                        updateFilterBadge();
                     });
                 }
                 
-                if (mobileSelectNone) {
-                    mobileSelectNone.addEventListener('click', () => {
-                        mobileEmployerCheckboxes.forEach(cb => cb.checked = false);
+                if (menuSelectNone) {
+                    menuSelectNone.addEventListener('click', () => {
+                        menuEmployerCheckboxes.forEach(cb => cb.checked = false);
                         const mainSelectNone = document.getElementById('employer-select-none');
                         if (mainSelectNone) mainSelectNone.click();
-                        updateFilterBadge();
                     });
                 }
                 
                 // Set up wage filter checkboxes
-                const mobileWageCheckboxes = sheetContent.querySelectorAll('.wage-filter-checkbox');
-                const mobileWageSelectAll = sheetContent.querySelector('[id*="wage-select-all"]');
-                const mobileWageSelectNone = sheetContent.querySelector('[id*="wage-select-none"]');
+                const menuWageCheckboxes = menuFiltersContent.querySelectorAll('.wage-filter-checkbox');
+                const menuWageSelectAll = menuFiltersContent.querySelector('[id*="wage-select-all"]');
+                const menuWageSelectNone = menuFiltersContent.querySelector('[id*="wage-select-none"]');
                 
-                mobileWageCheckboxes.forEach(cb => {
+                menuWageCheckboxes.forEach(cb => {
                     cb.addEventListener('change', () => {
-                        // Sync with main page
-                        const mainCb = document.getElementById(cb.id.replace('mobile-', ''));
+                        const mainCb = document.getElementById(cb.id.replace('menu-', ''));
                         if (mainCb) {
                             mainCb.checked = cb.checked;
                             mainCb.dispatchEvent(new Event('change'));
                         }
-                        updateFilterBadge();
                     });
                 });
                 
-                if (mobileWageSelectAll) {
-                    mobileWageSelectAll.addEventListener('click', () => {
-                        mobileWageCheckboxes.forEach(cb => cb.checked = true);
+                if (menuWageSelectAll) {
+                    menuWageSelectAll.addEventListener('click', () => {
+                        menuWageCheckboxes.forEach(cb => cb.checked = true);
                         const mainWageSelectAll = document.getElementById('wage-select-all');
                         if (mainWageSelectAll) mainWageSelectAll.click();
-                        updateFilterBadge();
                     });
                 }
                 
-                if (mobileWageSelectNone) {
-                    mobileWageSelectNone.addEventListener('click', () => {
-                        mobileWageCheckboxes.forEach(cb => cb.checked = false);
+                if (menuWageSelectNone) {
+                    menuWageSelectNone.addEventListener('click', () => {
+                        menuWageCheckboxes.forEach(cb => cb.checked = false);
                         const mainWageSelectNone = document.getElementById('wage-select-none');
                         if (mainWageSelectNone) mainWageSelectNone.click();
-                        updateFilterBadge();
                     });
                 }
                 
                 filtersCloned = true;
             }
             
-            // Update filter badge count
-            function updateFilterBadge() {
-                const badge = document.getElementById('filter-badge');
-                if (!badge) return;
-                
-                let activeFilters = 0;
-                
-                // Count unchecked employer filters
-                const employerCheckboxes = document.querySelectorAll('.sidebar .employer-filter-checkbox');
-                const uncheckedEmployers = Array.from(employerCheckboxes).filter(cb => !cb.checked).length;
-                if (uncheckedEmployers > 0) activeFilters++;
-                
-                // Count unchecked wage filters
-                const wageCheckboxes = document.querySelectorAll('.sidebar .wage-filter-checkbox');
-                const uncheckedWages = Array.from(wageCheckboxes).filter(cb => !cb.checked).length;
-                if (uncheckedWages > 0) activeFilters++;
-                
-                if (activeFilters > 0) {
-                    badge.textContent = activeFilters;
-                    badge.classList.add('visible');
-                } else {
-                    badge.classList.remove('visible');
-                }
-            }
-            
-            // Open sheet
-            function openSheet() {
+            // Open menu
+            function openMenu() {
                 cloneFilters();
-                sheet.classList.add('active');
-                backdrop.classList.add('active');
+                slideMenu.classList.add('active');
+                menuOverlay.classList.add('active');
+                hamburgerBtn.classList.add('active');
                 document.body.style.overflow = 'hidden';
                 isOpen = true;
                 
-                // Animate in
-                requestAnimationFrame(() => {
-                    sheet.style.transform = 'translateY(0)';
-                });
+                // Focus search input
+                setTimeout(() => {
+                    if (menuSearchInput) menuSearchInput.focus();
+                }, 300);
             }
             
-            // Close sheet
-            function closeSheet() {
-                sheet.style.transform = '';
-                sheet.classList.remove('active');
-                backdrop.classList.remove('active');
+            // Close menu
+            function closeMenu() {
+                slideMenu.classList.remove('active');
+                menuOverlay.classList.remove('active');
+                hamburgerBtn.classList.remove('active');
                 document.body.style.overflow = '';
                 isOpen = false;
             }
             
-            // Touch events for swipe to close
-            function handleTouchStart(e) {
-                if (!isOpen) return;
-                startY = e.touches[0].clientY;
-                isDragging = true;
-                sheet.style.transition = 'none';
-            }
-            
-            function handleTouchMove(e) {
-                if (!isDragging) return;
-                currentY = e.touches[0].clientY;
-                const deltaY = currentY - startY;
-                
-                if (deltaY > 0) {
-                    sheet.style.transform = `translateY(${deltaY}px)`;
-                }
-            }
-            
-            function handleTouchEnd() {
-                if (!isDragging) return;
-                isDragging = false;
-                sheet.style.transition = '';
-                
-                const deltaY = currentY - startY;
-                if (deltaY > 100) {
-                    closeSheet();
-                } else {
-                    sheet.style.transform = 'translateY(0)';
-                }
-            }
-            
             // Event listeners
-            filterBtn.addEventListener('click', openSheet);
-            closeBtn.addEventListener('click', closeSheet);
-            backdrop.addEventListener('click', closeSheet);
+            hamburgerBtn.addEventListener('click', () => {
+                if (isOpen) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
             
-            handle.addEventListener('touchstart', handleTouchStart, { passive: true });
-            handle.addEventListener('touchmove', handleTouchMove, { passive: true });
-            handle.addEventListener('touchend', handleTouchEnd);
+            menuClose.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
             
             // Close on Escape
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && isOpen) {
-                    closeSheet();
+                    closeMenu();
                 }
             });
             
-            // Initial badge update
-            updateFilterBadge();
-            
-            // Listen for filter changes on main page
-            document.querySelectorAll('.sidebar .employer-filter-checkbox, .sidebar .wage-filter-checkbox').forEach(cb => {
-                cb.addEventListener('change', updateFilterBadge);
+            // Theme buttons in menu
+            menuThemeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = btn.dataset.theme;
+                    localStorage.setItem('theme', theme);
+                    
+                    // Apply theme
+                    const effectiveTheme = theme === 'system' 
+                        ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                        : theme;
+                    document.documentElement.setAttribute('data-theme', effectiveTheme);
+                    
+                    // Update active state
+                    menuThemeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Also update the desktop theme dropdown if visible
+                    const themeIcon = document.getElementById('theme-icon');
+                    if (themeIcon) {
+                        if (theme === 'system') themeIcon.textContent = '💻';
+                        else if (effectiveTheme === 'dark') themeIcon.textContent = '🌙';
+                        else themeIcon.textContent = '☀️';
+                    }
+                    
+                    document.querySelectorAll('.theme-option').forEach(opt => {
+                        opt.classList.toggle('active', opt.dataset.theme === theme);
+                    });
+                });
             });
+            
+            // Set initial active theme button
+            const currentTheme = localStorage.getItem('theme') || 'system';
+            menuThemeBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+            });
+            
+            // Menu search functionality - connect to main search
+            if (menuSearchInput) {
+                menuSearchInput.addEventListener('input', (e) => {
+                    const mainSearchInput = document.getElementById('job-search');
+                    if (mainSearchInput) {
+                        mainSearchInput.value = e.target.value;
+                        mainSearchInput.dispatchEvent(new Event('input'));
+                    }
+                });
+                
+                // Close menu on search submit (Enter)
+                menuSearchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        closeMenu();
+                    }
+                });
+            }
         })();
     </script>
 </body>

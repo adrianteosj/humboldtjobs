@@ -13,7 +13,7 @@ from jinja2 import Environment, FileSystemLoader
 from sqlalchemy import func
 
 from db.database import get_session
-from db.models import Job, Employer
+from db.models import Job, Employer, ScrapeLog
 from processing.normalizer import JobClassifier, CLASSIFICATION_RULES
 
 # Configuration
@@ -75,12 +75,35 @@ def get_common_data(session):
         .all()
     )
     
+    # Get latest scrape log for "new jobs" info
+    latest_scrape = (
+        session.query(ScrapeLog)
+        .order_by(ScrapeLog.scraped_at.desc())
+        .first()
+    )
+    
+    new_jobs_count = 0
+    new_jobs_date = None
+    new_job_urls = []
+    if latest_scrape:
+        new_jobs_count = latest_scrape.jobs_inserted
+        new_jobs_date = utc_to_pacific(latest_scrape.scraped_at)
+        # Parse new job URLs from JSON
+        if latest_scrape.new_job_urls:
+            try:
+                new_job_urls = json.loads(latest_scrape.new_job_urls)
+            except:
+                new_job_urls = []
+    
     return {
         'total_all_jobs': total_all_jobs,
         'last_updated': last_updated,
         'categories': categories,
         'locations': locations,
         'employers': employers,
+        'new_jobs_count': new_jobs_count,
+        'new_jobs_date': new_jobs_date,
+        'new_job_urls': new_job_urls,
     }
 
 
@@ -522,6 +545,106 @@ def generate_employers_directory(env):
     print(f"  Generated: /employers/ ({total_employers} employers)")
 
 
+def generate_new_jobs_page(env, session, common_data):
+    """Generate the 'new jobs since last update' page."""
+    print("Generating new jobs page...")
+    
+    new_job_urls = common_data.get('new_job_urls', [])
+    
+    if not new_job_urls:
+        print("  No new job URLs found, skipping...")
+        return
+    
+    # Get jobs by URL
+    jobs = (
+        session.query(Job)
+        .filter(Job.is_active == True, Job.url.in_(new_job_urls))
+        .order_by(Job.scraped_at.desc())
+        .all()
+    )
+    
+    total = len(jobs)
+    total_pages = max(1, (total + PER_PAGE - 1) // PER_PAGE)
+    
+    template = env.get_template("static/index.html")
+    
+    for page in range(1, total_pages + 1):
+        offset = (page - 1) * PER_PAGE
+        page_jobs = jobs[offset:offset + PER_PAGE]
+        
+        base_path = "/new/"
+        new_jobs_date = common_data.get('new_jobs_date')
+        date_str = new_jobs_date.strftime('%b %d, %Y') if new_jobs_date else 'recently'
+        
+        context = {
+            **common_data,
+            'jobs': page_jobs,
+            'total': total,
+            'category_total': total,
+            'page': page,
+            'pages': total_pages,
+            'page_title': f'New Jobs Added {date_str}',
+            'selected_category': None,
+            'selected_location': None,
+            'selected_employer': None,
+            'selected_classification': None,
+            'base_path': base_path,
+            'prev_url': f"{base_path}page/{page - 1}/" if page > 1 else None,
+            'next_url': f"{base_path}page/{page + 1}/" if page < total_pages else None,
+            'subcategories': [],
+            # Don't show new jobs badge on this page (we're already viewing new jobs)
+            'new_jobs_count': 0,
+        }
+        
+        html = template.render(**context)
+        
+        if page == 1:
+            output_dir = OUTPUT_DIR / "new"
+        else:
+            output_dir = OUTPUT_DIR / "new" / "page" / str(page)
+        
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / "index.html"
+        output_path.write_text(html, encoding='utf-8')
+    
+    print(f"  Generated: /new/ ({total} jobs, {total_pages} pages)")
+
+
+def generate_updates_page(env, session, common_data):
+    """Generate the update history page."""
+    print("Generating updates history page...")
+    
+    # Get all scrape logs, most recent first
+    scrape_logs = (
+        session.query(ScrapeLog)
+        .order_by(ScrapeLog.scraped_at.desc())
+        .limit(50)  # Show last 50 updates
+        .all()
+    )
+    
+    # Convert timestamps to Pacific time
+    for log in scrape_logs:
+        log.scraped_at = utc_to_pacific(log.scraped_at)
+    
+    template = env.get_template("static/updates.html")
+    
+    total_employers = session.query(Employer).filter(Employer.job_count > 0).count()
+    
+    context = {
+        'scrape_logs': scrape_logs,
+        'total_jobs': common_data['total_all_jobs'],
+        'total_employers': total_employers,
+    }
+    
+    html = template.render(**context)
+    
+    output_dir = OUTPUT_DIR / "updates"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "index.html").write_text(html, encoding='utf-8')
+    
+    print(f"  Generated: /updates/ ({len(scrape_logs)} logs)")
+
+
 def copy_static_assets():
     """Copy static assets to output directory."""
     print("Copying static assets...")
@@ -606,6 +729,10 @@ def generate_sitemap(session):
     # Add employers directory page
     urls.append(f"{base_url}/employers/")
     
+    # Add new jobs and updates pages
+    urls.append(f"{base_url}/new/")
+    urls.append(f"{base_url}/updates/")
+    
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
     sitemap += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     
@@ -671,6 +798,8 @@ def main():
         generate_location_pages(env, session, common_data)
         generate_employer_pages(env, session, common_data)
         generate_employers_directory(env)
+        generate_new_jobs_page(env, session, common_data)
+        generate_updates_page(env, session, common_data)
         
         # Copy static assets
         copy_static_assets()
