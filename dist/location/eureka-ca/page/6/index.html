@@ -1961,7 +1961,7 @@
                 <a href="/employers/" class="nav-link">
                     🏢 Employer Career Pages
                 </a>
-                <a href="#newsletter" class="newsletter-btn" onclick="alert('Newsletter coming soon! Check back later.')">
+                <a href="#" class="newsletter-btn" onclick="event.preventDefault(); if(window.toggleKitMenu) window.toggleKitMenu(); else if(document.querySelector('[data-uid=c01d15dc9e]')) document.querySelector('[data-uid=c01d15dc9e]').click();">
                     📬 Weekly Newsletter
                 </a>
                 <button class="mobile-search-btn" id="mobile-search-btn" aria-label="Search jobs">
@@ -3864,7 +3864,7 @@
                     <a href="/updates/" class="menu-nav-link">
                         📊 Update History
                     </a>
-                    <a href="#newsletter" class="menu-nav-link" onclick="alert('Newsletter coming soon! Check back later.'); return false;">
+                    <a href="#" class="menu-nav-link" onclick="event.preventDefault(); closeMenu(); if(window.toggleKitMenu) window.toggleKitMenu(); else if(document.querySelector('[data-uid=c01d15dc9e]')) document.querySelector('[data-uid=c01d15dc9e]').click();">
                         📬 Weekly Newsletter
                     </a>
                 </div>
@@ -5383,5 +5383,8 @@
             }
         })();
     </script>
+    
+    <!-- Kit Newsletter Popup -->
+    <script async data-uid="c01d15dc9e" src="https://humboldt-jobs.kit.com/c01d15dc9e/index.js"></script>
 </body>
 </html>
