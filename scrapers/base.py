@@ -56,9 +56,25 @@ class BaseScraper(ABC):
         """Polite delay between requests to avoid overwhelming servers"""
         time.sleep(REQUEST_DELAY)
     
+    # Common patterns that indicate scraping errors, not real job titles
+    INVALID_TITLE_PATTERNS = [
+        'skip to content', 'skip to main', 'skip navigation',
+        'javascript', 'click here', 'read more', 'learn more',
+        'view details', 'apply now', 'loading', 'please wait',
+        'menu', 'navigation', 'search', 'login', 'sign in',
+        'cookie', 'accept', 'decline', 'close', 'back to top'
+    ]
+    
+    # URLs that are clearly not job listings
+    INVALID_URL_PATTERNS = [
+        '#content', '#main', '#skip', '/benefits/', '/about/',
+        '/contact/', '/login/', '/signin/', '/faq/', '/privacy/',
+        '/terms/', '/cookie/', 'javascript:', 'mailto:', 'tel:'
+    ]
+    
     def validate_job(self, job: JobData) -> bool:
         """
-        Validate that a job has required fields.
+        Validate that a job has required fields and is a real job listing.
         
         Args:
             job: JobData object to validate
@@ -75,4 +91,29 @@ class BaseScraper(ABC):
         if not job.employer:
             self.logger.warning(f"Job '{job.title}' missing employer, skipping")
             return False
+        
+        # Check for invalid title patterns
+        title_lower = job.title.lower().strip()
+        for pattern in self.INVALID_TITLE_PATTERNS:
+            if pattern in title_lower:
+                self.logger.warning(f"Invalid job title pattern '{pattern}' found in '{job.title}', skipping")
+                return False
+        
+        # Check for too-short titles (less than 3 real characters)
+        if len(title_lower) < 3:
+            self.logger.warning(f"Job title too short: '{job.title}', skipping")
+            return False
+        
+        # Check if title contains at least some letters (not just numbers/symbols)
+        if not any(c.isalpha() for c in title_lower):
+            self.logger.warning(f"Job title has no letters: '{job.title}', skipping")
+            return False
+        
+        # Check for invalid URL patterns
+        url_lower = job.url.lower()
+        for pattern in self.INVALID_URL_PATTERNS:
+            if pattern in url_lower:
+                self.logger.warning(f"Invalid URL pattern '{pattern}' found in '{job.url}', skipping")
+                return False
+        
         return True
