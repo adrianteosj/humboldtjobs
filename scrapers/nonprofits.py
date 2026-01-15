@@ -281,24 +281,44 @@ class ChangingTidesScraper(BaseScraper):
                     
                     # Get description from nearby text
                     description = ""
-                    parent = link.find_parent('div') or link.find_parent('p')
-                    if parent:
-                        next_elem = parent.find_next_sibling()
-                        if next_elem:
-                            desc_container = next_elem.find_all('p')
-                            for p in desc_container[:2]:  # Get first 2 paragraphs
-                                description += p.get_text(strip=True) + " "
-                            description = description[:500].strip()
-                    
-                    # Extract salary from description
                     salary_text = None
-                    salary_match = re.search(
-                        r'\$[\d.]+(?:/hour|per\s+hour)?',
-                        description,
-                        re.IGNORECASE
-                    )
-                    if salary_match:
-                        salary_text = salary_match.group(0)
+                    
+                    # Elementor structure: find parent widget and get next sibling for description
+                    # Structure: <div class="elementor-widget-text-editor"><div><p><a>title</a></p></div></div>
+                    #            <div class="elementor-widget-text-editor"><div><p>description with salary</p></div></div>
+                    widget_container = link.find_parent('div', class_='elementor-widget-text-editor')
+                    if widget_container:
+                        next_widget = widget_container.find_next_sibling()
+                        if next_widget:
+                            all_text = next_widget.get_text(" ", strip=True)
+                            description = all_text[:500].strip()
+                            
+                            # Look for salary pattern: "Starts at $25.60/hour" or "$19.50/hour"
+                            salary_match = re.search(
+                                r'(?:starts?\s+at\s+)?\$(\d+(?:\.\d{2})?)\s*/\s*hour',
+                                all_text,
+                                re.IGNORECASE
+                            )
+                            if salary_match:
+                                salary_text = f"${salary_match.group(1)}/hour"
+                    
+                    # Fallback for non-Elementor structures
+                    if not salary_text:
+                        parent_p = link.find_parent('p')
+                        if parent_p:
+                            grandparent = parent_p.find_parent('div')
+                            if grandparent:
+                                next_elem = grandparent.find_next_sibling()
+                                if next_elem and hasattr(next_elem, 'get_text'):
+                                    all_text = next_elem.get_text(" ", strip=True)
+                                    salary_match = re.search(
+                                        r'(?:starts?\s+at\s+)?\$(\d+(?:\.\d{2})?)\s*/\s*hour',
+                                        all_text,
+                                        re.IGNORECASE
+                                    )
+                                    if salary_match:
+                                        salary_text = f"${salary_match.group(1)}/hour"
+                                        description = all_text[:500].strip()
                     
                     # Determine job type
                     job_type = "Part-Time"  # Most Changing Tides positions are part-time/intermittent

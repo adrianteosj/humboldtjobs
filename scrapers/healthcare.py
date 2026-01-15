@@ -1013,7 +1013,9 @@ class RCAAScraper(BaseScraper):
             skip_keywords = [
                 'how to apply', 'division', 'department', 'click on this link',
                 'employment application', 'why work', 'benefits', 'email:', 'fax:',
-                'mail or in person', 'note:', 'pdf', 'word'
+                'mail or in person', 'note:', 'pdf', 'word', 'employmentopportunities',
+                'employment opportunities', 'fighting poverty', 'together', 'all rcaa positions',
+                'to your computer', 'cellphone', 'tablet', 'save it'
             ]
             if any(kw in title.lower() for kw in skip_keywords):
                 continue
@@ -1034,16 +1036,48 @@ class RCAAScraper(BaseScraper):
                 continue
             seen_titles.add(clean_title.lower())
             
-            # Try to find salary info in nearby text
+            # Try to find salary info in nearby text (parent container or siblings)
             salary_text = None
-            next_elem = heading.find_next_sibling()
-            if next_elem:
-                next_text = next_elem.get_text() if hasattr(next_elem, 'get_text') else str(next_elem)
-                salary_match = re.search(r'\$[\d,]+(?:\.\d{2})?\s*(?:-|to)\s*\$[\d,]+(?:\.\d{2})?(?:\s*per\s+(?:hour|year))?', next_text, re.IGNORECASE)
+            
+            # Look in parent container for salary info
+            parent = heading.find_parent()
+            if parent:
+                # Get all text from the parent and nearby elements
+                nearby_text = ""
+                # Check siblings and parent text
+                for sibling in parent.find_next_siblings()[:3]:  # Check next 3 siblings
+                    if hasattr(sibling, 'get_text'):
+                        nearby_text += " " + sibling.get_text()
+                
+                # Also check the immediate next sibling
+                next_elem = heading.find_next_sibling()
+                if next_elem:
+                    if hasattr(next_elem, 'get_text'):
+                        nearby_text += " " + next_elem.get_text()
+                
+                # Also check parent's next sibling (for nested structures)
+                parent_next = parent.find_next_sibling()
+                if parent_next and hasattr(parent_next, 'get_text'):
+                    nearby_text += " " + parent_next.get_text()
+                
+                # Search for salary patterns
+                # Pattern 1: $XX.XX - $XX.XX per hour/year
+                salary_match = re.search(
+                    r'\$[\d,]+(?:\.\d{2})?\s*(?:-|to)\s*\$[\d,]+(?:\.\d{2})?\s*(?:per\s+)?(?:hour|year|hr|yr|hourly|annually)',
+                    nearby_text, re.IGNORECASE
+                )
+                # Pattern 2: Salary $XX,XXX - $XX,XXX per year
                 if not salary_match:
-                    salary_match = re.search(r'\$[\d,]+(?:\.\d{2})?\s*per\s+hour', next_text, re.IGNORECASE)
+                    salary_match = re.search(
+                        r'[Ss]alary\s*\$[\d,]+(?:\.\d{2})?\s*(?:-|to)\s*\$[\d,]+(?:\.\d{2})?\s*(?:per\s+)?(?:hour|year)',
+                        nearby_text, re.IGNORECASE
+                    )
+                # Pattern 3: $XX.XX per hour (single rate)
+                if not salary_match:
+                    salary_match = re.search(r'\$[\d,]+(?:\.\d{2})?\s*(?:per\s+)?(?:hour|hr|hourly)', nearby_text, re.IGNORECASE)
+                
                 if salary_match:
-                    salary_text = salary_match.group(0)
+                    salary_text = salary_match.group(0).strip()
             
             # Always use the careers page URL (not PDF/Word links)
             # PDFs don't provide a good user experience

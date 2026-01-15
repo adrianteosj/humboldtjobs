@@ -102,6 +102,7 @@ class ScrapeLog(Base):
     duration_seconds = Column(Integer)          # How long the scrape took
     new_job_urls = Column(Text)                 # JSON list of URLs for new jobs
     source_errors = Column(Text)                # JSON dict of source -> error message
+    salary_stats = Column(Text)                 # JSON dict of employer -> {has_salary, missing_salary}
     
     __table_args__ = (
         Index('idx_scrape_date', 'scraped_at'),
@@ -120,3 +121,27 @@ class ScrapeLog(Base):
             'jobs_total': self.jobs_total,
             'duration_seconds': self.duration_seconds,
         }
+
+
+class SalaryIssueLog(Base):
+    """Track persistent salary scraping issues by source"""
+    __tablename__ = 'salary_issue_logs'
+    
+    id = Column(Integer, primary_key=True)
+    logged_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    source_name = Column(String(100), nullable=False)  # Scraper source name
+    employer = Column(String(255), nullable=False)     # Employer name
+    jobs_total = Column(Integer, default=0)            # Total jobs from this source
+    jobs_with_salary = Column(Integer, default=0)      # Jobs that have salary info
+    jobs_missing_salary = Column(Integer, default=0)   # Jobs missing salary
+    salary_rate = Column(Integer, default=0)           # Percentage with salary (0-100)
+    notes = Column(Text)                               # Any notes (e.g., "API doesn't expose salary")
+    
+    __table_args__ = (
+        Index('idx_salary_log_date', 'logged_at'),
+        Index('idx_salary_log_source', 'source_name'),
+        Index('idx_salary_log_employer', 'employer'),
+    )
+    
+    def __repr__(self):
+        return f"<SalaryIssueLog(employer='{self.employer}', rate={self.salary_rate}%)>"

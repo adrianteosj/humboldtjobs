@@ -192,13 +192,15 @@ class DollarGeneralScraper(BaseScraper):
 
 
 class WalgreensScraper(BaseScraper):
-    """Scraper for Walgreens (HTML parsing)"""
+    """Scraper for Walgreens (HTML parsing with salary from detail pages)"""
     
     def __init__(self):
         super().__init__("walgreens")
         self.search_url = WALGREENS_SEARCH_URL
         self.employer_name = "Walgreens"
         self.category = "Retail"
+        self.session = requests.Session()
+        self.session.headers.update({'User-Agent': USER_AGENT})
 
     def scrape(self) -> List[JobData]:
         self.logger.info(f"Scraping {self.employer_name}...")
@@ -261,12 +263,36 @@ class WalgreensScraper(BaseScraper):
                 except Exception as e:
                     self.logger.warning(f"Error parsing Walgreens job: {e}")
                     continue
+            
+            # Fetch salary from detail pages
+            if jobs:
+                self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+                self._fetch_salaries(jobs)
                     
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
+    
+    def _fetch_salaries(self, jobs: List[JobData]):
+        """Fetch salary info from job detail pages"""
+        for job in jobs:
+            try:
+                response = self.session.get(job.url, timeout=10)
+                if response.status_code == 200:
+                    # Look for salary pattern: "Salary:$XX - $XX / Hourly" or "Salary Range: $XX - $XX / Hourly"
+                    salary_match = re.search(
+                        r'Salary(?:\s*Range)?[:\s]*\$(\d+(?:\.\d{2})?)\s*-\s*\$(\d+(?:\.\d{2})?)\s*/?\s*(?:Hourly|Hour|hr)',
+                        response.text,
+                        re.IGNORECASE
+                    )
+                    if salary_match:
+                        job.salary_text = f"${salary_match.group(1)} - ${salary_match.group(2)}/hour"
+                        self.logger.info(f"    Found salary for {job.title}: {job.salary_text}")
+                self.delay()
+            except Exception as e:
+                self.logger.debug(f"Error fetching salary for {job.title}: {e}")
 
 
 class TJMaxxScraper(BaseScraper):

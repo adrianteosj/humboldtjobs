@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from db.database import init_db, get_session
-from db.models import Job, Employer, ScrapeLog
+from db.models import Job, Employer, ScrapeLog, SalaryIssueLog
 from scrapers import (
     NEOGOVScraper, CSUScraper, EdJoinScraper, ArcataScraper,
     WiyotScraper, RioDellScraper, RedwoodsScraper,
@@ -342,7 +342,28 @@ def run_scrapers(sources: Optional[List[str]] = None):
     
     # Log this scrape run with new job URLs and errors
     import json
+    from collections import Counter
+    
     duration = int(time.time() - start_time)
+    
+    # Calculate salary stats by employer
+    active_jobs = session.query(Job).filter(Job.is_active == True).all()
+    salary_stats = {}
+    emp_totals = Counter(j.employer for j in active_jobs)
+    emp_with_salary = Counter(j.employer for j in active_jobs if j.salary_text)
+    
+    for emp in emp_totals:
+        total = emp_totals[emp]
+        has_salary = emp_with_salary.get(emp, 0)
+        missing = total - has_salary
+        rate = int(100 * has_salary / total) if total > 0 else 0
+        salary_stats[emp] = {
+            'total': total,
+            'has_salary': has_salary,
+            'missing': missing,
+            'rate': rate
+        }
+    
     scrape_log = ScrapeLog(
         jobs_inserted=total_inserted,
         jobs_updated=total_updated,
@@ -350,9 +371,31 @@ def run_scrapers(sources: Optional[List[str]] = None):
         jobs_deactivated=jobs_deactivated,
         duration_seconds=duration,
         new_job_urls=json.dumps(new_job_urls) if new_job_urls else None,
-        source_errors=json.dumps(source_errors) if source_errors else None
+        source_errors=json.dumps(source_errors) if source_errors else None,
+        salary_stats=json.dumps(salary_stats)
     )
     session.add(scrape_log)
+    session.commit()
+    
+    # Log salary issues for employers with poor salary coverage
+    for emp, stats in salary_stats.items():
+        if stats['rate'] < 50 and stats['total'] > 0:  # Log if <50% salary coverage
+            # Get source name for this employer
+            emp_job = session.query(Job).filter(
+                Job.employer == emp, 
+                Job.is_active == True
+            ).first()
+            source_name = emp_job.source_name if emp_job else 'unknown'
+            
+            issue_log = SalaryIssueLog(
+                source_name=source_name,
+                employer=emp,
+                jobs_total=stats['total'],
+                jobs_with_salary=stats['has_salary'],
+                jobs_missing_salary=stats['missing'],
+                salary_rate=stats['rate']
+            )
+            session.add(issue_log)
     session.commit()
     
     print(f"\n    Scrape duration:     {duration}s")

@@ -61,8 +61,9 @@ class BaseScraper(ABC):
         'skip to content', 'skip to main', 'skip navigation',
         'javascript', 'click here', 'read more', 'learn more',
         'view details', 'apply now', 'loading', 'please wait',
-        'menu', 'navigation', 'search', 'login', 'sign in',
-        'cookie', 'accept', 'decline', 'close', 'back to top'
+        'menu', 'navigation', 'login', 'sign in',
+        'cookie', 'accept', 'decline', 'close', 'back to top',
+        'indeed', 'days ago'  # Buttons/metadata picked up by mistake
     ]
     
     # URLs that are clearly not job listings
@@ -92,8 +93,16 @@ class BaseScraper(ABC):
             self.logger.warning(f"Job '{job.title}' missing employer, skipping")
             return False
         
+        # Normalize title - remove excessive whitespace/newlines
+        title_clean = ' '.join(job.title.split())
+        title_lower = title_clean.lower().strip()
+        
+        # Check for multi-line titles (indicates scraping error)
+        if '\n' in job.title or len(job.title) - len(title_clean) > 5:
+            self.logger.warning(f"Multi-line/malformed job title: '{job.title[:50]}...', skipping")
+            return False
+        
         # Check for invalid title patterns
-        title_lower = job.title.lower().strip()
         for pattern in self.INVALID_TITLE_PATTERNS:
             if pattern in title_lower:
                 self.logger.warning(f"Invalid job title pattern '{pattern}' found in '{job.title}', skipping")
