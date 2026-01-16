@@ -1,0 +1,8 @@
+{
+  "name": "humboldt-jobs-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Humboldt Jobs AI Chat",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0"
+  }
+}

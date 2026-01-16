@@ -1945,6 +1945,394 @@
                 min-height: 44px;
             }
         }
+
+        /* ========================================
+           AI CHAT WIDGET STYLES
+           ======================================== */
+        
+        .chat-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: chat-pulse 2s infinite;
+        }
+
+        @keyframes chat-pulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 4px 30px rgba(16, 185, 129, 0.6); }
+        }
+
+        .chat-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
+        }
+
+        .chat-fab.active {
+            animation: none;
+            transform: rotate(90deg);
+        }
+
+        .chat-fab.active .chat-icon {
+            display: none;
+        }
+
+        .chat-fab.active .chat-close-icon {
+            display: block;
+        }
+
+        .chat-close-icon {
+            display: none;
+        }
+
+        /* Chat Panel */
+        .chat-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            width: 380px;
+            max-width: calc(100vw - 48px);
+            height: 500px;
+            max-height: calc(100vh - 140px);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .chat-panel.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .chat-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .chat-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .chat-close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+
+        .chat-close-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            animation: message-fade-in 0.3s ease;
+        }
+
+        @keyframes message-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-message.bot {
+            align-self: flex-start;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message strong {
+            font-weight: 600;
+        }
+
+        .chat-message a {
+            color: inherit;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+        }
+
+        .chat-message.bot a {
+            color: var(--accent-green);
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            align-self: flex-start;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing-bounce 1.4s infinite both;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing-bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-6px);
+            }
+        }
+
+        /* Chat Input */
+        .chat-input-area {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent-green);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-send-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-send-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chat-footer {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .chat-remaining {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-remaining-count {
+            font-weight: 600;
+            color: var(--accent-green);
+        }
+
+        .chat-powered-by {
+            opacity: 0.7;
+        }
+
+        /* Limit Reached State */
+        .chat-limit-message {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+        }
+
+        .chat-limit-message h3 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .chat-limit-message p {
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+
+        .chat-limit-newsletter {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--accent-green);
+            color: white;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .chat-limit-newsletter:hover {
+            background: var(--accent-green-dim);
+            transform: translateY(-1px);
+        }
+
+        /* Mobile Chat Styles */
+        @media (max-width: 768px) {
+            .chat-fab {
+                bottom: 16px;
+                right: 16px;
+                width: 56px;
+                height: 56px;
+            }
+
+            .chat-panel {
+                bottom: 0;
+                right: 0;
+                left: 0;
+                width: 100%;
+                max-width: 100%;
+                height: calc(100vh - 60px);
+                max-height: none;
+                border-radius: var(--radius) var(--radius) 0 0;
+                transform: translateY(100%);
+            }
+
+            .chat-panel.active {
+                transform: translateY(0);
+            }
+
+            .chat-input {
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+        }
+
+        /* Small mobile */
+        @media (max-width: 400px) {
+            .chat-message {
+                max-width: 90%;
+            }
+        }
     </style>
     
     <!-- Fuse.js for fuzzy search -->
@@ -4433,5 +4821,333 @@
     
     <!-- Kit Newsletter Popup -->
     <script async data-uid="c01d15dc9e" src="https://humboldt-jobs.kit.com/c01d15dc9e/index.js"></script>
+
+    <!-- AI Chat Widget -->
+    <button class="chat-fab" id="chat-fab" aria-label="Ask AI about jobs">
+        <span class="chat-icon">💬</span>
+        <span class="chat-close-icon">✕</span>
+    </button>
+
+    <div class="chat-panel" id="chat-panel">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">🤖</div>
+                <div>
+                    <div class="chat-title">Job Assistant</div>
+                    <div class="chat-subtitle">Ask me about jobs in Humboldt</div>
+                </div>
+            </div>
+            <button class="chat-close-btn" id="chat-close-btn" aria-label="Close chat">✕</button>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-message bot">
+                👋 Hi! I'm your Humboldt Jobs assistant. Ask me anything about jobs in Humboldt County!
+                <br><br>
+                Try asking:
+                <br>• "What healthcare jobs are available?"
+                <br>• "What's the highest paying job?"
+                <br>• "Are there any remote jobs?"
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <input type="text" 
+                       class="chat-input" 
+                       id="chat-input" 
+                       placeholder="Ask about jobs..."
+                       autocomplete="off"
+                       maxlength="500">
+                <button class="chat-send-btn" id="chat-send-btn" aria-label="Send message">
+                    ➤
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-footer">
+            <div class="chat-remaining">
+                <span class="chat-remaining-count" id="chat-remaining">10</span>
+                <span>questions left today</span>
+            </div>
+            <div class="chat-powered-by">Powered by AI</div>
+        </div>
+    </div>
+
+    <script>
+    // ========================================
+    // AI CHAT WIDGET
+    // ========================================
+    (function() {
+        const DAILY_LIMIT = 10;
+        const STORAGE_KEY = 'humboldtJobsChat';
+        const API_ENDPOINT = '/.netlify/functions/chat';
+        
+        // DOM Elements
+        const chatFab = document.getElementById('chat-fab');
+        const chatPanel = document.getElementById('chat-panel');
+        const chatCloseBtn = document.getElementById('chat-close-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatRemaining = document.getElementById('chat-remaining');
+        
+        if (!chatFab || !chatPanel) return;
+        
+        let isOpen = false;
+        let isLoading = false;
+        
+        // ========================================
+        // RATE LIMITING (Client-side)
+        // ========================================
+        function getStorageData() {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                const today = new Date().toDateString();
+                
+                // Reset if new day
+                if (data.date !== today) {
+                    return { date: today, count: 0 };
+                }
+                return data;
+            } catch {
+                return { date: new Date().toDateString(), count: 0 };
+            }
+        }
+        
+        function saveStorageData(data) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch {}
+        }
+        
+        function getRemainingQuestions() {
+            const data = getStorageData();
+            return Math.max(0, DAILY_LIMIT - data.count);
+        }
+        
+        function recordQuestion() {
+            const data = getStorageData();
+            data.count++;
+            saveStorageData(data);
+            return getRemainingQuestions();
+        }
+        
+        function canAskQuestion() {
+            return getRemainingQuestions() > 0;
+        }
+        
+        function updateRemainingDisplay(remaining) {
+            if (chatRemaining) {
+                chatRemaining.textContent = remaining;
+            }
+        }
+        
+        // ========================================
+        // UI HELPERS
+        // ========================================
+        function openChat() {
+            isOpen = true;
+            chatFab.classList.add('active');
+            chatPanel.classList.add('active');
+            chatInput.focus();
+            updateRemainingDisplay(getRemainingQuestions());
+        }
+        
+        function closeChat() {
+            isOpen = false;
+            chatFab.classList.remove('active');
+            chatPanel.classList.remove('active');
+        }
+        
+        function toggleChat() {
+            if (isOpen) {
+                closeChat();
+            } else {
+                openChat();
+            }
+        }
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function addMessage(content, isBot = false) {
+            const msg = document.createElement('div');
+            msg.className = `chat-message ${isBot ? 'bot' : 'user'}`;
+            
+            // Convert markdown-style formatting
+            let formatted = content
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+            
+            // Convert URLs to links
+            formatted = formatted.replace(
+                /(https?:\/\/[^\s<]+)/g,
+                '<a href="$1" target="_blank" rel="noopener">View Job</a>'
+            );
+            
+            msg.innerHTML = formatted;
+            chatMessages.appendChild(msg);
+            scrollToBottom();
+        }
+        
+        function addTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.id = 'typing-indicator';
+            indicator.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            chatMessages.appendChild(indicator);
+            scrollToBottom();
+        }
+        
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+        
+        function showLimitReached() {
+            const limitMsg = document.createElement('div');
+            limitMsg.className = 'chat-limit-message';
+            limitMsg.innerHTML = `
+                <h3>Daily limit reached</h3>
+                <p>You've used all 10 questions for today. Come back tomorrow!</p>
+                <a href="https://humboldt-jobs.kit.com/c01d15dc9e" class="chat-limit-newsletter" data-formkit-toggle="c01d15dc9e">
+                    📬 Subscribe for job alerts
+                </a>
+            `;
+            chatMessages.appendChild(limitMsg);
+            scrollToBottom();
+            
+            // Disable input
+            chatInput.disabled = true;
+            chatSendBtn.disabled = true;
+            chatInput.placeholder = 'Limit reached - try again tomorrow';
+        }
+        
+        // ========================================
+        // API CALL
+        // ========================================
+        async function sendMessage(query) {
+            if (isLoading || !query.trim()) return;
+            
+            // Check client-side limit first
+            if (!canAskQuestion()) {
+                showLimitReached();
+                return;
+            }
+            
+            isLoading = true;
+            chatInput.disabled = true;
+            chatSendBtn.disabled = true;
+            
+            // Add user message
+            addMessage(query, false);
+            chatInput.value = '';
+            
+            // Show typing indicator
+            addTypingIndicator();
+            
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+                
+                const data = await response.json();
+                
+                removeTypingIndicator();
+                
+                if (response.status === 429) {
+                    // Server rate limit hit
+                    showLimitReached();
+                    return;
+                }
+                
+                if (data.error) {
+                    addMessage('Sorry, something went wrong. Please try again.', true);
+                } else {
+                    // Record the question (client-side tracking)
+                    const remaining = recordQuestion();
+                    
+                    // Use server's remaining count if available
+                    const serverRemaining = typeof data.remaining === 'number' ? data.remaining : remaining;
+                    updateRemainingDisplay(Math.min(remaining, serverRemaining));
+                    
+                    // Add AI response
+                    addMessage(data.response, true);
+                    
+                    // Check if limit reached
+                    if (remaining <= 0) {
+                        showLimitReached();
+                    }
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                removeTypingIndicator();
+                addMessage('Sorry, I couldn\'t connect to the server. Please try again.', true);
+            } finally {
+                isLoading = false;
+                if (canAskQuestion()) {
+                    chatInput.disabled = false;
+                    chatSendBtn.disabled = false;
+                    chatInput.focus();
+                }
+            }
+        }
+        
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+        chatFab.addEventListener('click', toggleChat);
+        chatCloseBtn.addEventListener('click', closeChat);
+        
+        chatSendBtn.addEventListener('click', () => {
+            sendMessage(chatInput.value);
+        });
+        
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(chatInput.value);
+            }
+        });
+        
+        // Close on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                closeChat();
+            }
+        });
+        
+        // Close when clicking outside (mobile)
+        document.addEventListener('click', (e) => {
+            if (isOpen && 
+                !chatPanel.contains(e.target) && 
+                !chatFab.contains(e.target)) {
+                closeChat();
+            }
+        });
+        
+        // Initialize remaining count
+        updateRemainingDisplay(getRemainingQuestions());
+        
+        // Check if limit already reached on load
+        if (!canAskQuestion()) {
+            chatInput.disabled = true;
+            chatSendBtn.disabled = true;
+            chatInput.placeholder = 'Limit reached - try again tomorrow';
+        }
+    })();
+    </script>
 </body>
 </html>

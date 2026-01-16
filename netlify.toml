@@ -4,9 +4,15 @@
   # Directory to publish
   publish = "dist"
   
-  # Skip build command - we pre-generate the static site locally
-  # and commit it to the repo
-  command = "echo 'Static site already generated'"
+  # Install function dependencies during build
+  command = "cd netlify/functions && npm install"
+  
+  # Functions directory
+  functions = "netlify/functions"
+
+[functions]
+  # Node.js version for functions
+  node_bundler = "esbuild"
 
 # Redirects for clean URLs
 [[redirects]]
