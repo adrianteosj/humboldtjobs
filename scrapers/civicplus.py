@@ -45,6 +45,9 @@ class WiyotScraper(BaseScraper):
             
             browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         return jobs
     
     def _parse_html(self, html: str) -> List[JobData]:
@@ -217,6 +220,9 @@ class RioDellScraper(BaseScraper):
                 self.logger.error(f"  Error scraping Rio Dell: {e}")
             
             browser.close()
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         return jobs
     

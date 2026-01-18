@@ -82,6 +82,9 @@ class RedwoodsScraper(BaseScraper):
             
             browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(all_jobs)
+        
         return all_jobs
     
     def _fetch_job_salary(self, page, url: str) -> Optional[str]:

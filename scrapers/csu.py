@@ -61,6 +61,9 @@ class CSUScraper(BaseScraper):
             
             browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(all_jobs)
+        
         self.logger.info(f"Total CSU jobs scraped: {len(all_jobs)}")
         return all_jobs
     

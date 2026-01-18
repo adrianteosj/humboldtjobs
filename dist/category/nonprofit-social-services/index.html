@@ -121,6 +121,7 @@
             align-items: center;
         }
 
+        /* Logo centered in header */
         .logo {
             font-family: 'Playfair Display', serif;
             font-size: 1.75rem;
@@ -705,6 +706,64 @@
             background: var(--bg-tertiary);
         }
 
+        /* Nav View Toggle */
+        .nav-view-toggle {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 2px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-toggle-btn:hover {
+            color: var(--accent-green);
+        }
+
+        .nav-toggle-btn.active {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .bigfoot-icon-small {
+            width: 1rem;
+            height: 1rem;
+            filter: invert(40%) sepia(100%) saturate(500%) hue-rotate(100deg) brightness(0.7);
+        }
+
+        .nav-toggle-btn.active .bigfoot-icon-small {
+            filter: brightness(0) invert(1);
+        }
+
+        .beta-badge-small {
+            font-size: 0.6rem;
+            padding: 1px 4px;
+            background: transparent;
+            color: var(--accent-green);
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .nav-toggle-btn.active .beta-badge-small {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         .newsletter-btn {
             display: inline-flex;
             align-items: center;
@@ -731,9 +790,9 @@
             color: #ef4444;
         }
 
-        /* Hamburger Menu Button */
+        /* Hamburger Menu Button - Always visible */
         .hamburger-btn {
-            display: none;
+            display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -746,6 +805,11 @@
             gap: 5px;
             padding: 10px 8px;
             transition: all 0.2s;
+        }
+        
+        /* Hide desktop nav items - use hamburger instead */
+        .nav-link, .newsletter-btn, .theme-toggle, .mobile-search-btn {
+            display: none;
         }
 
         .hamburger-btn:hover {
@@ -856,6 +920,13 @@
             margin-bottom: 1.5rem;
         }
 
+        /* Hide mobile-only sections on desktop */
+        @media (min-width: 769px) {
+            .slide-menu .menu-section.mobile-only {
+                display: none !important;
+            }
+        }
+
         .menu-section-title {
             font-size: 0.75rem;
             text-transform: uppercase;
@@ -864,6 +935,51 @@
             margin-bottom: 0.75rem;
             font-weight: 600;
             padding: 0 0.5rem;
+        }
+
+        /* Menu View Toggle */
+        .menu-view-toggle {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .menu-view-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-view-btn:hover {
+            color: var(--accent-green);
+        }
+
+        .menu-view-btn.active {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .menu-view-btn .bigfoot-icon-small {
+            width: 1.1rem;
+            height: 1.1rem;
+            filter: invert(40%) sepia(100%) saturate(500%) hue-rotate(100deg) brightness(0.7);
+        }
+
+        .menu-view-btn.active .bigfoot-icon-small {
+            filter: brightness(0) invert(1);
         }
 
         .menu-search-wrapper {
@@ -1704,11 +1820,6 @@
                 display: flex;
             }
 
-            /* Hide desktop nav items */
-            .nav-link, .newsletter-btn, .theme-toggle, .mobile-search-btn {
-                display: none;
-            }
-
             .container {
                 padding: 1.5rem;
             }
@@ -1731,12 +1842,9 @@
                 font-size: 1rem;
             }
 
-            .nav-link, .newsletter-btn, .theme-toggle, .mobile-search-btn {
+            /* Hide toggle on mobile - access via hamburger */
+            .nav-view-toggle {
                 display: none;
-            }
-
-            .hamburger-btn {
-                display: flex;
             }
 
             .nav-items {
@@ -1947,158 +2055,152 @@
         }
 
         /* ========================================
-           AI CHAT WIDGET STYLES
+           VIEW TOGGLE TABS
            ======================================== */
         
-        .chat-fab {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-            z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: chat-pulse 2s infinite;
-        }
-
-        @keyframes chat-pulse {
-            0%, 100% { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); }
-            50% { box-shadow: 0 4px 30px rgba(16, 185, 129, 0.6); }
-        }
-
-        .chat-fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(16, 185, 129, 0.5);
-        }
-
-        .chat-fab.active {
-            animation: none;
-            transform: rotate(90deg);
-        }
-
-        .chat-fab.active .chat-icon {
-            display: none;
-        }
-
-        .chat-fab.active .chat-close-icon {
-            display: block;
-        }
-
-        .chat-close-icon {
-            display: none;
-        }
-
-        /* Chat Panel */
-        .chat-panel {
-            position: fixed;
-            bottom: 100px;
-            right: 24px;
-            width: 380px;
-            max-width: calc(100vw - 48px);
-            height: 500px;
-            max-height: calc(100vh - 140px);
+        .view-toggle-bar {
             background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(20px) scale(0.95);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
-        }
-
-        .chat-panel.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0) scale(1);
-        }
-
-        .chat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background: var(--bg-tertiary);
             border-bottom: 1px solid var(--border-color);
-        }
-
-        .chat-header-info {
+            padding: 12px 20px;
             display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .chat-avatar {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
             justify-content: center;
+            gap: 4px;
+        }
+
+        .view-toggle-tabs {
+            display: flex;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .view-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .view-toggle-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .view-toggle-btn.active {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .view-toggle-btn .btn-icon {
             font-size: 1.1rem;
         }
 
-        .chat-title {
-            font-weight: 600;
+        /* Beta Badge */
+        .beta-badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--accent-gold);
+            color: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .view-toggle-btn.active .beta-badge {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+        }
+
+        /* ========================================
+           AI GUIDE VIEW (Full Screen Chat)
+           ======================================== */
+        
+        .ai-guide-view {
+            display: none;
+            min-height: calc(100vh - 180px);
+            background: var(--bg-primary);
+        }
+
+        .ai-guide-view.active {
+            display: block;
+        }
+
+        .ai-guide-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            height: calc(100vh - 200px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-guide-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .ai-guide-header h2 {
+            font-size: 1.5rem;
             color: var(--text-primary);
-            font-size: 0.95rem;
-        }
-
-        .chat-subtitle {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .chat-close-btn {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            cursor: pointer;
-            border-radius: var(--radius-sm);
+            margin: 0 0 8px 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            transition: all 0.2s;
+            gap: 10px;
         }
 
-        .chat-close-btn:hover {
+        .ai-guide-header p {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .ai-guide-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             background: var(--bg-secondary);
-            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        /* Jobs View Container */
+        .jobs-view {
+            display: block;
+        }
+
+        .jobs-view.hidden {
+            display: none;
         }
 
         /* Chat Messages */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
         }
 
         .chat-message {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            display: flex;
+            gap: 12px;
             animation: message-fade-in 0.3s ease;
         }
 
@@ -2113,31 +2215,261 @@
             }
         }
 
-        .chat-message.bot {
-            align-self: flex-start;
-            background: var(--bg-tertiary);
+        .chat-message .bot-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .bigfoot-icon {
+            width: 1.2em;
+            height: 1.2em;
+            vertical-align: middle;
+            display: inline-block;
+            /* Match the accent green (#10b981) */
+            filter: invert(48%) sepia(79%) saturate(465%) hue-rotate(118deg) brightness(91%) contrast(87%);
+        }
+
+        .view-toggle-btn .bigfoot-icon {
+            width: 1.1rem;
+            height: 1.1rem;
+            /* Darker green for inactive state */
+            filter: invert(48%) sepia(79%) saturate(465%) hue-rotate(118deg) brightness(70%) contrast(87%);
+        }
+
+        .view-toggle-btn.active .bigfoot-icon {
+            filter: none; /* White bigfoot on green background */
+        }
+
+        .ai-guide-header .bigfoot-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            /* Match the accent green (#10b981) */
+            filter: invert(48%) sepia(79%) saturate(465%) hue-rotate(118deg) brightness(91%) contrast(87%);
+        }
+
+        .chat-message .bot-avatar .bigfoot-icon {
+            width: 28px;
+            height: 28px;
+            filter: none; /* White on green */
+        }
+
+        .chat-message .message-content {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 0.9rem;
+            line-height: 1.6;
             color: var(--text-primary);
-            border-bottom-left-radius: 4px;
+        }
+
+        .chat-message .message-content strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .chat-message .message-content p {
+            margin: 0 0 12px 0;
+            color: var(--text-secondary);
         }
 
         .chat-message.user {
-            align-self: flex-end;
+            justify-content: flex-end;
+        }
+
+        .chat-message.user .message-content {
             background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
             color: white;
-            border-bottom-right-radius: 4px;
+            border: none;
+            max-width: 80%;
         }
 
-        .chat-message strong {
-            font-weight: 600;
+        /* Chat Suggestions */
+        .chat-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 4px;
         }
 
-        .chat-message a {
+        .chat-suggestion-btn {
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .chat-suggestion-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* Chat Input Area */
+        .chat-input-area {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-primary);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .chat-send-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .chat-send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Chat Footer */
+        .chat-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-size: 0.85rem;
+        }
+
+
+        .chat-powered-by {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Job Cards in Chat */
+        .chat-job-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        .chat-job-card-link {
+            text-decoration: none;
             color: inherit;
-            text-decoration: underline;
-            text-decoration-style: dotted;
+            display: block;
         }
 
-        .chat-message.bot a {
+        .chat-job-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .chat-job-card:hover {
+            border-color: var(--accent-green);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+        }
+
+        .chat-job-card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .chat-job-card-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chat-job-card .salary-badge {
+            background: var(--accent-green);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+
+        /* Quick Actions */
+        .chat-quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .chat-quick-action-btn {
+            padding: 8px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .chat-quick-action-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-green);
             color: var(--accent-green);
         }
 
@@ -2145,11 +2477,7 @@
         .typing-indicator {
             display: flex;
             gap: 4px;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border-radius: 16px;
-            border-bottom-left-radius: 4px;
-            align-self: flex-start;
+            align-items: center;
         }
 
         .typing-dot {
@@ -2177,160 +2505,88 @@
             }
         }
 
-        /* Chat Input */
-        .chat-input-area {
-            padding: 12px 16px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-tertiary);
-        }
-
-        .chat-input-wrapper {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .chat-input:focus {
-            border-color: var(--accent-green);
-        }
-
-        .chat-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .chat-send-btn {
-            width: 40px;
-            height: 40px;
-            border: none;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            transition: all 0.2s;
-            flex-shrink: 0;
-        }
-
-        .chat-send-btn:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
-        }
-
-        .chat-send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .chat-footer {
-            padding: 8px 16px;
-            background: var(--bg-tertiary);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .chat-remaining {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .chat-remaining-count {
-            font-weight: 600;
-            color: var(--accent-green);
-        }
-
-        .chat-powered-by {
-            opacity: 0.7;
-        }
-
-        /* Limit Reached State */
-        .chat-limit-message {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-secondary);
-        }
-
-        .chat-limit-message h3 {
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-
-        .chat-limit-message p {
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-        }
-
-        .chat-limit-newsletter {
-            display: inline-block;
-            padding: 8px 16px;
-            background: var(--accent-green);
-            color: white;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .chat-limit-newsletter:hover {
-            background: var(--accent-green-dim);
-            transform: translateY(-1px);
-        }
-
-        /* Mobile Chat Styles */
+        /* Mobile Responsive - View Toggle */
         @media (max-width: 768px) {
-            .chat-fab {
-                bottom: 16px;
-                right: 16px;
-                width: 56px;
-                height: 56px;
+            .view-toggle-bar {
+                padding: 10px 16px;
             }
 
-            .chat-panel {
-                bottom: 0;
-                right: 0;
-                left: 0;
-                width: 100%;
-                max-width: 100%;
-                height: calc(100vh - 60px);
-                max-height: none;
-                border-radius: var(--radius) var(--radius) 0 0;
-                transform: translateY(100%);
+            .view-toggle-btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
             }
 
-            .chat-panel.active {
-                transform: translateY(0);
+            .ai-guide-container {
+                padding: 20px 16px;
+                height: calc(100vh - 180px);
+            }
+
+            .ai-guide-header {
+                margin-bottom: 16px;
+            }
+
+            .ai-guide-header h2 {
+                font-size: 1.25rem;
+            }
+
+            .chat-messages {
+                padding: 16px;
+            }
+
+            .chat-message .message-content {
+                padding: 14px;
+            }
+            
+            .header-content {
+                gap: 8px;
+            }
+
+            .chat-suggestions {
+                gap: 6px;
+            }
+
+            .chat-suggestion-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
             }
 
             .chat-input {
-                font-size: 16px; /* Prevent zoom on iOS */
+                font-size: 16px; /* Prevent iOS zoom */
+            }
+
+            .chat-input-area {
+                padding: 16px;
             }
         }
 
-        /* Small mobile */
-        @media (max-width: 400px) {
-            .chat-message {
-                max-width: 90%;
+        @media (max-width: 480px) {
+            .view-toggle-btn {
+                padding: 8px 14px;
+                font-size: 0.85rem;
+                gap: 6px;
+            }
+
+            .view-toggle-btn .btn-icon {
+                font-size: 1rem;
+            }
+
+            .ai-guide-container {
+                height: calc(100vh - 160px);
+            }
+
+            .chat-messages {
+                padding: 12px;
+            }
+
+            .chat-message .bot-avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+
+            .chat-send-btn {
+                width: 42px;
+                height: 42px;
             }
         }
     </style>
@@ -2341,10 +2597,23 @@
 <body>
     <header>
         <div class="header-content">
+            <!-- View Toggle on Left -->
+            <div class="nav-view-toggle">
+                <button class="nav-toggle-btn active" id="jobs-view-btn" data-view="jobs">
+                    💼 Jobs
+                </button>
+                <button class="nav-toggle-btn" id="ai-guide-btn" data-view="ai-guide">
+                    <img src="/static/bigfoot.svg" alt="" class="bigfoot-icon-small"> Bigfoot
+                    <span class="beta-badge-small">beta</span>
+                </button>
+            </div>
+            
+            <!-- Logo in Center -->
             <a href="/" class="logo">
                 <div class="logo-icon">🌲</div>
                 Humboldt<span>Jobs</span>
             </a>
+            
             <div class="nav-items">
                 <a href="/employers/" class="nav-link">
                     🏢 Employer Career Pages
@@ -2384,7 +2653,63 @@
         </div>
     </header>
 
-    
+    <!-- Bigfoot Chat Interface -->
+    <div class="ai-guide-view" id="ai-guide-view">
+        <div class="ai-guide-container">
+            <div class="ai-guide-header">
+                <h2><img src="/static/bigfoot.svg" alt="" class="bigfoot-icon"> Bigfoot's Career Guide</h2>
+                <p>I've been in these redwoods a long time. Let me help you find work.</p>
+            </div>
+            <div class="ai-guide-chat">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="chat-message bot" id="welcome-message">
+                        <div class="bot-avatar"><img src="/static/bigfoot.svg" alt="" class="bigfoot-icon"></div>
+                        <div class="message-content">
+                            <strong>Hey there! 👣</strong>
+                            <p>People say good jobs in Humboldt are hard to find... kinda like me. Let's prove them wrong. What type of work interests you?</p>
+                            <div class="chat-suggestions">
+                                <button class="chat-suggestion-btn" data-query="Healthcare">
+                                    Healthcare
+                                </button>
+                                <button class="chat-suggestion-btn" data-query="Education">
+                                    Education
+                                </button>
+                                <button class="chat-suggestion-btn" data-query="Government">
+                                    Government
+                                </button>
+                                <button class="chat-suggestion-btn" data-query="Retail or customer service">
+                                    Retail
+                                </button>
+                                <button class="chat-suggestion-btn" data-query="I'm not sure yet, what's available?">
+                                    Not sure yet
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <div class="chat-input-wrapper">
+                        <input type="text" 
+                               class="chat-input" 
+                               id="chat-input" 
+                               placeholder="Ask about jobs, careers, or lifestyle..."
+                               autocomplete="off"
+                               maxlength="500">
+                        <button class="chat-send-btn" id="chat-send-btn" aria-label="Send message">
+                            ➤
+                        </button>
+                    </div>
+                    <div class="chat-footer">
+                        <div class="chat-powered-by">Powered by Gemini AI</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jobs View -->
+    <div class="jobs-view" id="jobs-view">
+        
 <div class="container">
     <div class="layout">
         <!-- Sidebar -->
@@ -2392,7 +2717,7 @@
             
             <div class="last-updated">
                 <span class="update-icon">🔄</span>
-                <span>Last updated: Jan 15, 2026 at 03:18 PM</span>
+                <span>Last updated: Jan 17, 2026 at 09:31 PM</span>
             </div>
             
             
@@ -2406,21 +2731,21 @@
                         <li>
                             <a href="/" class="">
                                 All Jobs
-                                <span class="filter-count">550</span>
+                                <span class="filter-count">549</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/category/education/" class="">
                                 Education
-                                <span class="filter-count">236</span>
+                                <span class="filter-count">237</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/category/healthcare/" class="">
                                 Healthcare
-                                <span class="filter-count">169</span>
+                                <span class="filter-count">170</span>
                             </a>
                         </li>
                         
@@ -2434,7 +2759,7 @@
                         <li>
                             <a href="/category/national-retail/" class="">
                                 National Retail
-                                <span class="filter-count">43</span>
+                                <span class="filter-count">41</span>
                             </a>
                         </li>
                         
@@ -2446,16 +2771,16 @@
                         </li>
                         
                         <li>
-                            <a href="/category/local-retail/" class="">
-                                Local Retail
+                            <a href="/category/hospitality-entertainment/" class="">
+                                Hospitality &amp; Entertainment
                                 <span class="filter-count">9</span>
                             </a>
                         </li>
                         
                         <li>
-                            <a href="/category/hospitality-entertainment/" class="">
-                                Hospitality &amp; Entertainment
-                                <span class="filter-count">7</span>
+                            <a href="/category/local-retail/" class="">
+                                Local Retail
+                                <span class="filter-count">8</span>
                             </a>
                         </li>
                         
@@ -2476,7 +2801,7 @@
                         <li>
                             <a href="/category/nonprofit-social-services/" class="active">
                                 Nonprofit &amp; Social Services
-                                <span class="filter-count">4</span>
+                                <span class="filter-count">3</span>
                             </a>
                         </li>
                         
@@ -2490,7 +2815,7 @@
                         <li>
                             <a href="/category/financial-services/" class="">
                                 Financial Services
-                                <span class="filter-count">3</span>
+                                <span class="filter-count">2</span>
                             </a>
                         </li>
                         
@@ -2508,7 +2833,7 @@
                         <li>
                             <a href="/" class="">
                                 All Locations
-                                <span class="filter-count">550</span>
+                                <span class="filter-count">549</span>
                             </a>
                         </li>
                         
@@ -2522,14 +2847,14 @@
                         <li>
                             <a href="/location/arcata-ca/" class="">
                                 Arcata, CA
-                                <span class="filter-count">138</span>
+                                <span class="filter-count">139</span>
                             </a>
                         </li>
                         
                         <li>
                             <a href="/location/hoopa-ca/" class="">
                                 Hoopa, CA
-                                <span class="filter-count">47</span>
+                                <span class="filter-count">48</span>
                             </a>
                         </li>
                         
@@ -2548,20 +2873,6 @@
                         </li>
                         
                         <li>
-                            <a href="/location/mckinleyville-ca/" class="">
-                                McKinleyville, CA
-                                <span class="filter-count">11</span>
-                            </a>
-                        </li>
-                        
-                        <li>
-                            <a href="/location/humboldt-county-ca/" class="">
-                                Humboldt County, CA
-                                <span class="filter-count">10</span>
-                            </a>
-                        </li>
-                        
-                        <li>
                             <a href="/location/crescent-city-ca/" class="">
                                 Crescent City, CA
                                 <span class="filter-count">10</span>
@@ -2569,9 +2880,23 @@
                         </li>
                         
                         <li>
+                            <a href="/location/mckinleyville-ca/" class="">
+                                McKinleyville, CA
+                                <span class="filter-count">9</span>
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="/location/humboldt-county-ca/" class="">
+                                Humboldt County, CA
+                                <span class="filter-count">9</span>
+                            </a>
+                        </li>
+                        
+                        <li>
                             <a href="/location/blue-lake-ca/" class="">
                                 Blue Lake, CA
-                                <span class="filter-count">10</span>
+                                <span class="filter-count">9</span>
                             </a>
                         </li>
                         
@@ -2608,7 +2933,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-1">
                                 <span>Blue Lake Casino Hotel</span>
-                                <span class="filter-count">7</span>
+                                <span class="filter-count">10</span>
                             </label>
                         </div>
                         
@@ -2620,7 +2945,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-2">
                                 <span>Cal Poly Humboldt</span>
-                                <span class="filter-count">114</span>
+                                <span class="filter-count">115</span>
                             </label>
                         </div>
                         
@@ -2632,7 +2957,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-3">
                                 <span>Changing Tides Family Ser...</span>
-                                <span class="filter-count">3</span>
+                                <span class="filter-count">2</span>
                             </label>
                         </div>
                         
@@ -2728,7 +3053,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-11">
                                 <span>College of the Redwoods</span>
-                                <span class="filter-count">52</span>
+                                <span class="filter-count">53</span>
                             </label>
                         </div>
                         
@@ -2776,7 +3101,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-15">
                                 <span>County of Humboldt</span>
-                                <span class="filter-count">33</span>
+                                <span class="filter-count">35</span>
                             </label>
                         </div>
                         
@@ -2812,7 +3137,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-18">
                                 <span>Eureka City Schools</span>
-                                <span class="filter-count">17</span>
+                                <span class="filter-count">16</span>
                             </label>
                         </div>
                         
@@ -2824,7 +3149,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-19">
                                 <span>Eureka Natural Foods</span>
-                                <span class="filter-count">3</span>
+                                <span class="filter-count">1</span>
                             </label>
                         </div>
                         
@@ -2872,7 +3197,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-23">
                                 <span>Hospice of Humboldt</span>
-                                <span class="filter-count">8</span>
+                                <span class="filter-count">7</span>
                             </label>
                         </div>
                         
@@ -2932,7 +3257,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-28">
                                 <span>K&#39;ima:w Medical Center</span>
-                                <span class="filter-count">24</span>
+                                <span class="filter-count">25</span>
                             </label>
                         </div>
                         
@@ -2968,7 +3293,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-31">
                                 <span>North Coast Co-op</span>
-                                <span class="filter-count">6</span>
+                                <span class="filter-count">7</span>
                             </label>
                         </div>
                         
@@ -3016,7 +3341,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-35">
                                 <span>Providence St. Joseph Hos...</span>
-                                <span class="filter-count">55</span>
+                                <span class="filter-count">58</span>
                             </label>
                         </div>
                         
@@ -3124,7 +3449,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-44">
                                 <span>Walgreens</span>
-                                <span class="filter-count">10</span>
+                                <span class="filter-count">11</span>
                             </label>
                         </div>
                         
@@ -3136,7 +3461,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-45">
                                 <span>Walmart</span>
-                                <span class="filter-count">5</span>
+                                <span class="filter-count">3</span>
                             </label>
                         </div>
                         
@@ -3148,7 +3473,7 @@
                                    checked>
                             <label class="employer-filter-label" for="emp-46">
                                 <span>Wiyot Tribe</span>
-                                <span class="filter-count">2</span>
+                                <span class="filter-count">5</span>
                             </label>
                         </div>
                         
@@ -3225,11 +3550,7 @@
         <main>
             <div class="page-header">
                 <h1>Nonprofit &amp; Social Services Jobs</h1>
-                <p>4 open positions from local employers</p>
-                
-                <a href="/new/" class="new-jobs-badge">
-                    🆕 8 new jobs added Jan 15
-                </a>
+                <p>3 open positions from local employers</p>
                 
             </div>
 
@@ -3282,7 +3603,7 @@
             
             <div class="job-list">
                 
-                <article class="job-card" data-job-id="615" data-employer="changing tides family services" data-title="mental health rehabilitation specialist" data-location="eureka, ca" data-category="nonprofit &amp; social services" data-classification="">
+                <article class="job-card" data-job-id="663" data-employer="changing tides family services" data-title="mental health rehabilitation specialist" data-location="eureka, ca" data-category="nonprofit &amp; social services" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
                             <a href="https://changingtidesfs.org/employment/" target="_blank" rel="noopener">Mental Health Rehabilitation Specialist</a>
@@ -3368,47 +3689,6 @@
                     </div>
                 </article>
                 
-                <article class="job-card" data-job-id="513" data-employer="changing tides family services" data-title="respite worker" data-location="eureka, ca" data-category="nonprofit &amp; social services" data-classification="">
-                    <div class="job-card-header">
-                        <h2 class="job-title">
-                            <a href="https://changingtidesfs.org/employment/#changing_tides_respite_worker" target="_blank" rel="noopener">Respite Worker</a>
-                        </h2>
-                        <span class="job-category">Nonprofit &amp; Social Services</span>
-                    </div>
-                    
-                    <div class="job-meta">
-                        <span>🏢 Changing Tides Family Services</span>
-                        
-                        <span>📍 Eureka, CA</span>
-                        
-                        
-                        <span>⏰ Part-Time</span>
-                        
-                    </div>
-                    
-                    <div class="job-salary salary-undisclosed">
-                        💰 Undisclosed
-                    </div>
-                    
-                    
-                    
-                    <div class="job-footer">
-                        <div class="job-footer-left">
-                            <span class="job-date ">
-                                
-                                    Recently added
-                                
-                            </span>
-                            <span class="job-source">
-                                via Changing Tides
-                            </span>
-                        </div>
-                        <a href="https://changingtidesfs.org/employment/#changing_tides_respite_worker" target="_blank" rel="noopener" class="apply-btn">
-                            View & Apply →
-                        </a>
-                    </div>
-                </article>
-                
                 <article class="job-card" data-job-id="512" data-employer="changing tides family services" data-title="mental health rehabilitation specialist" data-location="eureka, ca" data-category="nonprofit &amp; social services" data-classification="">
                     <div class="job-card-header">
                         <h2 class="job-title">
@@ -3460,6 +3740,7 @@
     </div>
 </div>
 
+    </div>
 
     <!-- Mobile Search Overlay -->
     <div class="mobile-search-overlay" id="mobile-search-overlay">
@@ -3517,8 +3798,21 @@
             <button class="menu-close" id="menu-close" aria-label="Close menu">✕</button>
         </div>
         <div class="menu-content">
-            <!-- Search Section -->
-            <div class="menu-section">
+            <!-- View Toggle Section (mobile only) -->
+            <div class="menu-section mobile-only">
+                <div class="menu-section-title">View</div>
+                <div class="menu-view-toggle">
+                    <button class="menu-view-btn active" id="menu-jobs-btn" data-view="jobs">
+                        💼 Jobs
+                    </button>
+                    <button class="menu-view-btn" id="menu-bigfoot-btn" data-view="ai-guide">
+                        <img src="/static/bigfoot.svg" alt="" class="bigfoot-icon-small"> Bigfoot
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Section (mobile only) -->
+            <div class="menu-section menu-search-section mobile-only" id="menu-search-section">
                 <div class="menu-section-title">Search</div>
                 <div class="menu-search-wrapper">
                     <span class="search-icon">🔍</span>
@@ -3530,17 +3824,16 @@
                 </div>
             </div>
 
-            <!-- Filters Section (will be populated via JS) -->
-            <div class="menu-section" id="menu-filters-section">
+            <!-- Filters Section (mobile only) -->
+            <div class="menu-section mobile-only" id="menu-filters-section">
                 <div class="menu-section-title">Filters</div>
                 <div class="menu-filters" id="menu-filters-content">
                     <!-- Filter links will be cloned here via JS -->
                 </div>
             </div>
 
-            <!-- Navigation Section -->
+            <!-- Navigation Section (always visible) -->
             <div class="menu-section">
-                <div class="menu-section-title">Navigation</div>
                 <div class="menu-nav-links">
                     <a href="/employers/" class="menu-nav-link">
                         🏢 Employer Career Pages
@@ -3554,8 +3847,8 @@
                 </div>
             </div>
 
-            <!-- Theme Section -->
-            <div class="menu-section">
+            <!-- Theme Section (mobile only) -->
+            <div class="menu-section mobile-only">
                 <div class="menu-section-title">Appearance</div>
                 <div class="menu-theme-options">
                     <button class="menu-theme-btn" data-theme="light">
@@ -3581,6 +3874,12 @@
     </footer>
 
     <script>
+        // Scroll to top on page load/refresh
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        window.scrollTo(0, 0);
+        
         (function() {
             // Sidebar scroll position persistence
             const sidebar = document.querySelector('.sidebar');
@@ -5065,193 +5364,265 @@
                     }
                 });
             }
+            
+            // Menu view toggle - Jobs/Bigfoot
+            const menuJobsBtn = document.getElementById('menu-jobs-btn');
+            const menuBigfootBtn = document.getElementById('menu-bigfoot-btn');
+            const menuSearchSection = document.getElementById('menu-search-section');
+            const menuFiltersSection = document.getElementById('menu-filters-section');
+            
+            function updateMenuViewState(view) {
+                if (menuJobsBtn && menuBigfootBtn) {
+                    menuJobsBtn.classList.toggle('active', view === 'jobs');
+                    menuBigfootBtn.classList.toggle('active', view === 'ai-guide');
+                }
+                // Hide search/filters when in Bigfoot view
+                if (menuSearchSection) {
+                    menuSearchSection.style.display = view === 'ai-guide' ? 'none' : 'block';
+                }
+                if (menuFiltersSection) {
+                    menuFiltersSection.style.display = view === 'ai-guide' ? 'none' : 'block';
+                }
+            }
+            
+            if (menuJobsBtn) {
+                menuJobsBtn.addEventListener('click', () => {
+                    const mainJobsBtn = document.getElementById('jobs-view-btn');
+                    if (mainJobsBtn) mainJobsBtn.click();
+                    updateMenuViewState('jobs');
+                    closeMenu();
+                });
+            }
+            
+            if (menuBigfootBtn) {
+                menuBigfootBtn.addEventListener('click', () => {
+                    const mainBigfootBtn = document.getElementById('ai-guide-btn');
+                    if (mainBigfootBtn) mainBigfootBtn.click();
+                    updateMenuViewState('ai-guide');
+                    closeMenu();
+                });
+            }
         })();
     </script>
     
     <!-- Kit Newsletter Popup -->
     <script async data-uid="c01d15dc9e" src="https://humboldt-jobs.kit.com/c01d15dc9e/index.js"></script>
 
-    <!-- AI Chat Widget -->
-    <button class="chat-fab" id="chat-fab" aria-label="Ask AI about jobs">
-        <span class="chat-icon">💬</span>
-        <span class="chat-close-icon">✕</span>
-    </button>
-
-    <div class="chat-panel" id="chat-panel">
-        <div class="chat-header">
-            <div class="chat-header-info">
-                <div class="chat-avatar">🤖</div>
-                <div>
-                    <div class="chat-title">Job Assistant</div>
-                    <div class="chat-subtitle">Ask me about jobs in Humboldt</div>
-                </div>
-            </div>
-            <button class="chat-close-btn" id="chat-close-btn" aria-label="Close chat">✕</button>
-        </div>
-        
-        <div class="chat-messages" id="chat-messages">
-            <div class="chat-message bot">
-                👋 Hi! I'm your Humboldt Jobs assistant. Ask me anything about jobs in Humboldt County!
-                <br><br>
-                Try asking:
-                <br>• "What healthcare jobs are available?"
-                <br>• "What's the highest paying job?"
-                <br>• "Are there any remote jobs?"
-            </div>
-        </div>
-        
-        <div class="chat-input-area">
-            <div class="chat-input-wrapper">
-                <input type="text" 
-                       class="chat-input" 
-                       id="chat-input" 
-                       placeholder="Ask about jobs..."
-                       autocomplete="off"
-                       maxlength="500">
-                <button class="chat-send-btn" id="chat-send-btn" aria-label="Send message">
-                    ➤
-                </button>
-            </div>
-        </div>
-        
-        <div class="chat-footer">
-            <div class="chat-remaining">
-                <span class="chat-remaining-count" id="chat-remaining">10</span>
-                <span>questions left today</span>
-            </div>
-            <div class="chat-powered-by">Powered by AI</div>
-        </div>
-    </div>
 
     <script>
     // ========================================
-    // AI CHAT WIDGET
+    // JOBS GUIDE AI - VIEW TOGGLE
     // ========================================
     (function() {
-        const DAILY_LIMIT = 10;
-        const STORAGE_KEY = 'humboldtJobsChat';
         const API_ENDPOINT = '/.netlify/functions/chat';
         
-        // DOM Elements
-        const chatFab = document.getElementById('chat-fab');
-        const chatPanel = document.getElementById('chat-panel');
-        const chatCloseBtn = document.getElementById('chat-close-btn');
+        // DOM Elements - Toggle
+        const jobsViewBtn = document.getElementById('jobs-view-btn');
+        const aiGuideBtn = document.getElementById('ai-guide-btn');
+        const jobsView = document.getElementById('jobs-view');
+        const aiGuideView = document.getElementById('ai-guide-view');
+        
+        // DOM Elements - Chat
         const chatMessages = document.getElementById('chat-messages');
         const chatInput = document.getElementById('chat-input');
         const chatSendBtn = document.getElementById('chat-send-btn');
-        const chatRemaining = document.getElementById('chat-remaining');
         
-        if (!chatFab || !chatPanel) return;
+        if (!jobsViewBtn || !aiGuideBtn || !jobsView || !aiGuideView) return;
         
-        let isOpen = false;
         let isLoading = false;
+        let conversationHistory = []; // Track conversation for profiling context
+        let shownJobTitles = []; // Track job titles already shown to user
         
         // ========================================
-        // RATE LIMITING (Client-side)
+        // VIEW TOGGLE
         // ========================================
-        function getStorageData() {
-            try {
-                const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-                const today = new Date().toDateString();
+        function switchView(view) {
+            if (view === 'jobs') {
+                jobsView.classList.remove('hidden');
+                aiGuideView.classList.remove('active');
+                jobsViewBtn.classList.add('active');
+                aiGuideBtn.classList.remove('active');
+            } else if (view === 'ai-guide') {
+                jobsView.classList.add('hidden');
+                aiGuideView.classList.add('active');
+                jobsViewBtn.classList.remove('active');
+                aiGuideBtn.classList.add('active');
                 
-                // Reset if new day
-                if (data.date !== today) {
-                    return { date: today, count: 0 };
-                }
-                return data;
-            } catch {
-                return { date: new Date().toDateString(), count: 0 };
+                // Focus chat input when switching to Bigfoot (no auto-scroll)
+                setTimeout(() => {
+                    if (chatInput) chatInput.focus();
+                }, 100);
             }
-        }
-        
-        function saveStorageData(data) {
+            
+            // Save preference
             try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                localStorage.setItem('humboldtJobsView', view);
             } catch {}
         }
         
-        function getRemainingQuestions() {
-            const data = getStorageData();
-            return Math.max(0, DAILY_LIMIT - data.count);
-        }
-        
-        function recordQuestion() {
-            const data = getStorageData();
-            data.count++;
-            saveStorageData(data);
-            return getRemainingQuestions();
-        }
-        
-        function canAskQuestion() {
-            return getRemainingQuestions() > 0;
-        }
-        
-        function updateRemainingDisplay(remaining) {
-            if (chatRemaining) {
-                chatRemaining.textContent = remaining;
-            }
-        }
+        // Event listeners for toggle buttons
+        jobsViewBtn.addEventListener('click', () => switchView('jobs'));
+        aiGuideBtn.addEventListener('click', () => switchView('ai-guide'));
         
         // ========================================
-        // UI HELPERS
+        // HELPER FUNCTIONS
         // ========================================
-        function openChat() {
-            isOpen = true;
-            chatFab.classList.add('active');
-            chatPanel.classList.add('active');
-            chatInput.focus();
-            updateRemainingDisplay(getRemainingQuestions());
-        }
-        
-        function closeChat() {
-            isOpen = false;
-            chatFab.classList.remove('active');
-            chatPanel.classList.remove('active');
-        }
-        
-        function toggleChat() {
-            if (isOpen) {
-                closeChat();
-            } else {
-                openChat();
+        function scrollToMessage(element) {
+            // Scroll so the new message is at the top of the chat area
+            if (chatMessages && element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
         
         function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
         }
         
-        function addMessage(content, isBot = false) {
+        // ========================================
+        // MESSAGE HANDLING
+        // ========================================
+        function addMessage(content, isBot = false, jobs = null, quickActions = null) {
+            // Remove welcome message if it's still there and this is first real interaction
+            const welcomeMsg = document.getElementById('welcome-message');
+            if (welcomeMsg && !isBot) {
+                welcomeMsg.remove();
+            }
+            
             const msg = document.createElement('div');
             msg.className = `chat-message ${isBot ? 'bot' : 'user'}`;
             
-            // Convert markdown-style formatting
-            let formatted = content
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
+            if (isBot) {
+                // Bot message with avatar
+                const avatar = document.createElement('div');
+                avatar.className = 'bot-avatar';
+                avatar.innerHTML = '<img src="/static/bigfoot.svg" alt="" class="bigfoot-icon">';
+                msg.appendChild(avatar);
+                
+                const content_div = document.createElement('div');
+                content_div.className = 'message-content';
+                
+                // Convert markdown-style formatting
+                let formatted = content
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                
+                // Remove raw URLs from text (we'll show them in job cards instead)
+                if (jobs && jobs.length > 0) {
+                    formatted = formatted.replace(/https?:\/\/[^\s<]+/g, '');
+                }
+                
+                content_div.innerHTML = formatted;
+                
+                // Add job cards if provided
+                if (jobs && jobs.length > 0) {
+                    content_div.innerHTML += renderJobCards(jobs);
+                }
+                
+                // Add contextual quick action buttons
+                content_div.innerHTML += renderQuickActions(quickActions);
+                
+                msg.appendChild(content_div);
+                
+                // Attach event listeners to quick action buttons
+                setTimeout(() => attachQuickActionListeners(msg), 0);
+            } else {
+                // User message
+                const content_div = document.createElement('div');
+                content_div.className = 'message-content';
+                content_div.textContent = content;
+                msg.appendChild(content_div);
+            }
             
-            // Convert URLs to links
-            formatted = formatted.replace(
-                /(https?:\/\/[^\s<]+)/g,
-                '<a href="$1" target="_blank" rel="noopener">View Job</a>'
-            );
-            
-            msg.innerHTML = formatted;
             chatMessages.appendChild(msg);
-            scrollToBottom();
+            
+            // For bot messages, scroll to show the start of the message
+            // For user messages, scroll to bottom
+            // Only scroll for bot messages to show the response
+            if (isBot) {
+                scrollToMessage(msg);
+            }
+            // Don't auto-scroll for user messages - let user control the view
+        }
+        
+        function renderJobCards(jobs) {
+            if (!jobs || jobs.length === 0) return '';
+            
+            let html = '<div class="chat-job-cards">';
+            
+            jobs.forEach(job => {
+                const salary = job.salary && job.salary.trim() && !job.salary.toLowerCase().includes('undisclosed')
+                    ? `<span class="salary-badge">💰 ${escapeHtml(job.salary)}</span>`
+                    : '';
+                    
+                html += `
+                    <a href="${escapeHtml(job.url)}" class="chat-job-card-link">
+                        <div class="chat-job-card">
+                            <div class="chat-job-card-title">${escapeHtml(job.title)}</div>
+                            <div class="chat-job-card-meta">
+                                <span>🏢 ${escapeHtml(job.employer)}</span>
+                                ${job.location ? `<span>📍 ${escapeHtml(job.location)}</span>` : ''}
+                                ${salary}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+        
+        function renderQuickActions(actions) {
+            // If no actions from AI, don't show any buttons
+            if (!actions || actions.length === 0) {
+                return '';
+            }
+            
+            let html = '<div class="chat-quick-actions">';
+            actions.forEach(action => {
+                html += `<button class="chat-quick-action-btn" data-query="${escapeHtml(action.query)}">${escapeHtml(action.label)}</button>`;
+            });
+            html += '</div>';
+            return html;
+        }
+        
+        function attachQuickActionListeners(container) {
+            const buttons = container.querySelectorAll('.chat-quick-action-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const query = btn.dataset.query;
+                    if (query) {
+                        sendMessage(query);
+                    }
+                });
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         function addTypingIndicator() {
             const indicator = document.createElement('div');
-            indicator.className = 'typing-indicator';
+            indicator.className = 'chat-message bot';
             indicator.id = 'typing-indicator';
             indicator.innerHTML = `
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
+                <div class="bot-avatar"><img src="/static/bigfoot.svg" alt="" class="bigfoot-icon"></div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
             `;
             chatMessages.appendChild(indicator);
-            scrollToBottom();
+            // Don't auto-scroll when typing indicator appears
         }
         
         function removeTypingIndicator() {
@@ -5261,44 +5632,22 @@
             }
         }
         
-        function showLimitReached() {
-            const limitMsg = document.createElement('div');
-            limitMsg.className = 'chat-limit-message';
-            limitMsg.innerHTML = `
-                <h3>Daily limit reached</h3>
-                <p>You've used all 10 questions for today. Come back tomorrow!</p>
-                <a href="https://humboldt-jobs.kit.com/c01d15dc9e" class="chat-limit-newsletter" data-formkit-toggle="c01d15dc9e">
-                    📬 Subscribe for job alerts
-                </a>
-            `;
-            chatMessages.appendChild(limitMsg);
-            scrollToBottom();
-            
-            // Disable input
-            chatInput.disabled = true;
-            chatSendBtn.disabled = true;
-            chatInput.placeholder = 'Limit reached - try again tomorrow';
-        }
-        
         // ========================================
         // API CALL
         // ========================================
         async function sendMessage(query) {
             if (isLoading || !query.trim()) return;
             
-            // Check client-side limit first
-            if (!canAskQuestion()) {
-                showLimitReached();
-                return;
-            }
-            
             isLoading = true;
-            chatInput.disabled = true;
-            chatSendBtn.disabled = true;
+            if (chatInput) chatInput.disabled = true;
+            if (chatSendBtn) chatSendBtn.disabled = true;
             
-            // Add user message
+            // Add user message to conversation history
+            conversationHistory.push({ role: 'user', content: query });
+            
+            // Add user message to UI
             addMessage(query, false);
-            chatInput.value = '';
+            if (chatInput) chatInput.value = '';
             
             // Show typing indicator
             addTypingIndicator();
@@ -5309,93 +5658,81 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ query })
+                    body: JSON.stringify({ 
+                        query,
+                        history: conversationHistory.slice(-10), // Send last 10 messages for context
+                        shownJobTitles: shownJobTitles // Send already-shown job titles to get new ones
+                    })
                 });
                 
                 const data = await response.json();
                 
                 removeTypingIndicator();
                 
-                if (response.status === 429) {
-                    // Server rate limit hit
-                    showLimitReached();
-                    return;
-                }
-                
                 if (data.error) {
-                    addMessage('Sorry, something went wrong. Please try again.', true);
+                    addMessage('Oops! We\'ll be right back. Our "AI" is taking a quick break. 🌲', true);
                 } else {
-                    // Record the question (client-side tracking)
-                    const remaining = recordQuestion();
+                    // Add AI response to conversation history
+                    conversationHistory.push({ role: 'assistant', content: data.response });
                     
-                    // Use server's remaining count if available
-                    const serverRemaining = typeof data.remaining === 'number' ? data.remaining : remaining;
-                    updateRemainingDisplay(Math.min(remaining, serverRemaining));
+                    // Add AI response with job cards and contextual quick actions
+                    const jobs = data.jobs || [];
+                    const quickActions = data.quickActions || null;
                     
-                    // Add AI response
-                    addMessage(data.response, true);
+                    // Track shown job titles to avoid repeating them
+                    jobs.forEach(job => {
+                        if (job.title && !shownJobTitles.includes(job.title)) {
+                            shownJobTitles.push(job.title);
+                        }
+                    });
                     
-                    // Check if limit reached
-                    if (remaining <= 0) {
-                        showLimitReached();
-                    }
+                    addMessage(data.response, true, jobs, quickActions);
                 }
             } catch (error) {
                 console.error('Chat error:', error);
                 removeTypingIndicator();
-                addMessage('Sorry, I couldn\'t connect to the server. Please try again.', true);
+                addMessage('Oops! We\'ll be right back. Our "AI" is taking a quick break. 🌲', true);
             } finally {
                 isLoading = false;
-                if (canAskQuestion()) {
-                    chatInput.disabled = false;
-                    chatSendBtn.disabled = false;
-                    chatInput.focus();
-                }
+                if (chatInput) chatInput.disabled = false;
+                if (chatSendBtn) chatSendBtn.disabled = false;
+                if (chatInput) chatInput.focus();
             }
         }
         
         // ========================================
-        // EVENT LISTENERS
+        // CHAT EVENT LISTENERS
         // ========================================
-        chatFab.addEventListener('click', toggleChat);
-        chatCloseBtn.addEventListener('click', closeChat);
-        
-        chatSendBtn.addEventListener('click', () => {
-            sendMessage(chatInput.value);
-        });
-        
-        chatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
+        if (chatSendBtn) {
+            chatSendBtn.addEventListener('click', () => {
                 sendMessage(chatInput.value);
-            }
-        });
-        
-        // Close on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isOpen) {
-                closeChat();
-            }
-        });
-        
-        // Close when clicking outside (mobile)
-        document.addEventListener('click', (e) => {
-            if (isOpen && 
-                !chatPanel.contains(e.target) && 
-                !chatFab.contains(e.target)) {
-                closeChat();
-            }
-        });
-        
-        // Initialize remaining count
-        updateRemainingDisplay(getRemainingQuestions());
-        
-        // Check if limit already reached on load
-        if (!canAskQuestion()) {
-            chatInput.disabled = true;
-            chatSendBtn.disabled = true;
-            chatInput.placeholder = 'Limit reached - try again tomorrow';
+            });
         }
+        
+        if (chatInput) {
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage(chatInput.value);
+                }
+            });
+        }
+        
+        // Welcome suggestion buttons
+        document.querySelectorAll('.chat-suggestion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.dataset.query;
+                if (query) {
+                    sendMessage(query);
+                }
+            });
+        });
+        
+        // Restore saved view preference (but default to jobs)
+        // const savedView = localStorage.getItem('humboldtJobsView');
+        // if (savedView === 'ai-guide') {
+        //     switchView('ai-guide');
+        // }
     })();
     </script>
 </body>

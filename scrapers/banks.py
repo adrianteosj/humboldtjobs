@@ -60,11 +60,21 @@ class CoastCentralCUScraper(BaseScraper):
                     continue
                 if 'Secret Shopper' in title:
                     continue
+                
+                # Skip single-word entries (likely navigation buttons)
+                if len(title.split()) < 2:
+                    continue
+                    
+                # Skip obvious navigation/menu items
+                nav_terms = ['loans', 'accounts', 'services', 'about', 'contact', 
+                            'locations', 'rates', 'login', 'mobile', 'online']
+                if title.lower() in nav_terms:
+                    continue
                     
                 # Check if it looks like a job title
                 job_keywords = ['representative', 'officer', 'administrator', 'manager', 
                                'specialist', 'analyst', 'teller', 'associate', 'coordinator',
-                               'loan', 'system']
+                               'loan officer', 'loan processor', 'system']
                 is_job = any(kw in title.lower() for kw in job_keywords)
                 
                 if not is_job:
@@ -89,6 +99,9 @@ class CoastCentralCUScraper(BaseScraper):
                     
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -147,6 +160,9 @@ class CompassCCUScraper(BaseScraper):
                     
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -237,6 +253,9 @@ class TriCountiesBankScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -297,6 +316,9 @@ class RedwoodCapitalBankScraper(BaseScraper):
                     
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -386,6 +408,9 @@ class ColumbiaBankScraper(BaseScraper):
                     
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs

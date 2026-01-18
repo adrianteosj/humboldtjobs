@@ -20,6 +20,11 @@ from processing.normalizer import JobClassifier, CLASSIFICATION_RULES
 OUTPUT_DIR = Path("dist")
 PER_PAGE = 20
 
+
+def active_jobs_filter():
+    """Return filter conditions for active, non-quarantined jobs."""
+    return (Job.is_active == True) & ((Job.is_quarantined == False) | (Job.is_quarantined == None))
+
 # Pacific timezone (PST = UTC-8, PDT = UTC-7)
 # For simplicity, using PST; for accurate DST handling, use pytz or zoneinfo
 PACIFIC_OFFSET = timedelta(hours=-8)
@@ -45,13 +50,13 @@ def slugify(text):
 
 def get_common_data(session):
     """Get sidebar data used across all pages."""
-    total_all_jobs = session.query(Job).filter(Job.is_active == True).count()
-    last_updated_utc = session.query(func.max(Job.scraped_at)).filter(Job.is_active == True).scalar()
+    total_all_jobs = session.query(Job).filter(active_jobs_filter()).count()
+    last_updated_utc = session.query(func.max(Job.scraped_at)).filter(active_jobs_filter()).scalar()
     last_updated = utc_to_pacific(last_updated_utc)
     
     categories = (
         session.query(Job.category, func.count(Job.id))
-        .filter(Job.is_active == True)
+        .filter(active_jobs_filter())
         .group_by(Job.category)
         .order_by(func.count(Job.id).desc())
         .all()
@@ -59,7 +64,7 @@ def get_common_data(session):
     
     locations = (
         session.query(Job.location, func.count(Job.id))
-        .filter(Job.is_active == True)
+        .filter(active_jobs_filter())
         .filter(Job.location != None)
         .filter(Job.location != '')
         .group_by(Job.location)
@@ -124,7 +129,7 @@ def generate_index_pages(env, session, common_data):
     
     jobs = (
         session.query(Job)
-        .filter(Job.is_active == True)
+        .filter(active_jobs_filter())
         .order_by(Job.scraped_at.desc())
         .all()
     )
@@ -183,7 +188,7 @@ def generate_category_pages(env, session, common_data):
         
         jobs = (
             session.query(Job)
-            .filter(Job.is_active == True, Job.category == cat)
+            .filter(active_jobs_filter(), Job.category == cat)
             .order_by(Job.scraped_at.desc())
             .all()
         )
@@ -303,7 +308,7 @@ def generate_location_pages(env, session, common_data):
         
         jobs = (
             session.query(Job)
-            .filter(Job.is_active == True, Job.location == loc)
+            .filter(active_jobs_filter(), Job.location == loc)
             .order_by(Job.scraped_at.desc())
             .all()
         )
@@ -368,7 +373,7 @@ def generate_employer_pages(env, session, common_data):
         
         jobs = (
             session.query(Job)
-            .filter(Job.is_active == True, Job.employer == emp.name)
+            .filter(active_jobs_filter(), Job.employer == emp.name)
             .order_by(Job.scraped_at.desc())
             .all()
         )
@@ -558,7 +563,7 @@ def generate_new_jobs_page(env, session, common_data):
     # Get jobs by URL
     jobs = (
         session.query(Job)
-        .filter(Job.is_active == True, Job.url.in_(new_job_urls))
+        .filter(active_jobs_filter(), Job.url.in_(new_job_urls))
         .order_by(Job.scraped_at.desc())
         .all()
     )
@@ -660,32 +665,60 @@ def copy_static_assets():
 
 
 def generate_jobs_json(session):
-    """Generate jobs.json for client-side search."""
+    """Generate jobs.json for client-side search and AI context.
+    
+    This enriched JSON includes all available job data to enable
+    smarter AI recommendations and better search filtering.
+    """
     print("Generating jobs.json for search...")
     
     jobs = (
         session.query(Job)
-        .filter(Job.is_active == True)
+        .filter(active_jobs_filter())
         .order_by(Job.scraped_at.desc())
         .all()
     )
     
     jobs_data = []
     for job in jobs:
-        jobs_data.append({
+        job_entry = {
+            # Core fields
             'id': job.id,
             'title': job.title,
             'employer': job.employer,
             'category': job.category,
+            'classification': job.classification or '',
             'location': job.location or '',
-            'salary': job.salary_text or '',
             'url': job.url,
             'slug': slugify(job.employer),
-        })
+            
+            # Salary data (text and parsed)
+            'salary': job.salary_text or '',
+            'salary_min': job.salary_min,
+            'salary_max': job.salary_max,
+            'salary_type': job.salary_type or '',
+            
+            # Job type and level
+            'job_type': job.job_type or '',
+            'experience_level': job.experience_level or '',
+            'education_required': job.education_required or '',
+            'is_remote': job.is_remote or False,
+            'department': job.department or '',
+            
+            # Rich text (truncated to keep file size manageable)
+            'description': (job.description or '')[:500],
+            'requirements': (job.requirements or '')[:300],
+            'benefits': (job.benefits or '')[:200],
+            
+            # Dates (ISO format for JS parsing)
+            'posted_date': job.posted_date.isoformat() if job.posted_date else '',
+            'closing_date': job.closing_date.isoformat() if job.closing_date else '',
+        }
+        jobs_data.append(job_entry)
     
     output_path = OUTPUT_DIR / "static" / "jobs.json"
     output_path.write_text(json.dumps(jobs_data, ensure_ascii=False), encoding='utf-8')
-    print(f"  Generated: jobs.json ({len(jobs_data)} jobs)")
+    print(f"  Generated: jobs.json ({len(jobs_data)} jobs with enriched data)")
 
 
 def generate_sitemap(session):
@@ -699,7 +732,7 @@ def generate_sitemap(session):
     # Add category pages
     categories = (
         session.query(Job.category)
-        .filter(Job.is_active == True)
+        .filter(active_jobs_filter())
         .group_by(Job.category)
         .all()
     )
@@ -709,7 +742,7 @@ def generate_sitemap(session):
     # Add location pages
     locations = (
         session.query(Job.location)
-        .filter(Job.is_active == True, Job.location != None, Job.location != '')
+        .filter(active_jobs_filter(), Job.location != None, Job.location != '')
         .group_by(Job.location)
         .limit(15)
         .all()

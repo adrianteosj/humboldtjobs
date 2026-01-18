@@ -29,7 +29,17 @@ class Job(Base):
     description = Column(Text)
     
     salary_text = Column(String(255))  # Original salary string
+    salary_min = Column(Integer)  # Parsed minimum salary (annual equivalent)
+    salary_max = Column(Integer)  # Parsed maximum salary (annual equivalent)
+    salary_type = Column(String(20))  # hourly, monthly, annual, daily
+    
     job_type = Column(String(100))  # Full-time, Part-time, etc.
+    experience_level = Column(String(20))  # Entry, Mid, Senior
+    education_required = Column(String(100))  # HS, AA, BA, MA, PhD, etc.
+    requirements = Column(Text)  # Qualifications/requirements text
+    benefits = Column(Text)  # Benefits information
+    department = Column(String(100))  # Department within employer
+    is_remote = Column(Boolean, default=False)  # Remote work option
     
     posted_date = Column(DateTime)
     closing_date = Column(DateTime)
@@ -38,12 +48,18 @@ class Job(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True)
     
+    # QA fields
+    is_quarantined = Column(Boolean, default=False)  # Flagged by QA as false positive
+    qa_reviewed_at = Column(DateTime)  # When AI QA reviewed this job
+    qa_reason = Column(String(255))  # Reason for quarantine (if applicable)
+    
     __table_args__ = (
         Index('idx_source', 'source_name'),
         Index('idx_category', 'category'),
         Index('idx_employer', 'employer'),
         Index('idx_posted', 'posted_date'),
         Index('idx_active', 'is_active'),
+        Index('idx_quarantined', 'is_quarantined'),
     )
     
     def __repr__(self):
@@ -56,11 +72,21 @@ class Job(Base):
             'title': self.title,
             'employer': self.employer,
             'category': self.category,
+            'classification': self.classification,
             'location': self.location,
             'url': self.url,
             'description': self.description[:200] + '...' if self.description and len(self.description) > 200 else self.description,
             'salary_text': self.salary_text,
+            'salary_min': self.salary_min,
+            'salary_max': self.salary_max,
+            'salary_type': self.salary_type,
             'job_type': self.job_type,
+            'experience_level': self.experience_level,
+            'education_required': self.education_required,
+            'requirements': self.requirements[:300] + '...' if self.requirements and len(self.requirements) > 300 else self.requirements,
+            'benefits': self.benefits,
+            'department': self.department,
+            'is_remote': self.is_remote,
             'posted_date': self.posted_date.isoformat() if self.posted_date else None,
             'closing_date': self.closing_date.isoformat() if self.closing_date else None,
             'source_name': self.source_name,

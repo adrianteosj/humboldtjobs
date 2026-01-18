@@ -59,6 +59,9 @@ class CSUCareersScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error scraping CSU Careers: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(all_jobs)
+        
         self.logger.info(f"Total CSU Careers jobs scraped: {len(all_jobs)}")
         return all_jobs
     

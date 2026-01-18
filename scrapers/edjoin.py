@@ -29,7 +29,7 @@ class EdJoinScraper(BaseScraper):
     
     def scrape(self) -> List[JobData]:
         """
-        Scrape EdJoin for Humboldt County education jobs.
+        Scrape EdJoin for Humboldt County education jobs with full detail fetching.
         
         Returns:
             List of JobData objects from EdJoin
@@ -46,10 +46,24 @@ class EdJoinScraper(BaseScraper):
             try:
                 all_jobs = self._scrape_all_pages(page)
                 self.logger.info(f"  Found {len(all_jobs)} jobs from EdJoin")
+                
+                # Fetch details for each job
+                self.logger.info(f"  Fetching details for {len(all_jobs)} jobs...")
+                for i, job in enumerate(all_jobs):
+                    details = self._fetch_job_details(page, job.url)
+                    if details:
+                        self.apply_detail_data(job, details)
+                    if (i + 1) % 10 == 0:
+                        self.logger.info(f"    Processed {i + 1}/{len(all_jobs)} job details")
+                    self.delay()
+                    
             except Exception as e:
                 self.logger.error(f"  Error scraping EdJoin: {e}")
             
             browser.close()
+        
+        # Enrich all jobs with parsed salary and experience detection
+        self.enrich_jobs(all_jobs)
         
         self.logger.info(f"Total EdJoin jobs scraped: {len(all_jobs)}")
         return all_jobs
@@ -397,3 +411,99 @@ class EdJoinScraper(BaseScraper):
             return date_parser.parse(date_str.strip())
         except (ValueError, TypeError):
             return None
+    
+    def _fetch_job_details(self, page: Page, url: str) -> dict:
+        """
+        Fetch detailed job information from an EdJoin job detail page.
+        
+        Args:
+            page: Playwright page object
+            url: URL of the job posting
+            
+        Returns:
+            Dictionary with extracted details
+        """
+        result = {}
+        try:
+            page.goto(url, wait_until='networkidle', timeout=30000)
+            page.wait_for_timeout(1500)
+            
+            html = page.content()
+            soup = BeautifulSoup(html, 'lxml')
+            
+            # EdJoin job pages have several sections we can extract:
+            # - About the Employer
+            # - Job Description / Basic Function
+            # - Requirements / Qualifications
+            # - Education and Experience
+            # - Benefits (sometimes)
+            
+            # Try to find the main content area
+            main_content = soup.find('main') or soup.find('div', class_='job-posting') or soup
+            text = main_content.get_text(separator='\n')
+            
+            # Extract job description - look for "Job Description" or "Basic Function" section
+            desc_patterns = [
+                r'(?:Job Description|Basic Function|About the Position|Description)[:\s]*\n(.{100,2000}?)(?=\n(?:Requirements|Qualifications|Education|Experience|Skills|Benefits|How to Apply|Application|Deadline)|$)',
+                r'(?:BASIC FUNCTION|POSITION|SUMMARY)[:\s]*\n(.{100,2000}?)(?=\n(?:REQUIREMENTS|QUALIFICATIONS|EDUCATION|EXPERIENCE)|$)',
+            ]
+            for pattern in desc_patterns:
+                desc_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if desc_match:
+                    result['description'] = desc_match.group(1).strip()[:2000]
+                    break
+            
+            # If no description found, try to get the first substantial paragraph
+            if 'description' not in result:
+                paragraphs = soup.find_all('p')
+                for p in paragraphs:
+                    p_text = p.get_text(strip=True)
+                    if len(p_text) > 150 and not any(skip in p_text.lower() for skip in ['apply', 'deadline', 'closing']):
+                        result['description'] = p_text[:2000]
+                        break
+            
+            # Extract requirements/qualifications
+            req_patterns = [
+                r'(?:Requirements?|Qualifications?|Minimum Requirements)[:\s]*\n(.{50,1500}?)(?=\n(?:Education|Experience|Benefits|Salary|How to Apply|Application|Deadline)|$)',
+                r'(?:REQUIREMENTS?|QUALIFICATIONS?|MINIMUM QUALIFICATIONS?)[:\s]*\n(.{50,1500}?)(?=\n(?:EDUCATION|EXPERIENCE|BENEFITS|SALARY)|$)',
+            ]
+            for pattern in req_patterns:
+                req_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if req_match:
+                    result['requirements'] = req_match.group(1).strip()[:1500]
+                    break
+            
+            # Extract education and experience requirements
+            edu_patterns = [
+                r'(?:Education and Experience|Education/Experience|Education & Experience)[:\s]*\n(.{30,800}?)(?=\n(?:Knowledge|Skills|Benefits|Salary|How to Apply)|$)',
+                r'(?:EDUCATION AND EXPERIENCE|EDUCATION/EXPERIENCE)[:\s]*\n(.{30,800}?)(?=\n(?:KNOWLEDGE|SKILLS|BENEFITS)|$)',
+            ]
+            for pattern in edu_patterns:
+                edu_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if edu_match:
+                    edu_text = edu_match.group(1).strip()
+                    if 'requirements' in result:
+                        result['requirements'] += '\n\nEducation and Experience:\n' + edu_text
+                    else:
+                        result['requirements'] = edu_text[:1500]
+                    break
+            
+            # Extract benefits
+            benefits_patterns = [
+                r'(?:Benefits?|We Offer|Compensation and Benefits)[:\s]*\n(.{30,800}?)(?=\n(?:How to Apply|Application|Equal|$))',
+                r'(?:BENEFITS?|COMPENSATION)[:\s]*\n(.{30,800}?)(?=\n(?:HOW TO APPLY|APPLICATION|EQUAL)|$)',
+            ]
+            for pattern in benefits_patterns:
+                benefits_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if benefits_match:
+                    result['benefits'] = benefits_match.group(1).strip()[:800]
+                    break
+            
+            # Check for remote work indicators
+            if re.search(r'\b(remote|work from home|telecommute|hybrid)\b', text, re.IGNORECASE):
+                result['is_remote'] = True
+            
+            return result
+        except Exception as e:
+            self.logger.debug(f"Error fetching EdJoin job details from {url}: {e}")
+            return result

@@ -5,8 +5,10 @@ Scrapes 4 government agencies: County of Humboldt, Eureka, Fortuna, Yurok Tribe
 Uses Playwright for JavaScript rendering since NEOGOV loads jobs dynamically.
 """
 import re
+import time
 from datetime import datetime, timedelta
 from typing import List, Optional
+from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright, Page
 
 from .base import BaseScraper, JobData
@@ -51,7 +53,7 @@ class NEOGOVScraper(BaseScraper):
     
     def scrape(self) -> List[JobData]:
         """
-        Scrape all NEOGOV pages using Playwright.
+        Scrape all NEOGOV pages using Playwright with full detail fetching.
         
         Returns:
             List of JobData objects from all government sources
@@ -68,6 +70,15 @@ class NEOGOVScraper(BaseScraper):
                 
                 try:
                     jobs = self._scrape_source(page, source_key, source_config)
+                    
+                    # Fetch details for each job
+                    self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
+                    for job in jobs:
+                        details = self._fetch_job_details(page, job.url)
+                        if details:
+                            self.apply_detail_data(job, details)
+                        time.sleep(0.5)  # Be polite
+                    
                     all_jobs.extend(jobs)
                     self.logger.info(f"  Found {len(jobs)} jobs from {source_config['name']}")
                 except Exception as e:
@@ -78,6 +89,10 @@ class NEOGOVScraper(BaseScraper):
             browser.close()
         
         self.logger.info(f"Total NEOGOV jobs scraped: {len(all_jobs)}")
+        
+        # Enrich all jobs with parsed salary and experience detection
+        self.enrich_jobs(all_jobs)
+        
         return all_jobs
     
     def _scrape_source(self, page: Page, source_key: str, config: dict) -> List[JobData]:
@@ -442,3 +457,110 @@ class NEOGOVScraper(BaseScraper):
             pass
         
         return None
+    
+    def _fetch_job_details(self, page: Page, url: str) -> dict:
+        """
+        Fetch detailed job information from a NEOGOV job detail page.
+        
+        Args:
+            page: Playwright page object
+            url: URL of the job posting
+            
+        Returns:
+            Dictionary with extracted details
+        """
+        result = {}
+        try:
+            page.goto(url, wait_until='networkidle', timeout=30000)
+            page.wait_for_timeout(2000)
+            
+            html = page.content()
+            soup = BeautifulSoup(html, 'lxml')
+            
+            # Extract full job description
+            desc_elem = soup.select_one('#job-description-details, .job-posting__description, [data-testid="job-description"]')
+            if desc_elem:
+                result['description'] = desc_elem.get_text(strip=True, separator=' ')[:2000]
+            
+            # Extract requirements/qualifications
+            for selector in ['#requirements', '.job-posting__qualifications', '#minimum-qualifications', '#qualifications']:
+                req_elem = soup.select_one(selector)
+                if req_elem:
+                    result['requirements'] = req_elem.get_text(strip=True, separator=' ')[:1000]
+                    break
+            
+            # Extract from labeled sections
+            text = page.inner_text('body')
+            
+            # Look for Minimum Qualifications section
+            if 'requirements' not in result:
+                min_qual_match = re.search(
+                    r'(?:Minimum|Required)\s+Qualifications?[:\s]*(.{50,1000}?)(?=Desired|Preferred|Benefits|Supplemental|How to Apply|$)',
+                    text,
+                    re.IGNORECASE | re.DOTALL
+                )
+                if min_qual_match:
+                    result['requirements'] = min_qual_match.group(1).strip()[:1000]
+            
+            # Extract benefits
+            benefits_match = re.search(
+                r'(?:Benefits?|We\s+Offer)[:\s]*(.{50,500}?)(?=Supplemental|How to Apply|Equal|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if benefits_match:
+                result['benefits'] = benefits_match.group(1).strip()[:500]
+            
+            # Extract department
+            dept_match = re.search(r'(?:Department|Division|Unit)[:\s]*([^\n]{3,50})', text, re.IGNORECASE)
+            if dept_match:
+                result['department'] = dept_match.group(1).strip()
+            
+            return result
+        except Exception as e:
+            self.logger.debug(f"Error fetching NEOGOV job details from {url}: {e}")
+            return result
+    
+    def scrape_with_details(self) -> List[JobData]:
+        """
+        Scrape all NEOGOV pages with full detail fetching.
+        This is slower but gets more complete data.
+        
+        Returns:
+            List of JobData objects with full details
+        """
+        all_jobs = []
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context(user_agent=USER_AGENT)
+            page = context.new_page()
+            
+            for source_key, source_config in self.sources.items():
+                self.logger.info(f"Scraping {source_config['name']} (with details)...")
+                
+                try:
+                    jobs = self._scrape_source(page, source_key, source_config)
+                    
+                    # Fetch details for each job
+                    self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
+                    for job in jobs:
+                        details = self._fetch_job_details(page, job.url)
+                        if details:
+                            self.apply_detail_data(job, details)
+                        time.sleep(0.5)  # Be polite
+                    
+                    all_jobs.extend(jobs)
+                    self.logger.info(f"  Found {len(jobs)} jobs from {source_config['name']}")
+                except Exception as e:
+                    self.logger.error(f"  Error scraping {source_key}: {e}")
+                
+                self.delay()
+            
+            browser.close()
+        
+        # Enrich all jobs
+        self.enrich_jobs(all_jobs)
+        
+        self.logger.info(f"Total NEOGOV jobs scraped: {len(all_jobs)}")
+        return all_jobs

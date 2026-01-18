@@ -70,6 +70,9 @@ class RCEAScraper(BaseScraper):
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -147,6 +150,9 @@ class FoodForPeopleScraper(BaseScraper):
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -200,6 +206,9 @@ class BGCRedwoodsScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -257,6 +266,9 @@ class KokatatScraper(BaseScraper):
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -310,6 +322,9 @@ class LostCoastBreweryScraper(BaseScraper):
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -362,6 +377,9 @@ class MurphysMarketsScraper(BaseScraper):
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -413,6 +431,9 @@ class CypressGroveScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -474,6 +495,9 @@ class DriscollsScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -540,6 +564,9 @@ class WinCoFoodsScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -599,6 +626,9 @@ class GroceryOutletScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -662,6 +692,9 @@ class HarborFreightScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -729,6 +762,9 @@ class AceHardwareScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -779,6 +815,9 @@ class SierraPacificScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -845,6 +884,9 @@ class CVSHealthScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -906,6 +948,9 @@ class RiteAidScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -970,6 +1015,9 @@ class StarbucksScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -1031,6 +1079,9 @@ class FedExScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -1117,6 +1168,9 @@ class UPSScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -1178,6 +1232,9 @@ class PGEScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -1245,6 +1302,9 @@ class HumboldtSawmillScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -1314,6 +1374,9 @@ class HumboldtCreameryScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -1368,6 +1431,9 @@ class AlexandreFamilyFarmScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -1434,6 +1500,9 @@ class PacificSeafoodScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -1512,6 +1581,9 @@ class ArcataHouseScraper(BaseScraper):
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -1562,6 +1634,9 @@ class PiersonBuildingScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -1645,6 +1720,9 @@ class CCraneScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -1751,6 +1829,9 @@ class JonesFamilyTreeServiceScraper(BaseScraper):
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs

@@ -88,6 +88,9 @@ class ArcataScraper(BaseScraper):
             except Exception as e:
                 self.logger.warning(f"Error parsing row: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         return jobs
     
     def _parse_row(self, row) -> Optional[JobData]:

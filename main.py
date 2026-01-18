@@ -58,6 +58,54 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def run_ai_qa_review(session) -> dict:
+    """
+    Run AI QA review on active jobs to catch false positives.
+    
+    This reviews job TITLES using Gemini AI and auto-quarantines bad ones.
+    
+    Args:
+        session: Database session
+        
+    Returns:
+        Dict with QA results
+    """
+    import os
+    
+    api_key = os.getenv('GEMINI_API_KEY')
+    if not api_key:
+        # Try loading from .env
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+            api_key = os.getenv('GEMINI_API_KEY')
+        except ImportError:
+            pass
+    
+    if not api_key:
+        print("\n  ⚠️  Skipping AI QA review (GEMINI_API_KEY not found)")
+        return {"skipped": True}
+    
+    try:
+        from processing.agents.orchestrator import Orchestrator
+        
+        print("\n  🤖 Running AI QA review on job titles...")
+        orchestrator = Orchestrator(api_key)
+        results = orchestrator.run_qa_review(session, auto_quarantine=True)
+        
+        if results.get("quarantined", 0) > 0:
+            print(f"    ❌ Quarantined {results['quarantined']} false positives")
+        else:
+            print(f"    ✓ All {results.get('approved', 0)} job titles look valid")
+        
+        return results
+        
+    except Exception as e:
+        logger.error(f"AI QA review failed: {e}")
+        print(f"\n  ⚠️  AI QA review failed: {e}")
+        return {"error": str(e)}
+
+
 def save_jobs(jobs: List[JobData], session, normalizer: CategoryNormalizer) -> tuple:
     """
     Save jobs to database with category normalization.
@@ -97,7 +145,16 @@ def save_jobs(jobs: List[JobData], session, normalizer: CategoryNormalizer) -> t
             existing.location = normalized_location
             existing.description = job_data.description
             existing.salary_text = job_data.salary_text
+            existing.salary_min = job_data.salary_min
+            existing.salary_max = job_data.salary_max
+            existing.salary_type = job_data.salary_type
             existing.job_type = job_data.job_type
+            existing.experience_level = job_data.experience_level
+            existing.education_required = job_data.education_required
+            existing.requirements = job_data.requirements
+            existing.benefits = job_data.benefits
+            existing.department = job_data.department
+            existing.is_remote = job_data.is_remote
             existing.posted_date = job_data.posted_date
             existing.closing_date = job_data.closing_date
             existing.updated_at = datetime.utcnow()
@@ -116,7 +173,16 @@ def save_jobs(jobs: List[JobData], session, normalizer: CategoryNormalizer) -> t
                 url=job_data.url,
                 description=job_data.description,
                 salary_text=job_data.salary_text,
+                salary_min=job_data.salary_min,
+                salary_max=job_data.salary_max,
+                salary_type=job_data.salary_type,
                 job_type=job_data.job_type,
+                experience_level=job_data.experience_level,
+                education_required=job_data.education_required,
+                requirements=job_data.requirements,
+                benefits=job_data.benefits,
+                department=job_data.department,
+                is_remote=job_data.is_remote,
                 posted_date=job_data.posted_date,
                 closing_date=job_data.closing_date,
             )
@@ -301,6 +367,9 @@ def run_scrapers(sources: Optional[List[str]] = None):
     # Update employer counts
     update_employer_counts(session)
     
+    # Run AI QA review on new/updated jobs
+    qa_results = run_ai_qa_review(session)
+    
     # Deactivate stale jobs (not updated in 7+ days)
     from datetime import timedelta
     stale_cutoff = datetime.utcnow() - timedelta(days=7)
@@ -327,6 +396,8 @@ def run_scrapers(sources: Optional[List[str]] = None):
     print(f"    Jobs updated:        {total_updated}")
     if jobs_deactivated > 0:
         print(f"    Jobs deactivated:    {jobs_deactivated} (stale)")
+    if qa_results.get("quarantined", 0) > 0:
+        print(f"    QA quarantined:      {qa_results['quarantined']} (false positives)")
     
     # Show database stats
     active_count = session.query(Job).filter(Job.is_active == True).count()
@@ -515,6 +586,198 @@ def show_stats():
     session.close()
 
 
+def run_ai_qa(auto_quarantine: bool = False):
+    """Run AI-powered QA review on all jobs."""
+    from processing import get_orchestrator
+    from processing.agents.qa_agent import JobRecord
+    
+    init_db()
+    session = get_session()
+    
+    print("\n" + "=" * 60)
+    print("  AI DATA QUALITY REVIEW")
+    print("  Powered by Gemini AI - QA Agent")
+    print("=" * 60 + "\n")
+    
+    # Load all active jobs
+    jobs = session.query(Job).filter(Job.is_active == True).all()
+    print(f"  Reviewing {len(jobs)} active jobs...\n")
+    
+    # Convert to JobRecord format
+    job_records = [
+        JobRecord(
+            id=j.id,
+            title=j.title,
+            employer=j.employer,
+            location=j.location or "",
+            url=j.url,
+            salary=j.salary_text,
+            description=j.description,
+            source_name=j.source_name
+        )
+        for j in jobs
+    ]
+    
+    # Run QA
+    orchestrator = get_orchestrator()
+    results = orchestrator.quick_qa(job_records)
+    
+    approved = len(results.get("approved", []))
+    quarantined = results.get("quarantined", [])
+    flagged = results.get("flagged", [])
+    
+    print(f"  ✅ Approved: {approved}")
+    print(f"  ❌ Quarantine: {len(quarantined)}")
+    print(f"  ⚠️  Flagged for review: {len(flagged)}")
+    
+    if quarantined:
+        print("\n  QUARANTINED (false positives):")
+        print("-" * 50)
+        for response in quarantined:
+            job_id = response.details.get("job_id")
+            job = session.query(Job).filter(Job.id == job_id).first()
+            if job:
+                print(f"    ID {job_id}: \"{job.title}\" at {job.employer}")
+                if response.recommendations:
+                    print(f"      Reason: {response.recommendations[0]}")
+        
+        if auto_quarantine:
+            print("\n  Auto-quarantining...")
+            for response in quarantined:
+                job_id = response.details.get("job_id")
+                job = session.query(Job).filter(Job.id == job_id).first()
+                if job:
+                    session.delete(job)
+            session.commit()
+            print(f"  ✅ Removed {len(quarantined)} false positives")
+    
+    if flagged:
+        print("\n  FLAGGED FOR MANUAL REVIEW:")
+        print("-" * 50)
+        for response in flagged[:10]:  # Show first 10
+            job_id = response.details.get("job_id")
+            job = session.query(Job).filter(Job.id == job_id).first()
+            if job:
+                print(f"    ID {job_id}: \"{job.title}\" at {job.employer}")
+    
+    print("\n" + "=" * 60 + "\n")
+    session.close()
+
+
+def run_ai_debug(scraper_name: str):
+    """Run AI-powered scraper debugging."""
+    from processing import get_engineer_agent
+    
+    print("\n" + "=" * 60)
+    print(f"  AI SCRAPER DEBUG: {scraper_name}")
+    print("  Powered by Gemini AI - Engineer Agent")
+    print("=" * 60 + "\n")
+    
+    engineer = get_engineer_agent()
+    
+    # Try to get the scraper code
+    scraper_code = None
+    try:
+        import importlib
+        module = importlib.import_module(f"scrapers.{scraper_name}")
+        import inspect
+        for name, obj in inspect.getmembers(module):
+            if inspect.isclass(obj) and 'Scraper' in name:
+                scraper_code = inspect.getsource(obj)
+                break
+    except Exception as e:
+        print(f"  Could not load scraper code: {e}")
+    
+    response = engineer.process({
+        "action": "diagnose",
+        "scraper_name": scraper_name,
+        "code": scraper_code,
+        "actual_jobs": 0
+    })
+    
+    print(f"  Diagnosis: {response.summary}")
+    print(f"  Root Cause: {response.details.get('root_cause', 'Unknown')}")
+    print(f"  Confidence: {response.confidence:.0%}")
+    
+    if response.recommendations:
+        print("\n  Recommendations:")
+        for rec in response.recommendations:
+            print(f"    • {rec}")
+    
+    if response.details.get("code_fix"):
+        print("\n  Suggested Code Fix:")
+        print("-" * 50)
+        print(response.details["code_fix"])
+    
+    print("\n" + "=" * 60 + "\n")
+
+
+def run_ai_analysis():
+    """Run AI-powered market analysis."""
+    from processing import get_analyst_agent
+    from processing.agents.analyst_agent import JobStats
+    from sqlalchemy import func
+    from collections import Counter
+    
+    init_db()
+    session = get_session()
+    
+    print("\n" + "=" * 60)
+    print("  AI MARKET ANALYSIS")
+    print("  Powered by Gemini AI - Analyst Agent")
+    print("=" * 60 + "\n")
+    
+    # Build stats
+    jobs = session.query(Job).filter(Job.is_active == True).all()
+    
+    stats = JobStats(
+        total_jobs=len(jobs),
+        jobs_by_category=dict(Counter(j.category for j in jobs)),
+        jobs_by_employer=dict(Counter(j.employer for j in jobs)),
+        jobs_by_location=dict(Counter(j.location for j in jobs if j.location)),
+        jobs_with_salary=sum(1 for j in jobs if j.salary_text),
+        new_jobs_today=session.query(Job).filter(
+            Job.is_active == True,
+            func.date(Job.scraped_at) == func.date(func.now())
+        ).count(),
+        jobs_removed_today=0
+    )
+    
+    analyst = get_analyst_agent()
+    response = analyst.analyze_current_state(stats)
+    
+    print(f"  {response.summary}\n")
+    
+    insights = response.details.get("insights", [])
+    if insights:
+        print("  KEY INSIGHTS:")
+        for insight in insights:
+            print(f"    • {insight}")
+    
+    anomalies = response.details.get("anomalies", [])
+    if anomalies:
+        print("\n  ANOMALIES DETECTED:")
+        for anomaly in anomalies:
+            severity = anomaly.get("severity", "MEDIUM")
+            print(f"    [{severity}] {anomaly.get('description', 'Unknown')}")
+    
+    trends = response.details.get("trends", {})
+    if trends:
+        print("\n  TRENDS:")
+        if trends.get("growing"):
+            print(f"    📈 Growing: {', '.join(trends['growing'])}")
+        if trends.get("declining"):
+            print(f"    📉 Declining: {', '.join(trends['declining'])}")
+    
+    if response.recommendations:
+        print("\n  RECOMMENDATIONS:")
+        for rec in response.recommendations:
+            print(f"    • {rec}")
+    
+    print("\n" + "=" * 60 + "\n")
+    session.close()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Humboldt County Jobs Aggregator",
@@ -528,6 +791,12 @@ Examples:
     python main.py --stats              Show statistics
     python main.py --check              Check for anomalies in data
     python main.py --check --clean      Auto-delete anomalies
+    
+AI Agent Commands:
+    python main.py --ai-qa              AI reviews data quality
+    python main.py --ai-qa --clean      AI reviews and auto-removes false positives
+    python main.py --ai-debug sohum     AI debugs a failing scraper
+    python main.py --ai-analyze         AI analyzes job market trends
         """
     )
     
@@ -606,9 +875,36 @@ Examples:
         help='Automatically delete high-severity anomalies'
     )
     
+    # AI Agent arguments
+    parser.add_argument(
+        '--ai-qa',
+        action='store_true',
+        help='Run AI-powered QA review on all jobs'
+    )
+    
+    parser.add_argument(
+        '--ai-debug',
+        type=str,
+        metavar='SCRAPER',
+        help='AI debugs a specific scraper (e.g., --ai-debug sohum)'
+    )
+    
+    parser.add_argument(
+        '--ai-analyze',
+        action='store_true',
+        help='AI analyzes job market trends and anomalies'
+    )
+    
     args = parser.parse_args()
     
-    if args.list:
+    # Handle AI commands first
+    if args.ai_qa:
+        run_ai_qa(auto_quarantine=args.clean)
+    elif args.ai_debug:
+        run_ai_debug(args.ai_debug)
+    elif args.ai_analyze:
+        run_ai_analysis()
+    elif args.list:
         list_jobs(
             limit=args.limit,
             category=args.category,

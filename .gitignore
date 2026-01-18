@@ -26,4 +26,14 @@ Thumbs.db
 # Logs
 *.log
 
+# Environment variables (local testing)
+.env
+.env.local
+
+# Node modules (local dev dependencies)
+node_modules/
+
 # Note: dist/ is NOT ignored because we commit it for Netlify deployment
+
+# Local Netlify folder
+.netlify

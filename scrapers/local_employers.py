@@ -149,6 +149,9 @@ class ADPScraper(BaseScraper):
             finally:
                 browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
     
@@ -309,6 +312,9 @@ class PaycomScraper(BaseScraper):
             finally:
                 browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
     
@@ -393,6 +399,9 @@ class EnterTimeOnlineScraper(BaseScraper):
                 self.logger.error(f"Error scraping {self.employer_name}: {e}")
             finally:
                 browser.close()
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -508,13 +517,14 @@ class UKGScraper(BaseScraper):
                 html = page.content()
                 jobs = self._parse_html(html)
                 
-                # Fetch salary for each job from detail pages
-                self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+                # Fetch full details for each job from detail pages
+                self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
                 for job in jobs:
-                    salary = self._fetch_job_salary(page, job.url)
-                    if salary:
-                        job.salary_text = salary
-                        self.logger.debug(f"    Found salary for {job.title}: {salary}")
+                    details = self._fetch_job_details(page, job.url)
+                    if details:
+                        self.apply_detail_data(job, details)
+                        if details.get('salary_text'):
+                            self.logger.debug(f"    Found salary for {job.title}: {details['salary_text']}")
                     import time
                     time.sleep(0.5)
                 
@@ -523,22 +533,24 @@ class UKGScraper(BaseScraper):
             finally:
                 browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
     
-    def _fetch_job_salary(self, page, url: str) -> Optional[str]:
+    def _fetch_job_details(self, page, url: str) -> dict:
         """
-        Fetch salary from UKG job detail page.
-        
-        UKG shows salary as "Hourly Range: $17.11 USD to $21.40 USD"
+        Fetch full job details from UKG job detail page.
         """
+        result = {}
         try:
             page.goto(url, wait_until='domcontentloaded', timeout=20000)
             page.wait_for_timeout(2000)
             
             text = page.inner_text('body')
             
-            # Pattern 1: "Hourly Range: $17.11 USD to $21.40 USD"
+            # Extract salary - Pattern 1: "Hourly Range: $17.11 USD to $21.40 USD"
             salary_match = re.search(
                 r'Hourly\s*Range[:\s]*\$([\d.]+)\s*(?:USD)?\s*to\s*\$([\d.]+)\s*(?:USD)?',
                 text,
@@ -546,33 +558,63 @@ class UKGScraper(BaseScraper):
             )
             if salary_match:
                 low, high = salary_match.groups()
-                return f"${low} - ${high}/hr"
+                result['salary_text'] = f"${low} - ${high}/hr"
+            else:
+                # Pattern 2: "Salary Range: $X to $Y"
+                salary_match = re.search(
+                    r'(?:Salary|Pay)\s*Range[:\s]*\$([\d,.]+)\s*(?:USD)?\s*to\s*\$([\d,.]+)\s*(?:USD)?',
+                    text,
+                    re.IGNORECASE
+                )
+                if salary_match:
+                    low, high = salary_match.groups()
+                    try:
+                        low_val = float(low.replace(',', ''))
+                        if low_val < 200:
+                            result['salary_text'] = f"${low} - ${high}/hr"
+                        else:
+                            result['salary_text'] = f"${low} - ${high}/yr"
+                    except:
+                        result['salary_text'] = f"${low} - ${high}"
+                elif re.search(r'Starting wage is based upon', text, re.IGNORECASE):
+                    result['salary_text'] = "Based on Experience"
             
-            # Pattern 2: "Salary Range: $X to $Y"
-            salary_match = re.search(
-                r'(?:Salary|Pay)\s*Range[:\s]*\$([\d,.]+)\s*(?:USD)?\s*to\s*\$([\d,.]+)\s*(?:USD)?',
+            # Extract description
+            desc_match = re.search(
+                r'(?:Job\s+Description|Overview|Summary|About\s+(?:the|this)\s+Position)[:\s]*(.{100,2000}?)(?=(?:Requirements|Qualifications|Minimum|Skills|Benefits|Education)|$)',
                 text,
-                re.IGNORECASE
+                re.IGNORECASE | re.DOTALL
             )
-            if salary_match:
-                low, high = salary_match.groups()
-                try:
-                    low_val = float(low.replace(',', ''))
-                    if low_val < 200:
-                        return f"${low} - ${high}/hr"
-                    else:
-                        return f"${low} - ${high}/yr"
-                except:
-                    return f"${low} - ${high}"
+            if desc_match:
+                result['description'] = desc_match.group(1).strip()[:2000]
             
-            # Pattern 3: "Starting wage is based upon..." (union position)
-            if re.search(r'Starting wage is based upon', text, re.IGNORECASE):
-                return "Based on Experience"
+            # Extract requirements
+            req_match = re.search(
+                r'(?:Requirements?|Qualifications?|Minimum\s+Requirements?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|Application|How to Apply)|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if req_match:
+                result['requirements'] = req_match.group(1).strip()[:1500]
             
-            return None
+            # Extract benefits
+            benefits_match = re.search(
+                r'(?:Benefits?|We\s+Offer)[:\s]*(.{30,800}?)(?=(?:Apply|Equal|About)|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if benefits_match:
+                result['benefits'] = benefits_match.group(1).strip()[:800]
+            
+            return result
         except Exception as e:
-            self.logger.debug(f"Error fetching salary from {url}: {e}")
-            return None
+            self.logger.debug(f"Error fetching details from {url}: {e}")
+            return result
+    
+    def _fetch_job_salary(self, page, url: str) -> Optional[str]:
+        """Fetch salary from UKG job detail page (legacy method)"""
+        details = self._fetch_job_details(page, url)
+        return details.get('salary_text')
     
     def _parse_html(self, html: str) -> List[JobData]:
         soup = BeautifulSoup(html, 'lxml')

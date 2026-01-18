@@ -82,38 +82,41 @@ class DollarGeneralScraper(BaseScraper):
                 self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
                 break
         
-        # Fetch salary for each job from detail pages
+        # Fetch full details for each job from detail pages
         if jobs:
-            self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+            self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page_obj = browser.new_page(user_agent=USER_AGENT)
                 
                 for job in jobs:
-                    salary = self._fetch_job_salary(page_obj, job.url)
-                    if salary:
-                        job.salary_text = salary
-                        self.logger.debug(f"    Found salary for {job.title}: {salary}")
+                    details = self._fetch_job_details(page_obj, job.url)
+                    if details:
+                        self.apply_detail_data(job, details)
+                        if details.get('salary_text'):
+                            self.logger.debug(f"    Found salary for {job.title}: {details['salary_text']}")
                     time.sleep(0.5)
                 
                 browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
     
-    def _fetch_job_salary(self, page, url: str) -> Optional[str]:
+    def _fetch_job_details(self, page, url: str) -> dict:
         """
-        Fetch salary from Dollar General job detail page.
-        
-        Dollar General shows salary as "New Hire Starting Pay Range: X.XX - Y.YY"
+        Fetch full details from Dollar General job detail page.
         """
+        result = {}
         try:
             page.goto(url, wait_until='domcontentloaded', timeout=30000)
             page.wait_for_timeout(3000)  # Wait for JS to render
             
             text = page.inner_text('body')
             
-            # Pattern: "New Hire Starting Pay Range: 16.90 - 17.00"
+            # Extract salary - Pattern: "New Hire Starting Pay Range: 16.90 - 17.00"
             salary_match = re.search(
                 r'(?:New\s+Hire\s+)?(?:Starting\s+)?Pay\s+Range[:\s]*([\d.]+)\s*[-–]\s*([\d.]+)',
                 text,
@@ -121,27 +124,51 @@ class DollarGeneralScraper(BaseScraper):
             )
             if salary_match:
                 low, high = salary_match.groups()
-                return f"${low} - ${high}/hr"
+                result['salary_text'] = f"${low} - ${high}/hr"
+            else:
+                # Fallback: look for any dollar range
+                salary_match = re.search(
+                    r'\$([\d.]+)\s*[-–]\s*\$([\d.]+)\s*(?:/hr|hourly|per hour)?',
+                    text,
+                    re.IGNORECASE
+                )
+                if salary_match:
+                    low, high = salary_match.groups()
+                    try:
+                        if float(low) < 100:  # Likely hourly
+                            result['salary_text'] = f"${low} - ${high}/hr"
+                        else:
+                            result['salary_text'] = f"${low} - ${high}"
+                    except:
+                        result['salary_text'] = f"${low} - ${high}"
             
-            # Fallback: look for any dollar range
-            salary_match = re.search(
-                r'\$([\d.]+)\s*[-–]\s*\$([\d.]+)\s*(?:/hr|hourly|per hour)?',
+            # Extract description
+            desc_match = re.search(
+                r'(?:Job\s+Description|Overview|Summary|About)[:\s]*(.{100,2000}?)(?=(?:Requirements|Qualifications|Benefits|How to Apply)|$)',
                 text,
-                re.IGNORECASE
+                re.IGNORECASE | re.DOTALL
             )
-            if salary_match:
-                low, high = salary_match.groups()
-                try:
-                    if float(low) < 100:  # Likely hourly
-                        return f"${low} - ${high}/hr"
-                except:
-                    pass
-                return f"${low} - ${high}"
+            if desc_match:
+                result['description'] = desc_match.group(1).strip()[:2000]
             
-            return None
+            # Extract requirements
+            req_match = re.search(
+                r'(?:Requirements?|Qualifications?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|Apply)|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if req_match:
+                result['requirements'] = req_match.group(1).strip()[:1500]
+            
+            return result
         except Exception as e:
-            self.logger.debug(f"Error fetching salary from {url}: {e}")
-            return None
+            self.logger.debug(f"Error fetching details from {url}: {e}")
+            return result
+    
+    def _fetch_job_salary(self, page, url: str) -> Optional[str]:
+        """Legacy method for backwards compatibility"""
+        details = self._fetch_job_details(page, url)
+        return details.get('salary_text')
 
     def _parse_job(self, data: dict) -> Optional[JobData]:
         try:
@@ -272,6 +299,9 @@ class WalgreensScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
     
@@ -372,6 +402,9 @@ class TJMaxxScraper(BaseScraper):
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -450,6 +483,9 @@ class CostcoScraper(BaseScraper):
                     
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -553,6 +589,9 @@ class SafewayScraper(BaseScraper):
                 self.logger.error(f"Error fetching jobs from {self.employer_name} ({location_name}): {e}")
             
             time.sleep(REQUEST_DELAY)
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -674,6 +713,9 @@ class WalmartScraper(BaseScraper):
                     
         except Exception as e:
             self.logger.error(f"Error fetching jobs from {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs

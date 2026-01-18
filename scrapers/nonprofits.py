@@ -133,6 +133,9 @@ class RRHCScraper(BaseScraper):
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
 
@@ -225,6 +228,9 @@ class TwoFeathersScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs
@@ -346,6 +352,9 @@ class ChangingTidesScraper(BaseScraper):
             
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
         return jobs

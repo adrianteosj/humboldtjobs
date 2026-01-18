@@ -58,6 +58,10 @@ class ProvidenceScraper(BaseScraper):
                 unique_jobs.append(job)
         
         self.logger.info(f"  Found {len(unique_jobs)} unique jobs from Providence")
+        
+        # Final enrichment pass for any jobs that weren't enriched during scraping
+        self.enrich_jobs(unique_jobs)
+        
         return unique_jobs
     
     def _scrape_location(self, page, location: str) -> List[JobData]:
@@ -105,14 +109,19 @@ class ProvidenceScraper(BaseScraper):
             
             self.delay()
         
-        # Fetch salary for each job using the same Playwright page
-        self.logger.info(f"  Fetching salary details for {len(jobs)} {location} jobs...")
+        # Fetch full details for each job using the same Playwright page
+        self.logger.info(f"  Fetching detailed info for {len(jobs)} {location} jobs...")
         for job in jobs:
-            salary = self._fetch_job_salary_page(page, job.url)
-            if salary:
-                job.salary_text = salary
-                self.logger.info(f"    Found salary for {job.title}: {salary}")
+            details = self._fetch_job_details(page, job.url)
+            if details:
+                # Apply fetched details to job
+                self.apply_detail_data(job, details)
+                if details.get('salary_text'):
+                    self.logger.info(f"    Found salary for {job.title}: {details['salary_text']}")
             time.sleep(0.3)
+        
+        # Enrich jobs with parsed salary and experience detection
+        self.enrich_jobs(jobs)
         
         return jobs
     
@@ -196,49 +205,100 @@ class ProvidenceScraper(BaseScraper):
             job_type=job_type,
         )
     
-    def _fetch_job_salary_page(self, page, url: str) -> Optional[str]:
-        """Fetch salary from individual Providence job page using Playwright"""
+    def _fetch_job_details(self, page, url: str) -> dict:
+        """Fetch detailed job information from individual Providence job page"""
+        result = {}
         try:
             page.goto(url, wait_until='domcontentloaded', timeout=30000)
             page.wait_for_timeout(3000)
             
+            html = page.content()
+            soup = BeautifulSoup(html, 'lxml')
             text = page.inner_text('body')
             
-            # Look for "Pay Range: $ X.XX - $ Y.YY" pattern (Providence format with spaces after $)
+            # Extract salary
             salary_match = re.search(
                 r'Pay\s*Range[:\s]*\$\s*[\d,.]+\s*[-–]\s*\$\s*[\d,.]+',
                 text,
                 re.IGNORECASE
             )
             if salary_match:
-                # Clean up the extracted salary (remove extra spaces)
-                salary = salary_match.group(0)
-                salary = re.sub(r'\$\s+', '$', salary)  # Remove space after $
-                return salary
-            
-            # Look for "Compensation is between $X to $Y per year" pattern
-            salary_match = re.search(
-                r'Compensation\s*(?:is\s*)?(?:between\s*)?\$[\d,]+(?:\.\d+)?\s*(?:to|[-–])\s*\$[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour)|annually|hourly)?',
-                text,
-                re.IGNORECASE
-            )
-            if salary_match:
-                return salary_match.group(0)
-            
-            # Look for generic salary range pattern
-            salary_match = re.search(
-                r'\$\s*[\d,]+(?:\.\d+)?\s*[-–]\s*\$\s*[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour|month)|annually|hourly|monthly)?',
-                text,
-                re.IGNORECASE
-            )
-            if salary_match:
                 salary = salary_match.group(0)
                 salary = re.sub(r'\$\s+', '$', salary)
-                return salary
+                result['salary_text'] = salary
+            else:
+                # Try other patterns
+                salary_match = re.search(
+                    r'Compensation\s*(?:is\s*)?(?:between\s*)?\$[\d,]+(?:\.\d+)?\s*(?:to|[-–])\s*\$[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour)|annually|hourly)?',
+                    text,
+                    re.IGNORECASE
+                )
+                if salary_match:
+                    result['salary_text'] = salary_match.group(0)
+                else:
+                    salary_match = re.search(
+                        r'\$\s*[\d,]+(?:\.\d+)?\s*[-–]\s*\$\s*[\d,]+(?:\.\d+)?\s*(?:per\s*(?:year|hour|month)|annually|hourly|monthly)?',
+                        text,
+                        re.IGNORECASE
+                    )
+                    if salary_match:
+                        salary = salary_match.group(0)
+                        result['salary_text'] = re.sub(r'\$\s+', '$', salary)
             
-            return None
-        except Exception:
-            return None
+            # Extract job description
+            desc_section = soup.select_one('.job-description, [data-automation-id="jobPostingDescription"]')
+            if desc_section:
+                result['description'] = desc_section.get_text(strip=True, separator=' ')[:2000]
+            else:
+                # Try to find description from text patterns
+                desc_match = re.search(
+                    r'(?:Description|Overview|About\s+(?:the|this)\s+Role)[:\s]*(.{100,1500}?)(?=Requirements|Qualifications|Benefits|$)',
+                    text,
+                    re.IGNORECASE | re.DOTALL
+                )
+                if desc_match:
+                    result['description'] = desc_match.group(1).strip()[:2000]
+            
+            # Extract requirements
+            req_section = soup.select_one('.requirements, .qualifications, [data-automation-id="jobPostingQualifications"]')
+            if req_section:
+                result['requirements'] = req_section.get_text(strip=True, separator=' ')[:1000]
+            else:
+                req_match = re.search(
+                    r'(?:Required\s+)?(?:Qualifications|Requirements)[:\s]*(.{50,1000}?)(?=Preferred|Benefits|About\s+Providence|$)',
+                    text,
+                    re.IGNORECASE | re.DOTALL
+                )
+                if req_match:
+                    result['requirements'] = req_match.group(1).strip()[:1000]
+            
+            # Extract benefits
+            benefits_section = soup.select_one('.benefits, [data-automation-id="jobPostingBenefits"]')
+            if benefits_section:
+                result['benefits'] = benefits_section.get_text(strip=True, separator=' ')[:500]
+            else:
+                benefits_match = re.search(
+                    r'(?:Benefits|We\s+Offer)[:\s]*(.{50,500}?)(?=About|Equal|$)',
+                    text,
+                    re.IGNORECASE | re.DOTALL
+                )
+                if benefits_match:
+                    result['benefits'] = benefits_match.group(1).strip()[:500]
+            
+            # Extract department
+            dept_match = re.search(r'(?:Department|Division|Unit)[:\s]*([^\n]{3,50})', text, re.IGNORECASE)
+            if dept_match:
+                result['department'] = dept_match.group(1).strip()
+            
+            return result
+        except Exception as e:
+            self.logger.debug(f"Error fetching job details from {url}: {e}")
+            return result
+    
+    def _fetch_job_salary_page(self, page, url: str) -> Optional[str]:
+        """Fetch salary from individual Providence job page using Playwright (legacy method)"""
+        details = self._fetch_job_details(page, url)
+        return details.get('salary_text')
 
 
 class MadRiverHospitalScraper(BaseScraper):
@@ -263,8 +323,72 @@ class MadRiverHospitalScraper(BaseScraper):
             return []
         
         jobs = self._parse_html(response.text)
+        
+        # Fetch details for jobs with unique URLs
+        self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
+        for job in jobs:
+            if job.url and job.url != self.careers_url:
+                details = self._fetch_job_details(job.url)
+                if details:
+                    self.apply_detail_data(job, details)
+                time.sleep(0.5)
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from Mad River Community Hospital")
         return jobs
+    
+    def _fetch_job_details(self, url: str) -> dict:
+        """Fetch job details from individual job page"""
+        result = {}
+        try:
+            response = self.session.get(url, timeout=10)
+            if response.status_code != 200:
+                return result
+            
+            soup = BeautifulSoup(response.text, 'lxml')
+            text = soup.get_text()
+            
+            # Extract description
+            desc_match = re.search(
+                r'(?:Description|Overview|About|Summary)[:\s]*(.{100,2000}?)(?=(?:Requirements|Qualifications|Benefits)|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if desc_match:
+                result['description'] = desc_match.group(1).strip()[:2000]
+            
+            # Extract requirements
+            req_match = re.search(
+                r'(?:Requirements?|Qualifications?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|Apply)|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if req_match:
+                result['requirements'] = req_match.group(1).strip()[:1500]
+            
+            # Extract salary
+            salary_match = re.search(
+                r'\$[\d,]+(?:\.\d{2})?\s*[-–]\s*\$[\d,]+(?:\.\d{2})?\s*(?:per\s+)?(?:hour|year|annually|hourly)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                result['salary_text'] = salary_match.group(0)
+            
+            # Extract benefits
+            benefits_match = re.search(
+                r'(?:Benefits?|We\s+Offer)[:\s]*(.{30,800}?)(?=(?:Apply|Equal|$))',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if benefits_match:
+                result['benefits'] = benefits_match.group(1).strip()[:800]
+            
+            return result
+        except Exception:
+            return result
     
     def _parse_html(self, html: str) -> List[JobData]:
         """Parse Mad River job listings"""
@@ -499,76 +623,109 @@ class KimawMedicalScraper(BaseScraper):
         
         jobs = self._parse_html(response.text)
         
-        # Fetch salary for each job from detail pages
-        self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+        # Fetch full details for each job from detail pages
+        self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
         for job in jobs:
             if job.url and job.url != self.careers_url:
-                salary = self._fetch_job_salary(job.url)
-                if salary:
-                    job.salary_text = salary
-                    self.logger.info(f"    Found salary for {job.title}: {salary}")
+                details = self._fetch_job_details(job.url)
+                if details:
+                    self.apply_detail_data(job, details)
+                    if details.get('salary_text'):
+                        self.logger.info(f"    Found salary for {job.title}: {details['salary_text']}")
                 time.sleep(0.5)
+        
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
         
         self.logger.info(f"  Found {len(jobs)} jobs from K'ima:w Medical Center")
         return jobs
     
-    def _fetch_job_salary(self, url: str) -> Optional[str]:
-        """Fetch salary from individual job page"""
+    def _fetch_job_details(self, url: str) -> dict:
+        """Fetch full details from individual job page"""
+        result = {}
         try:
             response = self.session.get(url, timeout=10)
             if response.status_code != 200:
-                return None
+                return result
             
             soup = BeautifulSoup(response.text, 'lxml')
             text = soup.get_text()
             
-            # Pattern 1: "Salary Level: Grade X ($X.XX-$Y.YY)"
+            # Extract salary
             salary_match = re.search(
                 r'Salary\s*Level[:\s]*(?:Grade\s*\d+\s*)?\(?\$[\d,.]+\s*[-–]\s*\$[\d,.]+\)?',
                 text,
                 re.IGNORECASE
             )
             if salary_match:
-                return salary_match.group(0)
-            
-            # Pattern 2: "Salary Range: $X - $Y per hour/year"
-            salary_match = re.search(
-                r'Salary\s*(?:Range)?[:\s]*\$?([\d,.]+K?)\s*[-–]\s*\$?([\d,.]+K?)\s*(?:per\s+(?:hour|year)|hourly|annually|/hr|DOE)?',
-                text,
-                re.IGNORECASE
-            )
-            if salary_match:
-                low, high = salary_match.groups()
-                # Check if it's in K format (like $160K)
-                if 'K' in low.upper() or 'K' in high.upper():
-                    return f"${low} - ${high}/yr"
-                # Check if it looks like hourly (small numbers)
-                try:
-                    low_val = float(low.replace(',', '').replace('K', '000'))
-                    if low_val < 200:
-                        return f"${low} - ${high}/hr"
+                result['salary_text'] = salary_match.group(0)
+            else:
+                # Pattern 2: "Salary Range: $X - $Y per hour/year"
+                salary_match = re.search(
+                    r'Salary\s*(?:Range)?[:\s]*\$?([\d,.]+K?)\s*[-–]\s*\$?([\d,.]+K?)\s*(?:per\s+(?:hour|year)|hourly|annually|/hr|DOE)?',
+                    text,
+                    re.IGNORECASE
+                )
+                if salary_match:
+                    low, high = salary_match.groups()
+                    if 'K' in low.upper() or 'K' in high.upper():
+                        result['salary_text'] = f"${low} - ${high}/yr"
                     else:
-                        return f"${low} - ${high}/yr"
-                except:
-                    return f"${low} - ${high}"
+                        try:
+                            low_val = float(low.replace(',', '').replace('K', '000'))
+                            if low_val < 200:
+                                result['salary_text'] = f"${low} - ${high}/hr"
+                            else:
+                                result['salary_text'] = f"${low} - ${high}/yr"
+                        except:
+                            result['salary_text'] = f"${low} - ${high}"
+                elif re.search(r'Salary\s*(?:Level)?[:\s]*DOE', text, re.IGNORECASE):
+                    result['salary_text'] = "Depends on Experience"
             
-            # Pattern 3: "Salary: $X - $Y/hr" or "$X - $Y hourly"
-            salary_match = re.search(
-                r'\$([\d,.]+)\s*[-–]\s*\$([\d,.]+)\s*(?:/hr|hourly|per hour)',
+            # Extract description
+            desc_patterns = [
+                r'(?:Position\s+Summary|Job\s+Summary|Description|Overview)[:\s]*(.{100,2000}?)(?=(?:Responsibilities|Requirements|Qualifications|Benefits|Education)|$)',
+                r'(?:POSITION\s+SUMMARY|JOB\s+SUMMARY)[:\s]*(.{100,2000}?)(?=(?:RESPONSIBILITIES|REQUIREMENTS)|$)',
+            ]
+            for pattern in desc_patterns:
+                desc_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if desc_match:
+                    result['description'] = desc_match.group(1).strip()[:2000]
+                    break
+            
+            # Extract requirements/qualifications
+            req_patterns = [
+                r'(?:Requirements?|Qualifications?|Minimum\s+Qualifications?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|Application|How to Apply)|$)',
+                r'(?:REQUIREMENTS?|QUALIFICATIONS?)[:\s]*(.{50,1500}?)(?=(?:BENEFITS|SALARY)|$)',
+            ]
+            for pattern in req_patterns:
+                req_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if req_match:
+                    result['requirements'] = req_match.group(1).strip()[:1500]
+                    break
+            
+            # Extract benefits
+            benefits_match = re.search(
+                r'(?:Benefits?|We\s+Offer)[:\s]*(.{30,800}?)(?=(?:How to Apply|Application|Equal)|$)',
                 text,
-                re.IGNORECASE
+                re.IGNORECASE | re.DOTALL
             )
-            if salary_match:
-                low, high = salary_match.groups()
-                return f"${low} - ${high}/hr"
+            if benefits_match:
+                result['benefits'] = benefits_match.group(1).strip()[:800]
             
-            # Pattern 4: "Salary Level: DOE" - Depends on Experience
-            if re.search(r'Salary\s*(?:Level)?[:\s]*DOE', text, re.IGNORECASE):
-                return "Depends on Experience"
+            # Extract department
+            dept_match = re.search(r'(?:Department|Division)[:\s]*([^\n]{3,50})', text, re.IGNORECASE)
+            if dept_match:
+                result['department'] = dept_match.group(1).strip()
             
-            return None
+            return result
         except Exception:
-            return None
+            return result
+    
+    def _fetch_job_salary(self, url: str) -> Optional[str]:
+        """Fetch salary from individual job page (legacy method)"""
+        details = self._fetch_job_details(url)
+        return details.get('salary_text')
     
     def _parse_html(self, html: str) -> List[JobData]:
         """Parse K'ima:w job listings from their table structure"""
@@ -639,33 +796,85 @@ def fetch_paycom_job_salary(page, job_url: str) -> Optional[str]:
     Returns:
         Salary text string or None
     """
+    details = fetch_paycom_job_details(page, job_url)
+    return details.get('salary_text')
+
+
+def fetch_paycom_job_details(page, job_url: str) -> dict:
+    """
+    Fetch full job details from a Paycom job detail page.
+    
+    Args:
+        page: Playwright page object
+        job_url: URL of the individual job posting
+        
+    Returns:
+        Dictionary with salary_text, description, requirements, benefits, department
+    """
+    result = {}
     try:
         page.goto(job_url, wait_until='domcontentloaded', timeout=15000)
         page.wait_for_timeout(2000)
         
         html = page.content()
         soup = BeautifulSoup(html, 'lxml')
+        text = soup.get_text()
         
-        # Look for salary patterns in the page
-        # Pattern 1: "Salary Range: $X.XX - $Y.YY Hourly"
+        # Extract salary
         salary_match = re.search(
             r'Salary\s*Range[:\s]*\$[\d,.]+\s*[-–]\s*\$[\d,.]+\s*(?:Hourly|Per Hour|Annually|Per Year)?',
-            soup.get_text(),
+            text,
             re.IGNORECASE
         )
         if salary_match:
-            return salary_match.group(0).replace('Salary Range:', '').replace('Salary Range', '').strip()
+            result['salary_text'] = salary_match.group(0).replace('Salary Range:', '').replace('Salary Range', '').strip()
+        else:
+            # Pattern 2: Just look for salary amounts
+            salary_match = re.search(r'\$[\d,.]+\s*[-–]\s*\$[\d,.]+\s*(?:Hourly|Per Hour|Annually)?', text)
+            if salary_match:
+                result['salary_text'] = salary_match.group(0)
         
-        # Pattern 2: Just look for salary amounts
-        salary_elem = soup.find(text=re.compile(r'\$\d+\.\d+\s*[-–]\s*\$\d+\.\d+'))
-        if salary_elem:
-            match = re.search(r'\$[\d,.]+\s*[-–]\s*\$[\d,.]+\s*(?:Hourly|Per Hour)?', salary_elem)
-            if match:
-                return match.group(0)
+        # Extract description - look for common section headers
+        desc_patterns = [
+            r'(?:Position\s+Overview|Job\s+Summary|Description|Overview|About\s+(?:the|this)\s+Position)[:\s]*(.{100,2000}?)(?=(?:Responsibilities|Requirements|Qualifications|Benefits|Education|Experience|How to Apply)|$)',
+            r'(?:POSITION\s+OVERVIEW|JOB\s+SUMMARY|DESCRIPTION)[:\s]*(.{100,2000}?)(?=(?:RESPONSIBILITIES|REQUIREMENTS|QUALIFICATIONS)|$)',
+        ]
+        for pattern in desc_patterns:
+            desc_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+            if desc_match:
+                result['description'] = desc_match.group(1).strip()[:2000]
+                break
         
-        return None
+        # Extract requirements
+        req_patterns = [
+            r'(?:Requirements?|Qualifications?|Minimum\s+Requirements?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|Education|How to Apply|About\s+(?:Us|the\s+Company))|$)',
+            r'(?:REQUIREMENTS?|QUALIFICATIONS?|MINIMUM\s+REQUIREMENTS?)[:\s]*(.{50,1500}?)(?=(?:BENEFITS|SALARY|EDUCATION)|$)',
+        ]
+        for pattern in req_patterns:
+            req_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+            if req_match:
+                result['requirements'] = req_match.group(1).strip()[:1500]
+                break
+        
+        # Extract benefits
+        benefits_patterns = [
+            r'(?:Benefits?|We\s+Offer|Compensation)[:\s]*(.{30,800}?)(?=(?:How to Apply|Equal|About\s+(?:Us|the\s+Company))|$)',
+            r'(?:BENEFITS?|WE\s+OFFER|COMPENSATION)[:\s]*(.{30,800}?)(?=(?:HOW TO APPLY|EQUAL)|$)',
+        ]
+        for pattern in benefits_patterns:
+            benefits_match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+            if benefits_match:
+                result['benefits'] = benefits_match.group(1).strip()[:800]
+                break
+        
+        # Extract department
+        dept_match = re.search(r'(?:Department|Division)[:\s]*([^\n]{3,50})', text, re.IGNORECASE)
+        if dept_match:
+            result['department'] = dept_match.group(1).strip()
+        
+        return result
     except Exception:
-        return None
+        return result
 
 
 class HospiceOfHumboldtScraper(BaseScraper):
@@ -697,13 +906,25 @@ class HospiceOfHumboldtScraper(BaseScraper):
                 # Parse job listings
                 jobs = self._parse_html(html)
                 
-                # Fetch salary for each job
-                self.logger.info(f"  Fetching salary details for {len(jobs)} jobs...")
+                # Fetch full details for each job
+                self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
                 for job in jobs:
-                    salary = fetch_paycom_job_salary(page, job.url)
-                    if salary:
-                        job.salary_text = salary
+                    details = fetch_paycom_job_details(page, job.url)
+                    if details:
+                        if details.get('salary_text'):
+                            job.salary_text = details['salary_text']
+                        if details.get('description'):
+                            job.description = details['description']
+                        if details.get('requirements'):
+                            job.requirements = details['requirements']
+                        if details.get('benefits'):
+                            job.benefits = details['benefits']
+                        if details.get('department'):
+                            job.department = details['department']
                     time.sleep(0.5)
+                
+                # Enrich jobs with parsed salary and experience
+                self.enrich_jobs(jobs)
                 
                 browser.close()
         except Exception as e:
@@ -935,10 +1156,10 @@ class HumboldtSeniorResourceScraper(BaseScraper):
                         self.logger.warning(f"  Pagination error: {e}")
                         break
                 
-                # PHASE 2: Fetch salary for each job
-                self.logger.info(f"  Fetching salary for {len(job_data_list)} jobs...")
+                # PHASE 2: Fetch full details for each job
+                self.logger.info(f"  Fetching details for {len(job_data_list)} jobs...")
                 for job_data in job_data_list:
-                    salary_text = fetch_paycom_job_salary(page, job_data['href'])
+                    details = fetch_paycom_job_details(page, job_data['href'])
                     
                     job = JobData(
                         source_id=f"hsrc_{hash(job_data['href']) % 100000}",
@@ -949,14 +1170,20 @@ class HumboldtSeniorResourceScraper(BaseScraper):
                         category="Healthcare",
                         location=job_data['location'],
                         job_type=job_data['job_type'],
-                        description=job_data['description'],
-                        salary_text=salary_text,
+                        description=details.get('description') or job_data['description'],
+                        salary_text=details.get('salary_text'),
+                        requirements=details.get('requirements'),
+                        benefits=details.get('benefits'),
+                        department=details.get('department'),
                     )
                     if self.validate_job(job):
                         jobs.append(job)
-                        if salary_text:
-                            self.logger.info(f"    Found salary for {job_data['title']}: {salary_text}")
+                        if details.get('salary_text'):
+                            self.logger.info(f"    Found salary for {job_data['title']}: {details['salary_text']}")
                     time.sleep(0.5)
+                
+                # Enrich jobs with parsed salary and experience
+                self.enrich_jobs(jobs)
                 
                 browser.close()
                 
@@ -1142,13 +1369,65 @@ class SoHumHealthScraper(BaseScraper):
                 html = page.content()
                 jobs = self._parse_html(html)
                 
+                # Fetch details for jobs with unique URLs
+                self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
+                for job in jobs:
+                    if job.url and job.url != self.careers_url:
+                        details = self._fetch_job_details(page, job.url)
+                        if details:
+                            self.apply_detail_data(job, details)
+                        time.sleep(0.5)
+                
             except Exception as e:
                 self.logger.error(f"Error scraping SoHum Health: {e}")
             finally:
                 browser.close()
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         self.logger.info(f"  Found {len(jobs)} jobs from SoHum Health")
         return jobs
+    
+    def _fetch_job_details(self, page, url: str) -> dict:
+        """Fetch job details from individual job page"""
+        result = {}
+        try:
+            page.goto(url, wait_until='domcontentloaded', timeout=15000)
+            page.wait_for_timeout(2000)
+            
+            text = page.inner_text('body')
+            
+            # Extract description
+            desc_match = re.search(
+                r'(?:Description|Overview|About|Summary)[:\s]*(.{100,2000}?)(?=(?:Requirements|Qualifications|Benefits|How to Apply)|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if desc_match:
+                result['description'] = desc_match.group(1).strip()[:2000]
+            
+            # Extract requirements
+            req_match = re.search(
+                r'(?:Requirements?|Qualifications?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|How to Apply)|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if req_match:
+                result['requirements'] = req_match.group(1).strip()[:1500]
+            
+            # Extract salary
+            salary_match = re.search(
+                r'\$[\d,]+(?:\.\d{2})?\s*[-–]\s*\$[\d,]+(?:\.\d{2})?\s*(?:per\s+)?(?:hour|year|annually|hourly)?',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                result['salary_text'] = salary_match.group(0)
+            
+            return result
+        except Exception:
+            return result
     
     def _parse_html(self, html: str) -> List[JobData]:
         """Parse SoHum Health job listings"""

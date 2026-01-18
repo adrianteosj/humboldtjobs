@@ -146,6 +146,9 @@ class LostCoastOutpostScraper(BaseScraper):
                 except Exception as e:
                     self.logger.warning(f"Error parsing LCO job container: {e}")
         
+        # Enrich jobs with parsed salary and experience
+        self.enrich_jobs(jobs)
+        
         return jobs
     
     def _determine_category(self, title: str) -> str:

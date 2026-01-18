@@ -28,7 +28,7 @@ class WorkdayScraper(BaseScraper):
         employer_name: str,
         location_filter: Optional[List[str]] = None,
         default_location: str = "Humboldt County, CA",
-        fetch_details: bool = False
+        fetch_details: bool = True  # Always fetch details by default
     ):
         super().__init__(name)
         self.tenant = tenant
@@ -85,6 +85,9 @@ class WorkdayScraper(BaseScraper):
             job_data = self._parse_job(job)
             if job_data and self.validate_job(job_data):
                 job_data_list.append(job_data)
+        
+        # Enrich all jobs with parsed salary and experience detection
+        self.enrich_jobs(job_data_list)
         
         self.logger.info(f"  Found {len(job_data_list)} jobs from {self.employer_name}")
         return job_data_list
