@@ -311,15 +311,46 @@ class WalgreensScraper(BaseScraper):
             try:
                 response = self.session.get(job.url, timeout=10)
                 if response.status_code == 200:
-                    # Look for salary pattern: "Salary:$XX - $XX / Hourly" or "Salary Range: $XX - $XX / Hourly"
+                    text = response.text
+                    salary_text = None
+                    
+                    # Pattern 1: "Salary Range: $XX - $XX / Hourly"
                     salary_match = re.search(
-                        r'Salary(?:\s*Range)?[:\s]*\$(\d+(?:\.\d{2})?)\s*-\s*\$(\d+(?:\.\d{2})?)\s*/?\s*(?:Hourly|Hour|hr)',
-                        response.text,
+                        r'Salary(?:\s*Range)?[:\s]*\$(\d+(?:\.\d{2})?)\s*[-–]\s*\$(\d+(?:\.\d{2})?)\s*/?\s*(?:Hourly|Hour|hr)?',
+                        text,
                         re.IGNORECASE
                     )
                     if salary_match:
-                        job.salary_text = f"${salary_match.group(1)} - ${salary_match.group(2)}/hour"
+                        salary_text = f"${salary_match.group(1)} - ${salary_match.group(2)}/hour"
+                    
+                    # Pattern 2: "Hourly Pay Range $69.05-$81.20" (Walgreens format)
+                    if not salary_text:
+                        salary_match = re.search(
+                            r'(?:Hourly\s+)?Pay\s+Range[:\s]*\$(\d+(?:\.\d{2})?)\s*[-–]\s*\$(\d+(?:\.\d{2})?)',
+                            text,
+                            re.IGNORECASE
+                        )
+                        if salary_match:
+                            salary_text = f"${salary_match.group(1)} - ${salary_match.group(2)}/hour"
+                    
+                    # Pattern 3: Plain "$XX.XX-$XX.XX" range (common format)
+                    if not salary_text:
+                        salary_match = re.search(
+                            r'\$(\d+\.\d{2})\s*[-–]\s*\$(\d+\.\d{2})(?:\s*/?\s*(?:hr|hour|hourly))?',
+                            text,
+                            re.IGNORECASE
+                        )
+                        if salary_match:
+                            low = float(salary_match.group(1))
+                            high = float(salary_match.group(2))
+                            # Only treat as hourly if values are reasonable hourly rates
+                            if low < 200 and high < 200:
+                                salary_text = f"${salary_match.group(1)} - ${salary_match.group(2)}/hour"
+                    
+                    if salary_text:
+                        job.salary_text = salary_text
                         self.logger.info(f"    Found salary for {job.title}: {job.salary_text}")
+                        
                 self.delay()
             except Exception as e:
                 self.logger.debug(f"Error fetching salary for {job.title}: {e}")
@@ -500,6 +531,66 @@ class SafewayScraper(BaseScraper):
         self.arcata_url = SAFEWAY_ARCATA_URL
         self.employer_name = "Safeway"
         self.category = "Retail"
+    
+    def _fetch_job_details(self, page, url: str) -> dict:
+        """
+        Fetch salary and other details from Oracle HCM job detail page.
+        
+        Oracle HCM format shows:
+        - Minimum Pay Rate: $82
+        - Maximum Pay Rate: $82
+        - Job Category: Pharmacy & Health
+        - Job Schedule: Full time
+        """
+        result = {}
+        try:
+            page.goto(url, wait_until='domcontentloaded', timeout=20000)
+            page.wait_for_timeout(3000)  # Oracle HCM needs extra time
+            
+            text = page.inner_text('body')
+            
+            # Extract salary - Oracle HCM format: "Minimum Pay Rate: $82" / "Maximum Pay Rate: $82"
+            min_pay_match = re.search(r'Minimum\s+Pay\s+Rate[:\s]*\$(\d+(?:\.\d+)?)', text, re.IGNORECASE)
+            max_pay_match = re.search(r'Maximum\s+Pay\s+Rate[:\s]*\$(\d+(?:\.\d+)?)', text, re.IGNORECASE)
+            
+            if min_pay_match or max_pay_match:
+                min_pay = min_pay_match.group(1) if min_pay_match else None
+                max_pay = max_pay_match.group(1) if max_pay_match else None
+                
+                if min_pay and max_pay:
+                    if min_pay == max_pay:
+                        result['salary_text'] = f"${min_pay}/hr"
+                    else:
+                        result['salary_text'] = f"${min_pay} - ${max_pay}/hr"
+                elif min_pay:
+                    result['salary_text'] = f"${min_pay}/hr"
+                elif max_pay:
+                    result['salary_text'] = f"${max_pay}/hr"
+            
+            # Extract job type/schedule
+            schedule_match = re.search(r'Job\s+Schedule[:\s]*(Full\s*time|Part\s*time)', text, re.IGNORECASE)
+            if schedule_match:
+                result['job_type'] = schedule_match.group(1).replace(' ', '-').title()
+            
+            # Extract job category
+            category_match = re.search(r'Job\s+Category[:\s]*([^\n]+)', text, re.IGNORECASE)
+            if category_match:
+                result['original_category'] = category_match.group(1).strip()
+            
+            # Extract description (JOB DESCRIPTION section)
+            desc_match = re.search(
+                r'JOB\s+DESCRIPTION[:\s]*(.{100,2000}?)(?=\n\n|Requirements|Qualifications|Benefits|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if desc_match:
+                result['description'] = desc_match.group(1).strip()[:1500]
+            
+            return result
+            
+        except Exception as e:
+            self.logger.debug(f"Error fetching Safeway job details from {url}: {e}")
+            return result
 
     def scrape(self) -> List[JobData]:
         self.logger.info(f"Scraping {self.employer_name}...")
@@ -507,83 +598,99 @@ class SafewayScraper(BaseScraper):
         seen_ids = set()
         
         # Scrape both Eureka and Arcata locations
-        for url, location_name in [(self.eureka_url, "Eureka"), (self.arcata_url, "Arcata")]:
+        for search_url, location_name in [(self.eureka_url, "Eureka"), (self.arcata_url, "Arcata")]:
             try:
                 with sync_playwright() as p:
                     browser = p.chromium.launch(headless=True)
                     page = browser.new_page(user_agent=USER_AGENT)
-                    page.goto(url, wait_until="networkidle")
+                    page.goto(search_url, wait_until="networkidle")
                     
                     # Wait for job listings to load
                     page.wait_for_timeout(5000)  # Extra wait for Oracle HCM
                     page.wait_for_selector('a[href*="/job/"]', timeout=20000)
                     
                     html = page.content()
-                    browser.close()
-                
-                soup = BeautifulSoup(html, 'lxml')
-                
-                # Find all job links
-                job_links = soup.select('a[href*="/job/"]')
-                
-                for link in job_links:
-                    try:
-                        href = link.get('href', '')
-                        if not href or '/job/' not in href:
-                            continue
-                        
-                        # Extract job ID from URL
-                        job_id_match = re.search(r'/job/(\d+)', href)
-                        if not job_id_match:
-                            continue
-                        job_id = job_id_match.group(1)
-                        
-                        # Skip duplicates
-                        if job_id in seen_ids:
-                            continue
-                        seen_ids.add(job_id)
-                        
-                        # Get parent li element to extract full job info
-                        parent_li = link.find_parent('li')
-                        if parent_li:
-                            full_text = parent_li.get_text(separator=' ', strip=True)
-                        else:
-                            full_text = link.get_text(strip=True)
-                        
-                        # Extract title (everything before "Banner")
-                        title = full_text.split('Banner')[0].strip()
-                        if not title or len(title) < 3:
-                            continue
-                        
-                        # Extract location from the full text
-                        location = f"{location_name}, CA"
-                        if 'EUREKA' in full_text.upper():
-                            location = "Eureka, CA"
-                        elif 'ARCATA' in full_text.upper():
-                            location = "Arcata, CA"
-                        elif 'FORTUNA' in full_text.upper():
-                            location = "Fortuna, CA"
-                        elif 'CRESCENT CITY' in full_text.upper():
-                            location = "Crescent City, CA"
-                        
-                        # Build full URL
-                        url_full = href if href.startswith('http') else f"https://eofd.fa.us6.oraclecloud.com{href}"
-                        
-                        job = JobData(
-                            source_id=f"safeway_{job_id}",
-                            source_name="safeway",
-                            title=title,
-                            url=url_full,
-                            employer=self.employer_name,
-                            category=self.category,
-                            location=location,
-                        )
-                        if self.validate_job(job):
-                            jobs.append(job)
+                    soup = BeautifulSoup(html, 'lxml')
+                    
+                    # Find all job links
+                    job_links = soup.select('a[href*="/job/"]')
+                    location_jobs = []
+                    
+                    for link in job_links:
+                        try:
+                            href = link.get('href', '')
+                            if not href or '/job/' not in href:
+                                continue
                             
-                    except Exception as e:
-                        self.logger.warning(f"Error parsing Safeway job: {e}")
-                        continue
+                            # Extract job ID from URL
+                            job_id_match = re.search(r'/job/(\d+)', href)
+                            if not job_id_match:
+                                continue
+                            job_id = job_id_match.group(1)
+                            
+                            # Skip duplicates
+                            if job_id in seen_ids:
+                                continue
+                            seen_ids.add(job_id)
+                            
+                            # Get parent li element to extract full job info
+                            parent_li = link.find_parent('li')
+                            if parent_li:
+                                full_text = parent_li.get_text(separator=' ', strip=True)
+                            else:
+                                full_text = link.get_text(strip=True)
+                            
+                            # Extract title (everything before "Banner")
+                            title = full_text.split('Banner')[0].strip()
+                            if not title or len(title) < 3:
+                                continue
+                            
+                            # Extract location from the full text
+                            location = f"{location_name}, CA"
+                            if 'EUREKA' in full_text.upper():
+                                location = "Eureka, CA"
+                            elif 'ARCATA' in full_text.upper():
+                                location = "Arcata, CA"
+                            elif 'FORTUNA' in full_text.upper():
+                                location = "Fortuna, CA"
+                            elif 'CRESCENT CITY' in full_text.upper():
+                                location = "Crescent City, CA"
+                            
+                            # Build full URL
+                            url_full = href if href.startswith('http') else f"https://eofd.fa.us6.oraclecloud.com{href}"
+                            
+                            job = JobData(
+                                source_id=f"safeway_{job_id}",
+                                source_name="safeway",
+                                title=title,
+                                url=url_full,
+                                employer=self.employer_name,
+                                category=self.category,
+                                location=location,
+                            )
+                            if self.validate_job(job):
+                                location_jobs.append(job)
+                                
+                        except Exception as e:
+                            self.logger.warning(f"Error parsing Safeway job: {e}")
+                            continue
+                    
+                    # Fetch details for each job
+                    if location_jobs:
+                        self.logger.info(f"  Fetching details for {len(location_jobs)} {location_name} jobs...")
+                        for i, job in enumerate(location_jobs):
+                            details = self._fetch_job_details(page, job.url)
+                            if details:
+                                self.apply_detail_data(job, details)
+                                if details.get('salary_text'):
+                                    self.logger.info(f"    Found salary for {job.title}: {details['salary_text']}")
+                            time.sleep(0.5)
+                            if (i + 1) % 10 == 0:
+                                self.logger.info(f"    Processed {i + 1}/{len(location_jobs)} jobs")
+                        
+                        jobs.extend(location_jobs)
+                    
+                    browser.close()
                         
             except Exception as e:
                 self.logger.error(f"Error fetching jobs from {self.employer_name} ({location_name}): {e}")

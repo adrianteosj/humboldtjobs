@@ -10,12 +10,40 @@ This agent ONLY focuses on data validation. It does not:
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+import re
+from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .base import BaseAgent, AgentRole, AgentResponse, ActionType
 
 logger = logging.getLogger(__name__)
+
+
+# Valid Humboldt County and nearby locations
+HUMBOLDT_LOCATIONS = [
+    'eureka', 'arcata', 'mckinleyville', 'fortuna', 'blue lake', 'ferndale',
+    'trinidad', 'hoopa', 'willow creek', 'garberville', 'rio dell', 'loleta',
+    'crescent city', 'klamath', 'scotia', 'miranda', 'redway', 'myers flat',
+    'weott', 'orick', 'weitchpec', 'salyer', 'humboldt county', 'humboldt',
+    'del norte', 'northern california', 'california'  # Allow broader regions
+]
+
+# Locations that are explicitly NOT in Humboldt (common false positives)
+NON_HUMBOLDT_LOCATIONS = [
+    'modesto', 'fresno', 'sacramento', 'san francisco', 'los angeles', 'san diego',
+    'oakland', 'san jose', 'bakersfield', 'stockton', 'santa rosa', 'redding',
+    'chico', 'seattle', 'portland', 'denver', 'phoenix', 'las vegas'
+]
+
+# Patterns that indicate garbled/truncated descriptions
+BAD_DESCRIPTION_PATTERNS = [
+    r'^are representative only',  # Starts with boilerplate text
+    r'^the employer reserves',
+    r'^other duties',
+    r'^reasonable accommodations',
+    r'^\d+$',  # Just numbers
+    r'^[^\w\s]{5,}',  # Starts with lots of special characters
+]
 
 
 @dataclass
@@ -51,9 +79,117 @@ class QAAgent(BaseAgent):
     - Validate job titles are real job titles (not UI elements)
     - Check URLs point to specific jobs (not generic pages)
     - Verify locations are in Humboldt County
+    - Check description quality (not truncated/garbled)
     - Score data completeness
     - Approve, quarantine, or flag jobs for review
     """
+    
+    def _is_humboldt_location(self, location: str) -> Tuple[bool, str]:
+        """
+        Check if location is in Humboldt County.
+        
+        Returns:
+            Tuple of (is_valid, reason)
+        """
+        if not location:
+            return False, "No location provided"
+        
+        loc_lower = location.lower().strip()
+        
+        # Check for explicitly non-Humboldt locations
+        for non_humboldt in NON_HUMBOLDT_LOCATIONS:
+            if non_humboldt in loc_lower:
+                return False, f"Location '{location}' is not in Humboldt County"
+        
+        # Check for valid Humboldt locations
+        for valid_loc in HUMBOLDT_LOCATIONS:
+            if valid_loc in loc_lower:
+                return True, "Location is in Humboldt County"
+        
+        # Unknown location - flag for review
+        return False, f"Unknown location: '{location}'"
+    
+    def _check_description_quality(self, description: Optional[str]) -> Tuple[bool, str]:
+        """
+        Check if description is valid (not garbled/truncated).
+        
+        Returns:
+            Tuple of (is_valid, reason)
+        """
+        if not description:
+            return True, "No description (allowed)"
+        
+        desc_stripped = description.strip()
+        
+        # Check for bad patterns
+        for pattern in BAD_DESCRIPTION_PATTERNS:
+            if re.match(pattern, desc_stripped, re.IGNORECASE):
+                return False, f"Description appears garbled/truncated: '{desc_stripped[:50]}...'"
+        
+        # Check minimum length
+        if len(desc_stripped) < 20:
+            return False, f"Description too short: '{desc_stripped}'"
+        
+        # Check for reasonable word count
+        word_count = len(desc_stripped.split())
+        if word_count < 5:
+            return False, f"Description has too few words ({word_count})"
+        
+        return True, "Description looks valid"
+    
+    def validate_job_comprehensive(self, job: JobRecord) -> Dict[str, Any]:
+        """
+        Perform comprehensive validation of a job (rule-based, no AI).
+        
+        Checks:
+        - Title validity
+        - Location is in Humboldt
+        - Description quality
+        - URL validity
+        
+        Returns:
+            Dict with 'is_valid', 'issues', 'quality_score'
+        """
+        issues = []
+        quality_score = 100
+        
+        # 1. Check location
+        loc_valid, loc_reason = self._is_humboldt_location(job.location)
+        if not loc_valid:
+            issues.append(f"Location: {loc_reason}")
+            quality_score -= 50  # Major issue
+        
+        # 2. Check description
+        desc_valid, desc_reason = self._check_description_quality(job.description)
+        if not desc_valid:
+            issues.append(f"Description: {desc_reason}")
+            quality_score -= 20
+        
+        # 3. Check title (basic patterns)
+        title_lower = job.title.lower()
+        if len(job.title) < 3:
+            issues.append("Title too short")
+            quality_score -= 30
+        elif any(bad in title_lower for bad in ['view', 'click', 'apply now', 'learn more']):
+            issues.append("Title looks like UI element")
+            quality_score -= 40
+        
+        # 4. Check for salary (bonus points)
+        if job.salary:
+            quality_score = min(100, quality_score + 10)
+        
+        # 5. Check URL (basic)
+        url_lower = job.url.lower()
+        generic_endings = ['/careers', '/careers/', '/employment', '/jobs', '/jobs/']
+        if any(url_lower.endswith(e) for e in generic_endings):
+            issues.append("URL may be generic (no job ID)")
+            quality_score -= 10
+        
+        return {
+            'is_valid': quality_score >= 50 and not any('Location' in i for i in issues),
+            'issues': issues,
+            'quality_score': max(0, quality_score)
+        }
     
     @property
     def role(self) -> AgentRole:
@@ -205,6 +341,75 @@ Respond with JSON only."""
             results["flagged"].extend(chunk_results.get("flagged", []))
         
         logger.info(f"QA Review complete: {len(results['approved'])} approved, "
+                   f"{len(results['quarantined'])} quarantined, {len(results['flagged'])} flagged")
+        
+        return results
+    
+    def validate_comprehensive_batch(self, jobs: List[JobRecord]) -> Dict[str, List[AgentResponse]]:
+        """
+        Perform comprehensive validation using both rule-based checks and AI.
+        
+        This method:
+        1. First runs rule-based checks for location, description quality
+        2. Then runs AI review for title validation
+        3. Combines results
+        
+        Args:
+            jobs: List of JobRecord objects
+            
+        Returns:
+            Dict with 'approved', 'quarantined', 'flagged' lists
+        """
+        results = {
+            "approved": [],
+            "quarantined": [],
+            "flagged": []
+        }
+        
+        if not jobs:
+            return results
+        
+        logger.info(f"QA Agent performing comprehensive review of {len(jobs)} jobs...")
+        
+        # Phase 1: Rule-based validation
+        jobs_to_ai_review = []
+        rule_quarantined = 0
+        
+        for job in jobs:
+            validation = self.validate_job_comprehensive(job)
+            
+            if not validation['is_valid']:
+                # Job failed rule-based validation
+                rule_quarantined += 1
+                results["quarantined"].append(AgentResponse(
+                    agent=self.role,
+                    success=True,
+                    action=ActionType.QUARANTINE,
+                    confidence=0.95,
+                    summary=f"Failed validation: '{job.title}'",
+                    details={
+                        "job_id": job.id,
+                        "issues": validation['issues'],
+                        "quality_score": validation['quality_score']
+                    },
+                    recommendations=validation['issues']
+                ))
+            else:
+                # Job passed rules, send to AI for title review
+                jobs_to_ai_review.append(job)
+        
+        if rule_quarantined > 0:
+            logger.info(f"  Rule-based check quarantined {rule_quarantined} jobs")
+        
+        # Phase 2: AI review for title validation (on jobs that passed rules)
+        if jobs_to_ai_review:
+            logger.info(f"  Sending {len(jobs_to_ai_review)} jobs to AI for title review...")
+            ai_results = self.validate_batch(jobs_to_ai_review, check_all=True)
+            results["approved"].extend(ai_results["approved"])
+            results["quarantined"].extend(ai_results["quarantined"])
+            results["flagged"].extend(ai_results["flagged"])
+        
+        logger.info(f"Comprehensive QA complete: {len(results['approved'])} approved, "
                    f"{len(results['quarantined'])} quarantined, {len(results['flagged'])} flagged")
         
         return results
@@ -457,6 +662,9 @@ Respond with JSON:
         
         Args:
             data: Can be a single JobRecord, list of JobRecords, or dict with 'action' key
+                  For dict, supported actions:
+                  - 'score_source': Score a data source
+                  - 'comprehensive': Run comprehensive validation with rules + AI
         """
         if isinstance(data, JobRecord):
             return self.validate_job(data)
@@ -470,7 +678,21 @@ Respond with JSON:
                 summary=f"Batch validated: {len(results['approved'])} approved, {len(results['quarantined'])} quarantined, {len(results['flagged'])} flagged",
                 details=results
             )
-        elif isinstance(data, dict) and data.get("action") == "score_source":
-            return self.score_source(data["source_name"], data["jobs"])
+        elif isinstance(data, dict):
+            action = data.get("action", "")
+            if action == "score_source":
+                return self.score_source(data["source_name"], data["jobs"])
+            elif action == "comprehensive":
+                results = self.validate_comprehensive_batch(data["jobs"])
+                return AgentResponse(
+                    agent=self.role,
+                    success=True,
+                    action=ActionType.NO_ACTION,
+                    confidence=1.0,
+                    summary=f"Comprehensive QA: {len(results['approved'])} approved, {len(results['quarantined'])} quarantined, {len(results['flagged'])} flagged",
+                    details=results
+                )
+            else:
+                raise ValueError(f"Unknown action: {action}")
         else:
             raise ValueError(f"QAAgent cannot process data type: {type(data)}")

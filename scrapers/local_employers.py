@@ -504,6 +504,8 @@ class UKGScraper(BaseScraper):
     def scrape(self) -> List[JobData]:
         self.logger.info(f"Scraping {self.employer_name} via UKG/UltiPro...")
         jobs = []
+        valid_jobs = []
+        stale_count = 0
         
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -522,11 +524,21 @@ class UKGScraper(BaseScraper):
                 for job in jobs:
                     details = self._fetch_job_details(page, job.url)
                     if details:
+                        # Check if job is stale/unavailable
+                        if details.get('is_stale'):
+                            stale_count += 1
+                            continue  # Skip this job
+                        
                         self.apply_detail_data(job, details)
                         if details.get('salary_text'):
                             self.logger.debug(f"    Found salary for {job.title}: {details['salary_text']}")
+                    
+                    valid_jobs.append(job)
                     import time
                     time.sleep(0.5)
+                
+                if stale_count > 0:
+                    self.logger.info(f"  Skipped {stale_count} stale/unavailable jobs")
                 
             except Exception as e:
                 self.logger.error(f"Error scraping {self.employer_name}: {e}")
@@ -534,14 +546,32 @@ class UKGScraper(BaseScraper):
                 browser.close()
         
         # Enrich jobs with parsed salary and experience
-        self.enrich_jobs(jobs)
+        self.enrich_jobs(valid_jobs)
         
-        self.logger.info(f"  Found {len(jobs)} jobs from {self.employer_name}")
-        return jobs
+        self.logger.info(f"  Found {len(valid_jobs)} jobs from {self.employer_name}")
+        return valid_jobs
+    
+    # Patterns that indicate a job is no longer available
+    STALE_JOB_PATTERNS = [
+        "this opportunity is currently not available",
+        "this position has been filled",
+        "job no longer available",
+        "posting has expired",
+        "position is no longer available",
+        "job posting has been removed",
+        "opportunity is no longer accepting",
+    ]
+    
+    def _is_job_stale(self, text: str) -> bool:
+        """Check if page text indicates the job is no longer available."""
+        text_lower = text.lower()
+        return any(pattern in text_lower for pattern in self.STALE_JOB_PATTERNS)
     
     def _fetch_job_details(self, page, url: str) -> dict:
         """
         Fetch full job details from UKG job detail page.
+        
+        Returns dict with job details, or {'is_stale': True} if job is no longer available.
         """
         result = {}
         try:
@@ -549,6 +579,12 @@ class UKGScraper(BaseScraper):
             page.wait_for_timeout(2000)
             
             text = page.inner_text('body')
+            
+            # Check if job is stale/unavailable
+            if self._is_job_stale(text):
+                self.logger.info(f"    Job no longer available: {url}")
+                result['is_stale'] = True
+                return result
             
             # Extract salary - Pattern 1: "Hourly Range: $17.11 USD to $21.40 USD"
             salary_match = re.search(
@@ -559,8 +595,20 @@ class UKGScraper(BaseScraper):
             if salary_match:
                 low, high = salary_match.groups()
                 result['salary_text'] = f"${low} - ${high}/hr"
-            else:
-                # Pattern 2: "Salary Range: $X to $Y"
+            
+            # Pattern 2: "Rate: $16.90 USD per hour" (single value)
+            if 'salary_text' not in result:
+                salary_match = re.search(
+                    r'Rate[:\s]*\$([\d.]+)\s*(?:USD)?\s*(?:per\s+hour|hourly|/hr)?',
+                    text,
+                    re.IGNORECASE
+                )
+                if salary_match:
+                    rate = salary_match.group(1)
+                    result['salary_text'] = f"${rate}/hr"
+            
+            # Pattern 3: "Salary Range: $X to $Y" or "Pay Range: $X to $Y"
+            if 'salary_text' not in result:
                 salary_match = re.search(
                     r'(?:Salary|Pay)\s*Range[:\s]*\$([\d,.]+)\s*(?:USD)?\s*to\s*\$([\d,.]+)\s*(?:USD)?',
                     text,
@@ -576,21 +624,57 @@ class UKGScraper(BaseScraper):
                             result['salary_text'] = f"${low} - ${high}/yr"
                     except:
                         result['salary_text'] = f"${low} - ${high}"
-                elif re.search(r'Starting wage is based upon', text, re.IGNORECASE):
+            
+            # Pattern 4: "Starting at $X.XX per hour"
+            if 'salary_text' not in result:
+                salary_match = re.search(
+                    r'(?:Starting\s+(?:at|wage)[:\s]*)\$([\d.]+)\s*(?:per\s+hour|hourly|/hr)?',
+                    text,
+                    re.IGNORECASE
+                )
+                if salary_match:
+                    rate = salary_match.group(1)
+                    result['salary_text'] = f"${rate}/hr (starting)"
+            
+            # Check for "Based on Experience" indicator
+            if 'salary_text' not in result:
+                if re.search(r'Starting wage is based upon', text, re.IGNORECASE):
                     result['salary_text'] = "Based on Experience"
             
-            # Extract description
+            # Extract description - look for Job Details or Position Summary section
+            # Be more specific to avoid capturing boilerplate text
             desc_match = re.search(
-                r'(?:Job\s+Description|Overview|Summary|About\s+(?:the|this)\s+Position)[:\s]*(.{100,2000}?)(?=(?:Requirements|Qualifications|Minimum|Skills|Benefits|Education)|$)',
+                r'(?:Job\s+Details|Position\s+Summary|Description)\s*\n+(.{100,2000}?)(?=\n\n(?:Department|Requirements|Qualifications|Minimum|Skills|Benefits|Education|Customer|Essential)|$)',
                 text,
                 re.IGNORECASE | re.DOTALL
             )
             if desc_match:
-                result['description'] = desc_match.group(1).strip()[:2000]
+                desc_text = desc_match.group(1).strip()
+                # Clean up: remove lines that are clearly boilerplate
+                boilerplate_phrases = [
+                    'are representative only',
+                    'reserves the right to revise',
+                    'other duties as assigned',
+                    'reasonable accommodations',
+                ]
+                # Only use description if it doesn't start with boilerplate
+                if not any(phrase in desc_text[:100].lower() for phrase in boilerplate_phrases):
+                    result['description'] = desc_text[:2000]
+            
+            # Fallback: try to get a cleaner description from specific sections
+            if 'description' not in result:
+                # Look for customer experience or department operations sections (for retail jobs)
+                section_match = re.search(
+                    r'(?:Customer\s+Experience|Position\s+Overview)[:\s]*(.{50,1500}?)(?=\n\n|Department|Requirements|$)',
+                    text,
+                    re.IGNORECASE | re.DOTALL
+                )
+                if section_match:
+                    result['description'] = section_match.group(1).strip()[:1500]
             
             # Extract requirements
             req_match = re.search(
-                r'(?:Requirements?|Qualifications?|Minimum\s+Requirements?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|Application|How to Apply)|$)',
+                r'(?:Requirements?|Qualifications?|Minimum\s+Requirements?)[:\s]*(.{50,1500}?)(?=(?:Benefits|Salary|Rate|Application|How to Apply|Equal)|$)',
                 text,
                 re.IGNORECASE | re.DOTALL
             )

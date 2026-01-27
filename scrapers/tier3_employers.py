@@ -1311,7 +1311,17 @@ class HumboldtSawmillScraper(BaseScraper):
 
 
 class HumboldtCreameryScraper(BaseScraper):
-    """Scraper for Humboldt Creamery / Crystal Creamery (Paylocity)"""
+    """Scraper for Humboldt Creamery / Crystal Creamery (Paylocity)
+    
+    Note: Crystal Creamery has facilities in multiple locations. We only want
+    jobs from their Humboldt County facility (Ferndale).
+    """
+    
+    # Valid Humboldt County locations for filtering
+    HUMBOLDT_LOCATIONS = [
+        'ferndale', 'humboldt', 'eureka', 'arcata', 'fortuna', 
+        'mckinleyville', 'blue lake', 'scotia', 'loleta'
+    ]
     
     def __init__(self):
         super().__init__("humboldt_creamery")
@@ -1319,6 +1329,51 @@ class HumboldtCreameryScraper(BaseScraper):
         self.search_url = "https://recruiting.paylocity.com/recruiting/jobs/All/249cf053-4850-4112-bc86-33c91f93332a/Crystal-Creamery"
         self.employer_name = "Humboldt Creamery"
         self.category = "Food/Agriculture"
+    
+    def _is_humboldt_location(self, location_text: str) -> bool:
+        """Check if location text indicates a Humboldt County location."""
+        if not location_text:
+            return False
+        loc_lower = location_text.lower()
+        return any(loc in loc_lower for loc in self.HUMBOLDT_LOCATIONS)
+    
+    def _verify_job_location(self, page, url: str) -> Optional[str]:
+        """
+        Verify job location from detail page.
+        
+        Returns location string if in Humboldt County, None otherwise.
+        """
+        try:
+            page.goto(url, wait_until='domcontentloaded', timeout=15000)
+            page.wait_for_timeout(2000)
+            
+            text = page.inner_text('body')
+            
+            # Look for location patterns
+            loc_match = re.search(
+                r'(?:Location|City)[:\s]*([A-Za-z\s]+,\s*CA)',
+                text,
+                re.IGNORECASE
+            )
+            if loc_match:
+                location = loc_match.group(1).strip()
+                if self._is_humboldt_location(location):
+                    return location
+                else:
+                    self.logger.debug(f"  Skipping non-Humboldt location: {location}")
+                    return None
+            
+            # Check if any Humboldt location is mentioned in the page
+            for loc in self.HUMBOLDT_LOCATIONS:
+                if loc in text.lower() and 'ca' in text.lower():
+                    return f"{loc.title()}, CA"
+            
+            # Location not found or not in Humboldt
+            return None
+            
+        except Exception as e:
+            self.logger.debug(f"  Error verifying location for {url}: {e}")
+            return None
     
     def scrape(self) -> List[JobData]:
         self.logger.info(f"Scraping {self.employer_name}...")
@@ -1332,44 +1387,58 @@ class HumboldtCreameryScraper(BaseScraper):
                 page.wait_for_timeout(5000)
                 
                 html = page.content()
+                soup = BeautifulSoup(html, 'lxml')
+                
+                # Paylocity job listings
+                job_cards = soup.select('[class*="job"]') or soup.select('[class*="posting"]')
+                
+                for card in job_cards[:20]:
+                    title_elem = card.find(['a', 'h2', 'h3', 'h4'])
+                    if title_elem:
+                        title = title_elem.get_text(strip=True)
+                        href = title_elem.get('href', '') if title_elem.name == 'a' else ''
+                        
+                        if title and len(title) > 3 and len(title) < 150:
+                            full_url = f"{self.base_url}{href}" if href.startswith('/') else (href or self.search_url)
+                            
+                            # Check location from card first
+                            location = None
+                            loc_elem = card.select_one('[class*="location"]')
+                            if loc_elem:
+                                loc_text = loc_elem.get_text(strip=True)
+                                if self._is_humboldt_location(loc_text):
+                                    location = loc_text
+                                else:
+                                    # Explicitly not in Humboldt - skip
+                                    self.logger.debug(f"  Skipping '{title}' - location: {loc_text}")
+                                    continue
+                            
+                            # If location not found on card, verify from detail page
+                            if location is None and href:
+                                location = self._verify_job_location(page, full_url)
+                                if location is None:
+                                    self.logger.debug(f"  Skipping '{title}' - could not verify Humboldt location")
+                                    continue
+                                import time
+                                time.sleep(0.5)
+                            elif location is None:
+                                # No href and no location - skip to be safe
+                                self.logger.debug(f"  Skipping '{title}' - no location info available")
+                                continue
+                            
+                            job = JobData(
+                                source_id=f"humboldt_creamery_{title.lower().replace(' ', '_')[:50]}",
+                                source_name="humboldt_creamery",
+                                title=title,
+                                url=full_url,
+                                employer=self.employer_name,
+                                category=self.category,
+                                location=location,
+                            )
+                            if self.validate_job(job):
+                                jobs.append(job)
+                
                 browser.close()
-            
-            soup = BeautifulSoup(html, 'lxml')
-            
-            # Paylocity job listings
-            job_cards = soup.select('[class*="job"]') or soup.select('[class*="posting"]')
-            
-            for card in job_cards[:20]:
-                title_elem = card.find(['a', 'h2', 'h3', 'h4'])
-                if title_elem:
-                    title = title_elem.get_text(strip=True)
-                    href = title_elem.get('href', '') if title_elem.name == 'a' else ''
-                    
-                    if title and len(title) > 3 and len(title) < 150:
-                        full_url = f"{self.base_url}{href}" if href.startswith('/') else (href or self.search_url)
-                        
-                        # Filter for Humboldt/Ferndale location
-                        location = "Ferndale, CA"
-                        loc_elem = card.select_one('[class*="location"]')
-                        if loc_elem:
-                            loc_text = loc_elem.get_text(strip=True)
-                            # Only include jobs in Humboldt area
-                            if 'ferndale' in loc_text.lower() or 'humboldt' in loc_text.lower() or 'eureka' in loc_text.lower():
-                                location = loc_text
-                            else:
-                                continue  # Skip non-Humboldt jobs
-                        
-                        job = JobData(
-                            source_id=f"humboldt_creamery_{title.lower().replace(' ', '_')[:50]}",
-                            source_name="humboldt_creamery",
-                            title=title,
-                            url=full_url,
-                            employer=self.employer_name,
-                            category=self.category,
-                            location=location,
-                        )
-                        if self.validate_job(job):
-                            jobs.append(job)
             
         except Exception as e:
             self.logger.error(f"Error fetching {self.employer_name}: {e}")

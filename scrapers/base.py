@@ -14,6 +14,7 @@ from config import REQUEST_DELAY
 from processing.salary_parser import parse_salary
 from processing.experience_detector import detect_experience, get_education_level
 from processing.pdf_scraper import scrape_pdf, is_pdf_available
+from processing.ai_extractor import extract_with_ai, is_ai_available
 
 logging.basicConfig(
     level=logging.INFO,
@@ -317,5 +318,69 @@ class BaseScraper(ABC):
                 # Only set if current value is None or empty
                 if current is None or (isinstance(current, str) and not current.strip()):
                     setattr(job, field, value)
+        
+        return job
+    
+    def extract_with_ai_fallback(
+        self, 
+        job: JobData, 
+        page_text: str,
+        extract_salary: bool = True,
+        extract_description: bool = False
+    ) -> JobData:
+        """
+        Use AI to extract missing data when regex fails.
+        
+        This is a token-efficient fallback - only called when:
+        1. Regex extraction didn't find salary/description
+        2. AI is available (API key configured)
+        
+        Args:
+            job: JobData object to enrich
+            page_text: Raw text from the job page
+            extract_salary: Whether to try extracting salary
+            extract_description: Whether to try extracting description
+            
+        Returns:
+            Updated JobData object
+        """
+        # Only use AI if data is missing and AI is available
+        needs_salary = extract_salary and not job.salary_text
+        needs_description = extract_description and not job.description
+        
+        if not (needs_salary or needs_description):
+            return job
+        
+        if not is_ai_available():
+            self.logger.debug("AI extraction not available, skipping fallback")
+            return job
+        
+        self.logger.debug(f"Using AI fallback for {job.title}")
+        
+        result = extract_with_ai(
+            page_text=page_text,
+            job_title=job.title,
+            extract_salary=needs_salary,
+            extract_description=needs_description
+        )
+        
+        if result and result.confidence >= 0.5:
+            if needs_salary and result.salary_text:
+                job.salary_text = result.salary_text
+                if result.salary_type == 'hourly' and result.salary_min:
+                    # Convert hourly to annual for storage
+                    job.salary_min = int(result.salary_min * 2080)  # 40hrs * 52 weeks
+                    job.salary_max = int(result.salary_max * 2080) if result.salary_max else job.salary_min
+                    job.salary_type = 'hourly'
+                elif result.salary_min:
+                    job.salary_min = int(result.salary_min)
+                    job.salary_max = int(result.salary_max) if result.salary_max else job.salary_min
+                    job.salary_type = result.salary_type or 'annual'
+                
+                self.logger.info(f"    AI extracted salary for {job.title}: {job.salary_text}")
+            
+            if needs_description and result.description:
+                job.description = result.description
+                self.logger.debug(f"    AI extracted description for {job.title}")
         
         return job
