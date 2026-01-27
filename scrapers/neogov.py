@@ -73,11 +73,16 @@ class NEOGOVScraper(BaseScraper):
                     
                     # Fetch details for each job
                     self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
-                    for job in jobs:
-                        details = self._fetch_job_details(page, job.url)
-                        if details:
-                            self.apply_detail_data(job, details)
-                        time.sleep(0.5)  # Be polite
+                    for i, job in enumerate(jobs):
+                        try:
+                            details = self._fetch_job_details(page, job.url)
+                            if details:
+                                self.apply_detail_data(job, details)
+                            if (i + 1) % 10 == 0:
+                                self.logger.info(f"    Fetched {i + 1}/{len(jobs)} job details")
+                        except Exception as e:
+                            self.logger.debug(f"    Error fetching details for job {i+1}: {e}")
+                        time.sleep(0.3)  # Be polite
                     
                     all_jobs.extend(jobs)
                     self.logger.info(f"  Found {len(jobs)} jobs from {source_config['name']}")
@@ -471,8 +476,8 @@ class NEOGOVScraper(BaseScraper):
         """
         result = {}
         try:
-            page.goto(url, wait_until='networkidle', timeout=30000)
-            page.wait_for_timeout(2000)
+            page.goto(url, wait_until='domcontentloaded', timeout=15000)
+            page.wait_for_timeout(1000)
             
             html = page.content()
             soup = BeautifulSoup(html, 'lxml')
@@ -489,8 +494,11 @@ class NEOGOVScraper(BaseScraper):
                     result['requirements'] = req_elem.get_text(strip=True, separator=' ')[:1000]
                     break
             
-            # Extract from labeled sections
-            text = page.inner_text('body')
+            # Extract from labeled sections - use try/except for timeout resilience
+            try:
+                text = page.inner_text('body', timeout=5000)
+            except:
+                text = soup.get_text(strip=True, separator=' ') if soup else ""
             
             # Look for Minimum Qualifications section
             if 'requirements' not in result:
@@ -544,11 +552,16 @@ class NEOGOVScraper(BaseScraper):
                     
                     # Fetch details for each job
                     self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
-                    for job in jobs:
-                        details = self._fetch_job_details(page, job.url)
-                        if details:
-                            self.apply_detail_data(job, details)
-                        time.sleep(0.5)  # Be polite
+                    for i, job in enumerate(jobs):
+                        try:
+                            details = self._fetch_job_details(page, job.url)
+                            if details:
+                                self.apply_detail_data(job, details)
+                            if (i + 1) % 10 == 0:
+                                self.logger.info(f"    Fetched {i + 1}/{len(jobs)} job details")
+                        except Exception as e:
+                            self.logger.debug(f"    Error fetching details for job {i+1}: {e}")
+                        time.sleep(0.3)  # Be polite
                     
                     all_jobs.extend(jobs)
                     self.logger.info(f"  Found {len(jobs)} jobs from {source_config['name']}")
