@@ -690,6 +690,32 @@ class UKGScraper(BaseScraper):
             if benefits_match:
                 result['benefits'] = benefits_match.group(1).strip()[:800]
             
+            # AI FALLBACK: If salary not found by regex, try AI extraction
+            if 'salary_text' not in result:
+                try:
+                    from processing.ai_extractor import extract_with_ai, is_ai_available
+                    if is_ai_available():
+                        self.logger.debug(f"    Using AI fallback for salary extraction")
+                        ai_result = extract_with_ai(
+                            page_text=text[:3000],
+                            job_title=url.split('/')[-1] if '/' in url else '',
+                            extract_salary=True,
+                            extract_description=False
+                        )
+                        if ai_result and ai_result.salary_text and ai_result.confidence >= 0.5:
+                            result['salary_text'] = ai_result.salary_text
+                            # Also set parsed values if available
+                            if ai_result.salary_min:
+                                if ai_result.salary_type == 'hourly':
+                                    result['salary_min'] = int(ai_result.salary_min * 2080)
+                                    result['salary_max'] = int((ai_result.salary_max or ai_result.salary_min) * 2080)
+                                else:
+                                    result['salary_min'] = int(ai_result.salary_min)
+                                    result['salary_max'] = int(ai_result.salary_max or ai_result.salary_min)
+                            self.logger.info(f"    AI extracted salary: {ai_result.salary_text}")
+                except Exception as ai_e:
+                    self.logger.debug(f"    AI fallback failed: {ai_e}")
+            
             return result
         except Exception as e:
             self.logger.debug(f"Error fetching details from {url}: {e}")

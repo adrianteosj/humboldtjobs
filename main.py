@@ -712,6 +712,312 @@ def run_ai_debug(scraper_name: str):
     print("\n" + "=" * 60 + "\n")
 
 
+# ============================================================================
+# SCRAPER WATCHLIST - Scrapers that need extra attention/testing
+# ============================================================================
+
+WATCHLIST_SCRAPERS = {
+    # Scrapers with known issues or complex extraction
+    'safeway': {
+        'class': 'SafewayScraper',
+        'reason': 'Oracle HCM - complex salary extraction',
+        'expected_salary_rate': 0.5,  # At least 50% should have salary
+    },
+    'walgreens': {
+        'class': 'WalgreensScraper', 
+        'reason': 'Salary regex patterns need validation',
+        'expected_salary_rate': 0.3,
+    },
+    'north_coast_coop': {
+        'class': 'NorthCoastCoopScraper',
+        'reason': 'UKG platform - salary + stale job detection',
+        'expected_salary_rate': 0.5,
+    },
+    'humboldt_creamery': {
+        'class': 'HumboldtCreameryScraper',
+        'reason': 'Location filtering (multi-location company)',
+        'expected_salary_rate': 0.0,  # Salary not always available
+    },
+    'neogov': {
+        'class': 'NEOGOVScraper',
+        'reason': 'Playwright-based, many government jobs',
+        'expected_salary_rate': 0.2,  # Government jobs often hide salary
+    },
+}
+
+
+def run_test_watchlist(verbose: bool = True) -> dict:
+    """
+    Test watchlist scrapers without saving to database.
+    
+    Returns dict with test results for each scraper.
+    """
+    from scrapers import (
+        SafewayScraper, WalgreensScraper, NorthCoastCoopScraper,
+        HumboldtCreameryScraper, NEOGOVScraper
+    )
+    
+    scraper_classes = {
+        'safeway': SafewayScraper,
+        'walgreens': WalgreensScraper,
+        'north_coast_coop': NorthCoastCoopScraper,
+        'humboldt_creamery': HumboldtCreameryScraper,
+        'neogov': NEOGOVScraper,
+    }
+    
+    print("\n" + "=" * 70)
+    print("  WATCHLIST SCRAPER TEST MODE")
+    print("  Testing problematic scrapers before full scrape")
+    print("=" * 70 + "\n")
+    
+    results = {}
+    all_passed = True
+    
+    for name, config in WATCHLIST_SCRAPERS.items():
+        print(f"\n  Testing: {name.upper()}")
+        print(f"  Reason: {config['reason']}")
+        print("-" * 50)
+        
+        try:
+            scraper_class = scraper_classes.get(name)
+            if not scraper_class:
+                print(f"    ⚠️  Scraper class not found")
+                continue
+            
+            scraper = scraper_class()
+            jobs = scraper.scrape()
+            
+            # Calculate metrics
+            total = len(jobs)
+            with_salary = sum(1 for j in jobs if j.salary_text)
+            with_description = sum(1 for j in jobs if j.description and len(j.description) > 50)
+            salary_rate = with_salary / total if total > 0 else 0
+            desc_rate = with_description / total if total > 0 else 0
+            
+            # Check for issues
+            issues = []
+            
+            if total == 0:
+                issues.append("NO JOBS FOUND - scraper may be broken")
+            
+            if salary_rate < config['expected_salary_rate']:
+                issues.append(f"Low salary rate: {salary_rate:.0%} (expected {config['expected_salary_rate']:.0%}+)")
+            
+            # Check for garbled descriptions
+            bad_desc_count = 0
+            for job in jobs:
+                if job.description:
+                    desc_lower = job.description.lower()[:50]
+                    if any(bad in desc_lower for bad in ['are representative only', 'reserves the right']):
+                        bad_desc_count += 1
+            
+            if bad_desc_count > 0:
+                issues.append(f"{bad_desc_count} jobs with garbled descriptions")
+            
+            # Print results
+            passed = len(issues) == 0
+            status = "✓ PASS" if passed else "✗ FAIL"
+            
+            print(f"    Jobs found:       {total}")
+            print(f"    With salary:      {with_salary}/{total} ({salary_rate:.0%})")
+            print(f"    With description: {with_description}/{total} ({desc_rate:.0%})")
+            print(f"    Status:           {status}")
+            
+            if issues:
+                all_passed = False
+                print(f"    Issues:")
+                for issue in issues:
+                    print(f"      ⚠️  {issue}")
+            
+            if verbose and total > 0:
+                print(f"\n    Sample jobs:")
+                for job in jobs[:3]:
+                    salary_str = job.salary_text or "No salary"
+                    print(f"      • {job.title[:40]}... | {salary_str}")
+            
+            results[name] = {
+                'total': total,
+                'with_salary': with_salary,
+                'salary_rate': salary_rate,
+                'with_description': with_description,
+                'issues': issues,
+                'passed': passed,
+            }
+            
+        except Exception as e:
+            print(f"    ❌ ERROR: {e}")
+            results[name] = {
+                'total': 0,
+                'error': str(e),
+                'passed': False,
+            }
+            all_passed = False
+    
+    # Summary
+    print("\n" + "=" * 70)
+    print("  TEST SUMMARY")
+    print("=" * 70)
+    
+    passed_count = sum(1 for r in results.values() if r.get('passed'))
+    failed_count = len(results) - passed_count
+    
+    print(f"\n    Passed: {passed_count}/{len(results)}")
+    print(f"    Failed: {failed_count}/{len(results)}")
+    
+    if all_passed:
+        print(f"\n    ✅ All watchlist scrapers passed! Safe to run full scrape.")
+    else:
+        print(f"\n    ⚠️  Some scrapers have issues. Review before full scrape.")
+        print(f"       Run with --sources to skip problematic scrapers.")
+    
+    print("\n" + "=" * 70 + "\n")
+    
+    return results
+
+
+def run_health_check() -> dict:
+    """
+    Run health checks on scraped data in the database.
+    
+    Checks:
+    - Salary coverage by employer
+    - Description quality
+    - Location validity
+    - Stale job detection
+    """
+    from db.database import init_db, get_session
+    from db.models import Job
+    from sqlalchemy import func
+    from processing.agents.qa_agent import HUMBOLDT_LOCATIONS, NON_HUMBOLDT_LOCATIONS, BAD_DESCRIPTION_PATTERNS
+    import re
+    
+    init_db()
+    session = get_session()
+    
+    print("\n" + "=" * 70)
+    print("  SCRAPER HEALTH CHECK")
+    print("  Validating data quality in database")
+    print("=" * 70 + "\n")
+    
+    jobs = session.query(Job).filter(Job.is_active == True).all()
+    total = len(jobs)
+    
+    if total == 0:
+        print("    No active jobs in database.")
+        return {}
+    
+    # 1. Salary coverage by employer
+    print("  1. SALARY COVERAGE BY EMPLOYER")
+    print("-" * 50)
+    
+    from collections import Counter
+    emp_totals = Counter(j.employer for j in jobs)
+    emp_with_salary = Counter(j.employer for j in jobs if j.salary_text)
+    
+    low_salary_employers = []
+    for emp in sorted(emp_totals.keys()):
+        total_emp = emp_totals[emp]
+        with_sal = emp_with_salary.get(emp, 0)
+        rate = with_sal / total_emp if total_emp > 0 else 0
+        
+        if rate < 0.3 and total_emp >= 2:  # Less than 30% salary coverage
+            low_salary_employers.append((emp, with_sal, total_emp, rate))
+    
+    if low_salary_employers:
+        print(f"    ⚠️  Employers with low salary coverage (<30%):")
+        for emp, with_sal, total_emp, rate in low_salary_employers[:10]:
+            print(f"       {emp}: {with_sal}/{total_emp} ({rate:.0%})")
+    else:
+        print(f"    ✓ All employers have good salary coverage")
+    
+    # 2. Description quality
+    print(f"\n  2. DESCRIPTION QUALITY")
+    print("-" * 50)
+    
+    bad_descriptions = []
+    for job in jobs:
+        if job.description:
+            for pattern in BAD_DESCRIPTION_PATTERNS:
+                if re.match(pattern, job.description.strip(), re.IGNORECASE):
+                    bad_descriptions.append((job.id, job.title, job.employer, job.description[:50]))
+                    break
+    
+    if bad_descriptions:
+        print(f"    ⚠️  {len(bad_descriptions)} jobs with garbled descriptions:")
+        for job_id, title, emp, desc in bad_descriptions[:5]:
+            print(f"       ID {job_id}: {title[:30]}... at {emp}")
+            print(f"          Desc: \"{desc}...\"")
+    else:
+        print(f"    ✓ All descriptions look valid")
+    
+    # 3. Location validity
+    print(f"\n  3. LOCATION VALIDITY")
+    print("-" * 50)
+    
+    invalid_locations = []
+    for job in jobs:
+        if job.location:
+            loc_lower = job.location.lower()
+            # Check if explicitly NOT in Humboldt
+            for non_humboldt in NON_HUMBOLDT_LOCATIONS:
+                if non_humboldt in loc_lower:
+                    invalid_locations.append((job.id, job.title, job.employer, job.location))
+                    break
+    
+    if invalid_locations:
+        print(f"    ⚠️  {len(invalid_locations)} jobs with non-Humboldt locations:")
+        for job_id, title, emp, loc in invalid_locations[:5]:
+            print(f"       ID {job_id}: {title[:30]}... at {emp}")
+            print(f"          Location: {loc}")
+    else:
+        print(f"    ✓ All locations appear valid")
+    
+    # 4. Data completeness summary
+    print(f"\n  4. DATA COMPLETENESS SUMMARY")
+    print("-" * 50)
+    
+    with_salary = sum(1 for j in jobs if j.salary_text)
+    with_desc = sum(1 for j in jobs if j.description and len(j.description) > 50)
+    with_location = sum(1 for j in jobs if j.location)
+    
+    print(f"    Total active jobs:    {total}")
+    print(f"    With salary:          {with_salary} ({with_salary/total:.0%})")
+    print(f"    With description:     {with_desc} ({with_desc/total:.0%})")
+    print(f"    With location:        {with_location} ({with_location/total:.0%})")
+    
+    # Overall health score
+    health_score = (
+        (with_salary / total * 30) +  # Salary worth 30 points
+        (with_desc / total * 30) +     # Description worth 30 points
+        (with_location / total * 20) + # Location worth 20 points
+        (1 - len(bad_descriptions) / total) * 10 +  # Quality worth 10 points
+        (1 - len(invalid_locations) / total) * 10   # Location accuracy worth 10 points
+    )
+    
+    print(f"\n    📊 HEALTH SCORE: {health_score:.0f}/100")
+    
+    if health_score >= 80:
+        print(f"       ✅ Excellent - data quality is good")
+    elif health_score >= 60:
+        print(f"       ⚠️  Fair - some improvements needed")
+    else:
+        print(f"       ❌ Poor - significant data quality issues")
+    
+    print("\n" + "=" * 70 + "\n")
+    
+    session.close()
+    
+    return {
+        'total_jobs': total,
+        'with_salary': with_salary,
+        'with_description': with_desc,
+        'bad_descriptions': len(bad_descriptions),
+        'invalid_locations': len(invalid_locations),
+        'health_score': health_score,
+        'low_salary_employers': low_salary_employers,
+    }
+
+
 def run_ai_analysis():
     """Run AI-powered market analysis."""
     from processing import get_analyst_agent
@@ -791,6 +1097,10 @@ Examples:
     python main.py --stats              Show statistics
     python main.py --check              Check for anomalies in data
     python main.py --check --clean      Auto-delete anomalies
+
+Testing & Health Checks:
+    python main.py --test-watchlist     Test problematic scrapers (no DB changes)
+    python main.py --health-check       Check data quality in database
     
 AI Agent Commands:
     python main.py --ai-qa              AI reviews data quality
@@ -895,10 +1205,27 @@ AI Agent Commands:
         help='AI analyzes job market trends and anomalies'
     )
     
+    # Watchlist and health check arguments
+    parser.add_argument(
+        '--test-watchlist',
+        action='store_true',
+        help='Test problematic scrapers before full scrape (no DB changes)'
+    )
+    
+    parser.add_argument(
+        '--health-check',
+        action='store_true',
+        help='Run health checks on data in the database'
+    )
+    
     args = parser.parse_args()
     
-    # Handle AI commands first
-    if args.ai_qa:
+    # Handle commands
+    if args.test_watchlist:
+        run_test_watchlist(verbose=True)
+    elif args.health_check:
+        run_health_check()
+    elif args.ai_qa:
         run_ai_qa(auto_quarantine=args.clean)
     elif args.ai_debug:
         run_ai_debug(args.ai_debug)

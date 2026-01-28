@@ -1375,6 +1375,85 @@ class HumboldtCreameryScraper(BaseScraper):
             self.logger.debug(f"  Error verifying location for {url}: {e}")
             return None
     
+    def _fetch_job_details(self, page, url: str) -> dict:
+        """
+        Fetch salary and other details from Paylocity job detail page.
+        
+        Paylocity format shows:
+        - Salary Description: 80,000 to 90,000
+        """
+        result = {}
+        try:
+            page.goto(url, wait_until='domcontentloaded', timeout=15000)
+            page.wait_for_timeout(2000)
+            
+            text = page.inner_text('body')
+            
+            # Extract salary - Paylocity format: "Salary Description: 80,000 to 90,000"
+            salary_match = re.search(
+                r'Salary\s*(?:Description|Range)?[:\s]*\$?([\d,]+(?:\.\d+)?)\s*(?:to|-)\s*\$?([\d,]+(?:\.\d+)?)',
+                text,
+                re.IGNORECASE
+            )
+            if salary_match:
+                low = salary_match.group(1).replace(',', '')
+                high = salary_match.group(2).replace(',', '')
+                try:
+                    low_val = float(low)
+                    high_val = float(high)
+                    if low_val > 200:  # Likely annual salary
+                        result['salary_text'] = f"${low} - ${high}/yr"
+                        result['salary_min'] = int(low_val)
+                        result['salary_max'] = int(high_val)
+                        result['salary_type'] = 'annual'
+                    else:  # Likely hourly
+                        result['salary_text'] = f"${low} - ${high}/hr"
+                        result['salary_min'] = int(low_val * 2080)
+                        result['salary_max'] = int(high_val * 2080)
+                        result['salary_type'] = 'hourly'
+                except:
+                    result['salary_text'] = f"${low} - ${high}"
+            
+            # AI FALLBACK: If salary not found by regex, try AI extraction
+            if 'salary_text' not in result:
+                try:
+                    from processing.ai_extractor import extract_with_ai, is_ai_available
+                    if is_ai_available():
+                        self.logger.debug(f"    Using AI fallback for salary extraction")
+                        ai_result = extract_with_ai(
+                            page_text=text[:3000],
+                            job_title="",
+                            extract_salary=True,
+                            extract_description=False
+                        )
+                        if ai_result and ai_result.salary_text and ai_result.confidence >= 0.5:
+                            result['salary_text'] = ai_result.salary_text
+                            if ai_result.salary_min:
+                                if ai_result.salary_type == 'hourly':
+                                    result['salary_min'] = int(ai_result.salary_min * 2080)
+                                    result['salary_max'] = int((ai_result.salary_max or ai_result.salary_min) * 2080)
+                                else:
+                                    result['salary_min'] = int(ai_result.salary_min)
+                                    result['salary_max'] = int(ai_result.salary_max or ai_result.salary_min)
+                            self.logger.info(f"    AI extracted salary: {ai_result.salary_text}")
+                except Exception as ai_e:
+                    self.logger.debug(f"    AI fallback failed: {ai_e}")
+            
+            # Extract description
+            desc_match = re.search(
+                r'(?:Job\s+Description|Description|Overview)[:\s]*(.{100,2000}?)(?=\n\n|Requirements|Qualifications|Benefits|$)',
+                text,
+                re.IGNORECASE | re.DOTALL
+            )
+            if desc_match:
+                result['description'] = desc_match.group(1).strip()[:1500]
+            
+            return result
+            
+        except Exception as e:
+            self.logger.debug(f"  Error fetching details for {url}: {e}")
+            return result
+    
     def scrape(self) -> List[JobData]:
         self.logger.info(f"Scraping {self.employer_name}...")
         jobs = []
@@ -1437,6 +1516,18 @@ class HumboldtCreameryScraper(BaseScraper):
                             )
                             if self.validate_job(job):
                                 jobs.append(job)
+                
+                # Fetch salary and details for each job
+                if jobs:
+                    self.logger.info(f"  Fetching details for {len(jobs)} jobs...")
+                    for job in jobs:
+                        details = self._fetch_job_details(page, job.url)
+                        if details:
+                            self.apply_detail_data(job, details)
+                            if details.get('salary_text'):
+                                self.logger.info(f"    Found salary for {job.title}: {details['salary_text']}")
+                        import time
+                        time.sleep(0.5)
                 
                 browser.close()
             
